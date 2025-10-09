@@ -54,4 +54,10 @@ object UiConstants {
         val compactPadding = 4.dp
         val mediumSpacing = 16.dp
     }
+    
+    // Animation durations
+    object Animation {
+        const val sectionExpandCollapseDurationMs = 150
+        const val errorMessageDurationMs = 150
+    }
 }

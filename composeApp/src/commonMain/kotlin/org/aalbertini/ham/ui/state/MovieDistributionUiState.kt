@@ -5,7 +5,7 @@ import org.aalbertini.ham.model.MovieResult
 /**
  * UI State for the Calculator screen
  */
-data class CalculatorUiState(
+data class MovieDistributionUiState(
     val p1Input: String = "",
     val p2Input: String = "",
     val currentMovieResultId: String? = null,
@@ -17,7 +17,17 @@ data class CalculatorUiState(
     val expandSaved: Boolean = false,
     val resultsWithRounded: List<Long> = emptyList(),
     val isLoading: Boolean = false,
-    val notification: NotificationMessage? = null
+    val notification: NotificationMessage? = null,
+    val parameterConflict: ParameterConflict? = null
+)
+
+/**
+ * Represents a conflict when saving a movie with different parameters
+ */
+data class ParameterConflict(
+    val existingMovie: MovieResult,
+    val newCommercialScore: Double,
+    val newSeats: Double
 )
 
 /**

@@ -79,6 +79,9 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
         }
+        webMain.dependencies {
+            implementation(libs.kotlinx.browser)
+        }
     }
 }
 

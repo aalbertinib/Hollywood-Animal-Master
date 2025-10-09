@@ -1,13 +1,16 @@
 package org.aalbertini.ham
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import org.aalbertini.ham.preferences.ThemePreferences
+import androidx.compose.ui.geometry.Offset
+import org.aalbertini.ham.preferences.SettingsPreferences
 import org.aalbertini.ham.ui.screen.MovieWeeklyDistributionCalculatorScreen
-import org.aalbertini.ham.ui.theme.AppTheme
+import org.aalbertini.ham.ui.theme.HAMTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -16,15 +19,30 @@ fun App(
     alwaysOnTop: Boolean = false,
     onAlwaysOnTopChange: ((Boolean) -> Unit)? = null
 ) {
-    val themePreferences = remember { ThemePreferences() }
-    var isDarkMode by remember { mutableStateOf(themePreferences.loadTheme()) }
+    val settingsPreferences = remember { SettingsPreferences() }
+    val themePreset by settingsPreferences.themePreset.collectAsState()
     
-    AppTheme(useDarkTheme = isDarkMode) {
+    // Use saved dark mode preference, or fall back to system default
+    val systemDarkMode = isSystemInDarkTheme()
+    val savedDarkMode = remember { settingsPreferences.loadDarkModeOrNull() }
+    var isDarkMode by remember { mutableStateOf(savedDarkMode ?: systemDarkMode) }
+    var themeToggleOffset by remember { mutableStateOf<Offset?>(null) }
+    
+    HAMTheme(
+        darkTheme = isDarkMode,
+        themePreset = themePreset
+    ) {
         MovieWeeklyDistributionCalculatorScreen(
             isDarkMode = isDarkMode,
-            onThemeToggle = {
+            themeToggleOffset = themeToggleOffset,
+            currentThemePreset = themePreset,
+            onThemeToggle = { offset ->
+                themeToggleOffset = offset
                 isDarkMode = !isDarkMode
-                themePreferences.saveTheme(isDarkMode)
+                settingsPreferences.saveDarkMode(isDarkMode)
+            },
+            onThemePresetChange = { preset ->
+                settingsPreferences.saveThemePreset(preset)
             },
             alwaysOnTop = alwaysOnTop,
             onAlwaysOnTopChange = onAlwaysOnTopChange

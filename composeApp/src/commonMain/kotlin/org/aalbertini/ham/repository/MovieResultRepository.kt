@@ -42,11 +42,14 @@ class MovieResultRepository(
      */
     fun saveMovieResult(title: String, commercialScore: Double, numberOfSeats: Double): MovieResult {
         val movieResults = loadMovieResults().toMutableList()
+        val currentTime = Clock.System.now().toEpochMilliseconds()
         val newMovieResult = MovieResult(
             id = generateId(),
             title = title,
             commercialScore = commercialScore,
-            numberOfSeats = numberOfSeats
+            numberOfSeats = numberOfSeats,
+            createdAt = currentTime,
+            updatedAt = currentTime
         )
         movieResults.add(newMovieResult)
         saveAllMovieResults(movieResults)
@@ -105,6 +108,13 @@ class MovieResultRepository(
      */
     fun getMovieResultById(id: String): MovieResult? {
         return loadMovieResults().firstOrNull { it.id == id }
+    }
+    
+    /**
+     * Gets a movie result by title (case-sensitive)
+     */
+    fun getMovieResultByTitle(title: String): MovieResult? {
+        return loadMovieResults().firstOrNull { it.title == title }
     }
     
     /**

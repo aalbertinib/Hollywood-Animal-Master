@@ -6,7 +6,7 @@ package org.aalbertini.ham
  * 
  * Keep these separate from UI constants to maintain proper separation of concerns.
  */
-object CalculationConstants {
+object MovieDistributionConstants {
     /**
      * Multipliers used in weekly calculations
      */

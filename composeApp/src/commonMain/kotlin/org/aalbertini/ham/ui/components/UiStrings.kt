@@ -1,6 +1,6 @@
 package org.aalbertini.ham.ui.components
 
-import org.aalbertini.ham.CalculationConstants
+import org.aalbertini.ham.MovieDistributionConstants
 
 /**
  * UI String constants to avoid duplication.
@@ -33,10 +33,14 @@ object UiStrings {
     const val ACTION_COPY_RESULTS = "Copy results"
     const val ACTION_EXPAND = "Expand"
     const val ACTION_COLLAPSE = "Collapse"
-    const val ACTION_CLEAR_ALL = "Clear all saved movies"
     const val ACTION_LOAD_MOVIE = "Load Movie Parameters"
     const val ACTION_EDIT_MOVIE = "Edit Movie Parameters"
     const val ACTION_DELETE_MOVIE = "Delete Movie Parameters"
+    
+    /**
+     * Clear all action text with item count
+     */
+    fun actionClearAll(count: Int) = "Clear All ($count)"
 
     // Theme
     const val ACTION_SWITCH_TO_LIGHT = "Switch to Light Mode"
@@ -51,16 +55,16 @@ object UiStrings {
      * Commercial score label with validation range from constants
      */
     fun labelCommercialScore(
-        min: Double = CalculationConstants.Validation.COMMERCIAL_SCORE_MIN,
-        max: Double = CalculationConstants.Validation.COMMERCIAL_SCORE_MAX
+        min: Double = MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN,
+        max: Double = MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
     ): String = "Commercial score ($min – ${max.toInt()})"
 
     /**
      * Number of seats label with validation range from constants
      */
     fun labelNumberOfSeats(
-        min: Double = CalculationConstants.Validation.SEATS_MIN,
-        max: Double = CalculationConstants.Validation.SEATS_MAX
+        min: Double = MovieDistributionConstants.Validation.SEATS_MIN,
+        max: Double = MovieDistributionConstants.Validation.SEATS_MAX
     ): String {
         val minFormatted = if (min == 0.0) "0" else min.toInt().toString()
         val maxFormatted = formatNumber(max.toInt())
@@ -72,16 +76,16 @@ object UiStrings {
      * Commercial score error message with validation range from constants
      */
     fun errorCommercialScore(
-        min: Double = CalculationConstants.Validation.COMMERCIAL_SCORE_MIN,
-        max: Double = CalculationConstants.Validation.COMMERCIAL_SCORE_MAX
+        min: Double = MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN,
+        max: Double = MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
     ): String = "Enter a number between $min and ${max.toInt()}"
 
     /**
      * Number of seats error message with validation range from constants
      */
     fun errorNumberOfSeats(
-        min: Double = CalculationConstants.Validation.SEATS_MIN,
-        max: Double = CalculationConstants.Validation.SEATS_MAX
+        min: Double = MovieDistributionConstants.Validation.SEATS_MIN,
+        max: Double = MovieDistributionConstants.Validation.SEATS_MAX
     ): String {
         val minFormatted = if (min == 0.0) "0" else min.toInt().toString()
         val maxFormatted = formatNumber(max.toInt())
@@ -144,9 +148,9 @@ object UiStrings {
      * Results placeholder message with validation ranges
      */
     fun messageEnterValidParameters(
-        minScore: Double = CalculationConstants.Validation.COMMERCIAL_SCORE_MIN,
-        maxScore: Double = CalculationConstants.Validation.COMMERCIAL_SCORE_MAX,
-        minSeats: Double = CalculationConstants.Validation.SEATS_MIN
+        minScore: Double = MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN,
+        maxScore: Double = MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX,
+        minSeats: Double = MovieDistributionConstants.Validation.SEATS_MIN
     ): String = "Enter valid Commercial score ($minScore–${maxScore.toInt()}) and your number of seats (>= ${minSeats.toInt()}) to see results."
     
     /**

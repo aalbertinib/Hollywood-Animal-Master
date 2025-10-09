@@ -1,7 +1,6 @@
 package org.aalbertini.ham.ui.components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -34,7 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import org.aalbertini.ham.CalculationConstants
+import org.aalbertini.ham.MovieDistributionConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,8 +98,8 @@ fun ResultsSection(
                         state = rememberTooltipState()
                     ) {
                         IconButton(onClick = onToggleExpand) {
-                            Icon(
-                                if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            AnimatedIcon(
+                                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                                 contentDescription = if (expanded) UiStrings.CONTENT_DESC_COLLAPSE else UiStrings.CONTENT_DESC_EXPAND
                             )
                         }
@@ -108,7 +107,7 @@ fun ResultsSection(
                 }
             }
             
-            AnimatedVisibility(visible = expanded) {
+            SectionAnimatedVisibility(visible = expanded) {
                 AnimatedContent(
                     targetState = results,
                     label = "results",
@@ -123,7 +122,7 @@ fun ResultsSection(
                             )
                         } else {
                             Column(verticalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements)) {
-                            for (i in 1..CalculationConstants.WeeklyCalculation.NUMBER_OF_WEEKS) {
+                            for (i in 1..MovieDistributionConstants.WeeklyCalculation.NUMBER_OF_WEEKS) {
                                 Row(modifier = Modifier.fillMaxWidth()) {
                                     Text(
                                         text = UiStrings.weekNumber(i),
@@ -138,7 +137,7 @@ fun ResultsSection(
                                         modifier = Modifier.weight(1f)
                                     )
                                 }
-                                if (i < CalculationConstants.WeeklyCalculation.NUMBER_OF_WEEKS) HorizontalDivider()
+                                if (i < MovieDistributionConstants.WeeklyCalculation.NUMBER_OF_WEEKS) HorizontalDivider()
                             }
                         }
                         }

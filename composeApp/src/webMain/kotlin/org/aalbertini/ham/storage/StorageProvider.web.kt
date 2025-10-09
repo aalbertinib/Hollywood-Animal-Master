@@ -10,7 +10,7 @@ actual class StorageProvider {
         try {
             localStorage.setItem(key, data)
         } catch (e: Exception) {
-            console.error("Error saving data: ${e.message}")
+            println("Error saving data: ${e.message}")
         }
     }
     
@@ -18,7 +18,7 @@ actual class StorageProvider {
         return try {
             localStorage.getItem(key)
         } catch (e: Exception) {
-            console.error("Error loading data: ${e.message}")
+            println("Error loading data: ${e.message}")
             null
         }
     }

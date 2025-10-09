@@ -1,6 +1,5 @@
 package org.aalbertini.ham.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -83,7 +82,7 @@ fun SavedMovieResultsSection(
                     if (movieResults.isNotEmpty()) {
                         TooltipBox(
                             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                            tooltip = { PlainTooltip { Text(UiStrings.ACTION_CLEAR_ALL) } },
+                            tooltip = { PlainTooltip { Text(UiStrings.actionClearAll(movieResults.size)) } },
                             state = rememberTooltipState()
                         ) {
                             IconButton(onClick = onClearAllClick) {
@@ -101,8 +100,8 @@ fun SavedMovieResultsSection(
                         state = rememberTooltipState()
                     ) {
                         IconButton(onClick = onToggleExpand) {
-                            Icon(
-                                if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            AnimatedIcon(
+                                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                                 contentDescription = if (expanded) UiStrings.CONTENT_DESC_COLLAPSE else UiStrings.CONTENT_DESC_EXPAND
                             )
                         }
@@ -110,7 +109,7 @@ fun SavedMovieResultsSection(
                 }
             }
             
-            AnimatedVisibility(visible = expanded) {
+            SectionAnimatedVisibility(visible = expanded) {
                 Column(modifier = Modifier.padding(UiConstants.Padding.contentStandard), verticalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements)) {
                     if (movieResults.isEmpty()) {
                         Text(

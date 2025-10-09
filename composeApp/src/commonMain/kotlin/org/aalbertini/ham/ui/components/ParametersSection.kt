@@ -1,11 +1,6 @@
 package org.aalbertini.ham.ui.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,9 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,7 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import org.aalbertini.ham.CalculationConstants
+import org.aalbertini.ham.MovieDistributionConstants
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,10 +55,10 @@ fun ParametersSection(
     val p1 = remember(p1Input) { p1Input.toDoubleOrNull() }
     val p2 = remember(p2Input) { p2Input.toDoubleOrNull() }
     val p1Valid = remember(p1) { 
-        p1 != null && p1 >= CalculationConstants.Validation.COMMERCIAL_SCORE_MIN && p1 <= CalculationConstants.Validation.COMMERCIAL_SCORE_MAX 
+        p1 != null && p1 >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN && p1 <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
     }
     val p2Valid = remember(p2) { 
-        p2 != null && p2 >= CalculationConstants.Validation.SEATS_MIN && p2 <= CalculationConstants.Validation.SEATS_MAX 
+        p2 != null && p2 >= MovieDistributionConstants.Validation.SEATS_MIN && p2 <= MovieDistributionConstants.Validation.SEATS_MAX
     }
     val hasCurrentMovieResult = remember(currentMovieResultTitle) { currentMovieResultTitle != null }
     
@@ -161,7 +156,7 @@ fun ParametersSection(
                         ) {
                             IconButton(onClick = onRevertTitle) {
                                 Icon(
-                                    Icons.Filled.Undo,
+                                    Icons.AutoMirrored.Filled.Undo,
                                     contentDescription = UiStrings.ACTION_REVERT_TO_ORIGINAL,
                                     tint = MaterialTheme.colorScheme.secondary
                                 )
@@ -185,15 +180,11 @@ fun ParametersSection(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         isError = p1Input.isNotEmpty() && (p1Input.toDoubleOrNull()
-                            ?.let { it < CalculationConstants.Validation.COMMERCIAL_SCORE_MIN || it > CalculationConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true),
+                            ?.let { it < MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN || it > MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true),
                         supportingText = {
                             val showError = p1Input.isNotEmpty() && (p1Input.toDoubleOrNull()
-                                ?.let { it < CalculationConstants.Validation.COMMERCIAL_SCORE_MIN || it > CalculationConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true)
-                            AnimatedVisibility(
-                                visible = showError,
-                                enter = fadeIn() + expandVertically(),
-                                exit = fadeOut() + shrinkVertically()
-                            ) {
+                                ?.let { it < MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN || it > MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true)
+                            ErrorMessageAnimatedVisibility(visible = showError) {
                                 Text(UiStrings.errorCommercialScore())
                             }
                         },
@@ -216,15 +207,11 @@ fun ParametersSection(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         isError = p2Input.isNotEmpty() && (p2Input.toDoubleOrNull()
-                            ?.let { it < CalculationConstants.Validation.SEATS_MIN || it > CalculationConstants.Validation.SEATS_MAX } ?: true),
+                            ?.let { it < MovieDistributionConstants.Validation.SEATS_MIN || it > MovieDistributionConstants.Validation.SEATS_MAX } ?: true),
                         supportingText = {
                             val showError = p2Input.isNotEmpty() && (p2Input.toDoubleOrNull()
-                                ?.let { it < CalculationConstants.Validation.SEATS_MIN || it > CalculationConstants.Validation.SEATS_MAX } ?: true)
-                            AnimatedVisibility(
-                                visible = showError,
-                                enter = fadeIn() + expandVertically(),
-                                exit = fadeOut() + shrinkVertically()
-                            ) {
+                                ?.let { it < MovieDistributionConstants.Validation.SEATS_MIN || it > MovieDistributionConstants.Validation.SEATS_MAX } ?: true)
+                            ErrorMessageAnimatedVisibility(visible = showError) {
                                 Text(UiStrings.errorNumberOfSeats())
                             }
                         },
