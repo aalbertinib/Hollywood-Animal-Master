@@ -59,4 +59,15 @@ object MovieDistributionConstants {
         /** Maximum number of seats value */
         const val SEATS_MAX = 1_000_000.0
     }
+    
+    /**
+     * Default values for new movie calculations
+     */
+    object Defaults {
+        /** Default commercial score for new movies */
+        const val COMMERCIAL_SCORE = 5.0
+        
+        /** Default number of available seats for new movies */
+        const val AVAILABLE_SEATS = 3_200
+    }
 }

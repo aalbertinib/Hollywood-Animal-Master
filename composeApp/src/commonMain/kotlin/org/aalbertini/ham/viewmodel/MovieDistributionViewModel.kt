@@ -63,14 +63,41 @@ class MovieDistributionViewModel(
     }
 
     private fun updateCommercialScoreInput(value: String) {
-        val filtered = value.filterNumericInput()
-        _uiState.update { it.copy(commercialScoreInput = filtered) }
+        // Limit to 1 decimal place for commercial score
+        val filtered = value.filterNumericInput(maxDecimalPlaces = 1)
+        
+        // Apply range restriction if value is complete (not just typing)
+        val finalValue = if (filtered.isNotEmpty() && !filtered.endsWith(".")) {
+            val numValue = filtered.toDoubleOrNull()
+            if (numValue != null && numValue > MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX) {
+                MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX.toString()
+            } else {
+                filtered
+            }
+        } else {
+            filtered
+        }
+        
+        _uiState.update { it.copy(commercialScoreInput = finalValue) }
         calculateResults()
     }
 
     private fun updateAvailableSeatsInput(value: String) {
         val filtered = value.filterNumericInput()
-        _uiState.update { it.copy(availableSeatsInput = filtered) }
+        
+        // Apply range restriction if value is complete (not just typing)
+        val finalValue = if (filtered.isNotEmpty() && !filtered.endsWith(".")) {
+            val numValue = filtered.toDoubleOrNull()
+            if (numValue != null && numValue > MovieDistributionConstants.Validation.SEATS_MAX) {
+                MovieDistributionConstants.Validation.SEATS_MAX.toLong().toString()
+            } else {
+                filtered
+            }
+        } else {
+            filtered
+        }
+        
+        _uiState.update { it.copy(availableSeatsInput = finalValue) }
         calculateResults()
     }
 
@@ -396,10 +423,13 @@ class MovieDistributionViewModel(
     }
 
     private fun newMovieResult() {
+        val defaultCommercialScore = MovieDistributionConstants.Defaults.COMMERCIAL_SCORE.toString()
+        val defaultAvailableSeats = MovieDistributionConstants.Defaults.AVAILABLE_SEATS.toLong().toString()
+        
         _uiState.update {
             it.copy(
-                commercialScoreInput = "",
-                availableSeatsInput = "",
+                commercialScoreInput = defaultCommercialScore,
+                availableSeatsInput = defaultAvailableSeats,
                 availableSeatsOverrides = emptyMap(),
                 availableSeatsOverrideInputs = emptyMap(),
                 currentMovieResultId = null,
@@ -411,6 +441,8 @@ class MovieDistributionViewModel(
                 resultsWithRounded = emptyList()
             )
         }
+        // Trigger calculation with default values
+        calculateResults()
     }
 
     private fun loadSavedMovieResults() {
