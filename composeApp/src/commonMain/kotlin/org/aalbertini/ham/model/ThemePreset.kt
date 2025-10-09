@@ -19,7 +19,7 @@ enum class ThemePreset(
     ),
     HOLLYWOOD_CLASSIC(
         displayName = "Hollywood Classic",
-        description = "Art Deco gold and sepia tones"
+        description = "Authentic colors from the game's Art Deco UI"
     ),
     OCEAN_BREEZE(
         displayName = "Ocean Breeze",
@@ -76,11 +76,11 @@ object ThemeColorSchemes {
         }
     }
     
-    // Hollywood Classic Theme (Original) - Fixed contrast issues
+    // Hollywood Classic Theme - Inspired by Hollywood Animal game UI
     private fun hollywoodClassicLight() = lightColorScheme(
         primary = Color(0xFFB8860B),
         onPrimary = Color.White,
-        primaryContainer = Color(0xFFF4E5C3),
+        primaryContainer = Color(0xFFD4B896),
         onPrimaryContainer = Color(0xFF2A1810),
         secondary = Color(0xFF8B5A2B),
         onSecondary = Color.White,
@@ -101,26 +101,26 @@ object ThemeColorSchemes {
     )
     
     private fun hollywoodClassicDark() = darkColorScheme(
-        primary = Color(0xFFF4D58D),
-        onPrimary = Color(0xFF3A2810),
-        primaryContainer = Color(0xFF6B4C10),
-        onPrimaryContainer = Color(0xFFFFF0D0),
-        secondary = Color(0xFFCD7F32),
-        onSecondary = Color(0xFF3A2810),
-        secondaryContainer = Color(0xFF6B4520),
-        onSecondaryContainer = Color(0xFFFFE8D6),
-        tertiary = Color(0xFFFF8A9B),
-        onTertiary = Color(0xFF5C1125),
-        tertiaryContainer = Color(0xFF7D2839),
-        onTertiaryContainer = Color(0xFFFFDAD9),
-        background = Color(0xFF1A1512),
-        onBackground = Color(0xFFE8E1DC),
-        surface = Color(0xFF1A1512),
-        onSurface = Color(0xFFE8E1DC),
-        surfaceVariant = Color(0xFF4A433A),
-        onSurfaceVariant = Color(0xFFCFC4B8),
-        error = Color(0xFFF2B8B5),
-        onError = Color(0xFF601410),
+        primary = Color(0xFFD4AF37),           // Classic gold from game UI
+        onPrimary = Color(0xFF1A1512),         // Dark text on gold
+        primaryContainer = Color(0xFF3E2F1A),  // Dark brown container (better contrast)
+        onPrimaryContainer = Color(0xFFE8D4A0), // Light gold text on dark brown
+        secondary = Color(0xFFCD7F32),         // Bronze accent
+        onSecondary = Color(0xFF1A1512),       // Dark text on bronze
+        secondaryContainer = Color(0xFF3A2416), // Dark bronze container
+        onSecondaryContainer = Color(0xFFE8C9A8), // Light bronze text
+        tertiary = Color(0xFF5DB3C8),          // Teal accent from game
+        onTertiary = Color(0xFF003D47),        // Dark text on teal
+        tertiaryContainer = Color(0xFF1A3238), // Dark teal container
+        onTertiaryContainer = Color(0xFFB8E8F5), // Light teal text
+        background = Color(0xFF0D0D0D),        // Very dark bg from game
+        onBackground = Color(0xFFE8E1DC),      // Light text on dark bg
+        surface = Color(0xFF1A1A1A),           // Slightly lighter surface
+        onSurface = Color(0xFFE8E1DC),         // Light text on surface
+        surfaceVariant = Color(0xFF2A2520),    // Dark brown surface variant
+        onSurfaceVariant = Color(0xFFC4A574),  // Muted gold on dark brown (better contrast)
+        error = Color(0xFFE8A040),             // Orange from expenses
+        onError = Color(0xFF1A1512),           // Dark text on error
     )
     
     // Ocean Breeze Theme - Verified contrast
