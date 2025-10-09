@@ -1,4 +1,4 @@
-package org.aalbertini.ham.repository
+﻿package org.aalbertini.ham.repository
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -40,7 +40,12 @@ class MovieResultRepository(
     /**
      * Saves a new movie result
      */
-    fun saveMovieResult(title: String, commercialScore: Double, numberOfSeats: Double): MovieResult {
+    fun saveMovieResult(
+        title: String, 
+        commercialScore: Double, 
+        numberOfSeats: Double,
+        availableSeatsOverrides: Map<Int, Double> = emptyMap()
+    ): MovieResult {
         val movieResults = loadMovieResults().toMutableList()
         val currentTime = Clock.System.now().toEpochMilliseconds()
         val newMovieResult = MovieResult(
@@ -48,6 +53,7 @@ class MovieResultRepository(
             title = title,
             commercialScore = commercialScore,
             numberOfSeats = numberOfSeats,
+            availableSeatsOverrides = availableSeatsOverrides,
             createdAt = currentTime,
             updatedAt = currentTime
         )
@@ -71,7 +77,8 @@ class MovieResultRepository(
         id: String,
         title: String,
         commercialScore: Double,
-        numberOfSeats: Double
+        numberOfSeats: Double,
+        availableSeatsOverrides: Map<Int, Double> = emptyMap()
     ): Boolean {
         val movieResults = loadMovieResults().toMutableList()
         val index = movieResults.indexOfFirst { it.id == id }
@@ -80,6 +87,7 @@ class MovieResultRepository(
                 title = title,
                 commercialScore = commercialScore,
                 numberOfSeats = numberOfSeats,
+                availableSeatsOverrides = availableSeatsOverrides,
                 updatedAt = Clock.System.now().toEpochMilliseconds()
             )
             movieResults[index] = updated

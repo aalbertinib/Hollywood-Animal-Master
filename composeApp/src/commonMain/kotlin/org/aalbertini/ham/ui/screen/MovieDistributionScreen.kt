@@ -1,4 +1,4 @@
-package org.aalbertini.ham.ui.screen
+﻿package org.aalbertini.ham.ui.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -206,23 +206,29 @@ fun MovieWeeklyDistributionCalculatorScreen(
                 modifier = contentModifier,
                 inputSection = {
                             ParametersSection(
-                                p1Input = uiState.p1Input,
-                                p2Input = uiState.p2Input,
+                                commercialScoreInput = uiState.commercialScoreInput,
+                                availableSeatsInput = uiState.availableSeatsInput,
                                 currentMovieResultTitle = uiState.currentMovieResultTitle,
                                 editableTitle = uiState.editableTitle,
                                 originalTitle = uiState.originalTitle,
+                                originalCommercialScore = uiState.originalCommercialScore,
+                                originalAvailableSeats = uiState.originalAvailableSeats,
                                 onTitleChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateEditableTitle(it)) },
-                                onP1Change = { viewModel.onEvent(MovieDistributionUiEvent.UpdateP1Input(it)) },
-                                onP2Change = { viewModel.onEvent(MovieDistributionUiEvent.UpdateP2Input(it)) },
+                                onCommercialScoreChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateCommercialScoreInput(it)) },
+                                onAvailableSeatsChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableSeatsInput(it)) },
                                 onSaveClick = { viewModel.onEvent(MovieDistributionUiEvent.AutoSaveMovieResult) },
                                 onNewClick = { viewModel.onEvent(MovieDistributionUiEvent.NewMovieResult) },
-                                onRevertTitle = { viewModel.onEvent(MovieDistributionUiEvent.RevertTitle) }
+                                onRevertTitle = { viewModel.onEvent(MovieDistributionUiEvent.RevertTitle) },
+                                onRevertCommercialScore = { viewModel.onEvent(MovieDistributionUiEvent.RevertCommercialScore) },
+                                onRevertAvailableSeats = { viewModel.onEvent(MovieDistributionUiEvent.RevertAvailableSeats) }
                             )
                         },
                         resultsSection = {
                             ResultsSection(
                                 results = uiState.resultsWithRounded,
                                 expanded = uiState.expandResults,
+                                availableSeatsValue = uiState.availableSeatsInput.toDoubleOrNull() ?: 0.0,
+                                availableSeatsOverrideInputs = uiState.availableSeatsOverrideInputs,
                                 onToggleExpand = { viewModel.onEvent(MovieDistributionUiEvent.ToggleResultsExpand) },
                                 onCopyClick = {
                                     val text = buildString {
@@ -233,6 +239,9 @@ fun MovieWeeklyDistributionCalculatorScreen(
                                     }
                                     clipboard.setText(AnnotatedString(text.trimEnd()))
                                     viewModel.onEvent(MovieDistributionUiEvent.CopyResults(uiState.resultsWithRounded))
+                                },
+                                onAvailableSeatsOverrideChange = { weekIndex, value ->
+                                    viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableSeatsOverride(weekIndex, value))
                                 }
                             )
                         },
@@ -276,8 +285,8 @@ fun MovieWeeklyDistributionCalculatorScreen(
         EditDialog(
             movieResult = movieResult,
             onDismiss = { showEditDialog = null },
-            onUpdate = { title, p1, p2 ->
-                viewModel.onEvent(MovieDistributionUiEvent.UpdateMovieResult(movieResult.id, title, p1, p2))
+            onUpdate = { title, commercialScore, availableSeats ->
+                viewModel.onEvent(MovieDistributionUiEvent.UpdateMovieResult(movieResult.id, title, commercialScore, availableSeats))
                 showEditDialog = null
             }
         )

@@ -11,10 +11,10 @@ object MovieDistributionConstants {
      * Multipliers used in weekly calculations
      */
     object Multipliers {
-        /** Multiplier for week 1 calculation (p1 * WEEK_ONE * BASE) */
+        /** Multiplier for week 1 calculation (commercialScore * WEEK_ONE * BASE) */
         const val WEEK_ONE = 2
         
-        /** Multiplier for week 2 calculation (p1 * WEEK_TWO * BASE) */
+        /** Multiplier for week 2 calculation (commercialScore * WEEK_TWO * BASE) */
         const val WEEK_TWO = 1
         
         /** Base multiplier applied to all calculations */

@@ -12,8 +12,9 @@ import kotlin.time.ExperimentalTime
 data class MovieResult(
     val id: String,
     val title: String,
-    val commercialScore: Double, // p1
-    val numberOfSeats: Double, // p2
+    val commercialScore: Double, // commercialScore
+    val numberOfSeats: Double, // availableSeats
+    val availableSeatsOverrides: Map<Int, Double> = emptyMap(), // Per-week availableSeats overrides (week index -> availableSeats value)
     val createdAt: Long = Clock.System.now().toEpochMilliseconds(),
     val updatedAt: Long = Clock.System.now().toEpochMilliseconds()
 )

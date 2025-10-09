@@ -1,4 +1,4 @@
-package org.aalbertini.ham.ui.components
+﻿package org.aalbertini.ham.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -189,10 +189,10 @@ fun EditDialog(
                     }
                     Button(
                         onClick = {
-                            val p1 = p1Input.toDoubleOrNull()
-                            val p2 = p2Input.toDoubleOrNull()
-                            if (title.isNotBlank() && p1 != null && p2 != null) {
-                                onUpdate(title, p1, p2)
+                            val commercialScore = p1Input.toDoubleOrNull()
+                            val availableSeats = p2Input.toDoubleOrNull()
+                            if (title.isNotBlank() && commercialScore != null && availableSeats != null) {
+                                onUpdate(title, commercialScore, availableSeats)
                             }
                         },
                         enabled = title.isNotBlank() &&

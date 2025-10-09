@@ -6,12 +6,16 @@ import org.aalbertini.ham.model.MovieResult
  * UI State for the Calculator screen
  */
 data class MovieDistributionUiState(
-    val p1Input: String = "",
-    val p2Input: String = "",
+    val commercialScoreInput: String = "",
+    val availableSeatsInput: String = "",
+    val availableSeatsOverrides: Map<Int, Double> = emptyMap(), // Per-week availableSeats overrides (week index -> availableSeats value)
+    val availableSeatsOverrideInputs: Map<Int, String> = emptyMap(), // Per-week availableSeats input strings for UI
     val currentMovieResultId: String? = null,
     val currentMovieResultTitle: String? = null,
     val editableTitle: String = "",
     val originalTitle: String? = null,
+    val originalCommercialScore: String? = null,
+    val originalAvailableSeats: String? = null,
     val savedMovieResults: List<MovieResult> = emptyList(),
     val expandResults: Boolean = true,
     val expandSaved: Boolean = false,

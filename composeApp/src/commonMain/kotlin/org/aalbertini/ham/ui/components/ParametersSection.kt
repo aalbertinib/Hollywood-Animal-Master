@@ -1,4 +1,4 @@
-package org.aalbertini.ham.ui.components
+﻿package org.aalbertini.ham.ui.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.border
@@ -39,26 +39,30 @@ import org.aalbertini.ham.MovieDistributionConstants
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParametersSection(
-    p1Input: String,
-    p2Input: String,
+    commercialScoreInput: String,
+    availableSeatsInput: String,
     currentMovieResultTitle: String?,
     editableTitle: String,
     originalTitle: String?,
+    originalCommercialScore: String?,
+    originalAvailableSeats: String?,
     onTitleChange: (String) -> Unit,
-    onP1Change: (String) -> Unit,
-    onP2Change: (String) -> Unit,
+    onCommercialScoreChange: (String) -> Unit,
+    onAvailableSeatsChange: (String) -> Unit,
     onSaveClick: () -> Unit,
     onNewClick: () -> Unit,
     onRevertTitle: () -> Unit,
+    onRevertCommercialScore: () -> Unit,
+    onRevertAvailableSeats: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val p1 = remember(p1Input) { p1Input.toDoubleOrNull() }
-    val p2 = remember(p2Input) { p2Input.toDoubleOrNull() }
-    val p1Valid = remember(p1) { 
-        p1 != null && p1 >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN && p1 <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
+    val commercialScore = remember(commercialScoreInput) { commercialScoreInput.toDoubleOrNull() }
+    val availableSeats = remember(availableSeatsInput) { availableSeatsInput.toDoubleOrNull() }
+    val commercialScoreValid = remember(commercialScore) { 
+        commercialScore != null && commercialScore >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN && commercialScore <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
     }
-    val p2Valid = remember(p2) { 
-        p2 != null && p2 >= MovieDistributionConstants.Validation.SEATS_MIN && p2 <= MovieDistributionConstants.Validation.SEATS_MAX
+    val availableSeatsValid = remember(availableSeats) { 
+        availableSeats != null && availableSeats >= MovieDistributionConstants.Validation.SEATS_MIN && availableSeats <= MovieDistributionConstants.Validation.SEATS_MAX
     }
     val hasCurrentMovieResult = remember(currentMovieResultTitle) { currentMovieResultTitle != null }
     
@@ -68,8 +72,8 @@ fun ParametersSection(
     }
     
     // If valid and saved with no changes, show check icon
-    val isSavedWithoutChanges = remember(hasCurrentMovieResult, p1Valid, p2Valid, hasUnsavedChanges) {
-        hasCurrentMovieResult && p1Valid && p2Valid && !hasUnsavedChanges
+    val isSavedWithoutChanges = remember(hasCurrentMovieResult, commercialScoreValid, availableSeatsValid, hasUnsavedChanges) {
+        hasCurrentMovieResult && commercialScoreValid && availableSeatsValid && !hasUnsavedChanges
     }
 
     Card(
@@ -117,7 +121,7 @@ fun ParametersSection(
                                 }
                             }
                         }
-                        if (p1Valid && p2Valid) {
+                        if (commercialScoreValid && availableSeatsValid) {
                             if (!isSavedWithoutChanges) {
                                 // Show save button when there are changes or new calculation
                                 IconButton(onClick = onSaveClick) {
@@ -167,56 +171,102 @@ fun ParametersSection(
 
                 Spacer(modifier = Modifier.height(UiConstants.Spacing.betweenSections))
 
-                // Commercial score with animated error text
+                // Commercial score with animated error text and revert button
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .animateContentSize()
                 ) {
-                    OutlinedTextField(
-                        value = p1Input,
-                        onValueChange = onP1Change,
-                        label = { Text(UiStrings.labelCommercialScore()) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        isError = p1Input.isNotEmpty() && (p1Input.toDoubleOrNull()
-                            ?.let { it < MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN || it > MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true),
-                        supportingText = {
-                            val showError = p1Input.isNotEmpty() && (p1Input.toDoubleOrNull()
-                                ?.let { it < MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN || it > MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true)
-                            ErrorMessageAnimatedVisibility(visible = showError) {
-                                Text(UiStrings.errorCommercialScore())
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = commercialScoreInput,
+                            onValueChange = onCommercialScoreChange,
+                            label = { Text(UiStrings.labelCommercialScore()) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            isError = commercialScoreInput.isNotEmpty() && (commercialScoreInput.toDoubleOrNull()
+                                ?.let { it < MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN || it > MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true),
+                            supportingText = {
+                                val showError = commercialScoreInput.isNotEmpty() && (commercialScoreInput.toDoubleOrNull()
+                                    ?.let { it < MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN || it > MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true)
+                                ErrorMessageAnimatedVisibility(visible = showError) {
+                                    Text(UiStrings.errorCommercialScore())
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        
+                        // Show revert button if commercial score was changed from original
+                        if (originalCommercialScore != null && commercialScoreInput != originalCommercialScore && commercialScoreInput.isNotBlank()) {
+                            TooltipBox(
+                                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                tooltip = { PlainTooltip { Text(UiStrings.ACTION_REVERT_TO_ORIGINAL) } },
+                                state = rememberTooltipState()
+                            ) {
+                                IconButton(onClick = onRevertCommercialScore) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.Undo,
+                                        contentDescription = UiStrings.ACTION_REVERT_TO_ORIGINAL,
+                                        tint = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        }
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(UiConstants.Spacing.betweenFields))
 
-                // Number of seats with animated error text
+                // Number of seats with animated error text and revert button
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .animateContentSize()
                 ) {
-                    OutlinedTextField(
-                        value = p2Input,
-                        onValueChange = onP2Change,
-                        label = { Text(UiStrings.labelNumberOfSeats()) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        isError = p2Input.isNotEmpty() && (p2Input.toDoubleOrNull()
-                            ?.let { it < MovieDistributionConstants.Validation.SEATS_MIN || it > MovieDistributionConstants.Validation.SEATS_MAX } ?: true),
-                        supportingText = {
-                            val showError = p2Input.isNotEmpty() && (p2Input.toDoubleOrNull()
-                                ?.let { it < MovieDistributionConstants.Validation.SEATS_MIN || it > MovieDistributionConstants.Validation.SEATS_MAX } ?: true)
-                            ErrorMessageAnimatedVisibility(visible = showError) {
-                                Text(UiStrings.errorNumberOfSeats())
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = availableSeatsInput,
+                            onValueChange = onAvailableSeatsChange,
+                            label = { Text(UiStrings.labelNumberOfSeats()) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            isError = availableSeatsInput.isNotEmpty() && (availableSeatsInput.toDoubleOrNull()
+                                ?.let { it < MovieDistributionConstants.Validation.SEATS_MIN || it > MovieDistributionConstants.Validation.SEATS_MAX } ?: true),
+                            supportingText = {
+                                val showError = availableSeatsInput.isNotEmpty() && (availableSeatsInput.toDoubleOrNull()
+                                    ?.let { it < MovieDistributionConstants.Validation.SEATS_MIN || it > MovieDistributionConstants.Validation.SEATS_MAX } ?: true)
+                                ErrorMessageAnimatedVisibility(visible = showError) {
+                                    Text(UiStrings.errorNumberOfSeats())
+                                }
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        
+                        // Show revert button if available seats was changed from original
+                        if (originalAvailableSeats != null && availableSeatsInput != originalAvailableSeats && availableSeatsInput.isNotBlank()) {
+                            TooltipBox(
+                                positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                                tooltip = { PlainTooltip { Text(UiStrings.ACTION_REVERT_TO_ORIGINAL) } },
+                                state = rememberTooltipState()
+                            ) {
+                                IconButton(onClick = onRevertAvailableSeats) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.Undo,
+                                        contentDescription = UiStrings.ACTION_REVERT_TO_ORIGINAL,
+                                        tint = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        }
+                    }
                 }
             }
         }

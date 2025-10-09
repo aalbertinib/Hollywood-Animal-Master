@@ -37,17 +37,13 @@ class MovieDistributionViewModel(
 
     fun onEvent(event: MovieDistributionUiEvent) {
         when (event) {
-            is MovieDistributionUiEvent.UpdateCommercialScoreInput -> updateCommercialScoreInput(event.value)
-            is MovieDistributionUiEvent.UpdateAvailableSeatsInput -> updateAvailableSeatsInput(event.value)
-            is MovieDistributionUiEvent.UpdateAvailableSeatsOverride -> updateAvailableSeatsOverride(event.weekIndex, event.value)
-            is MovieDistributionUiEvent.ClearAvailableSeatsOverride -> clearAvailableSeatsOverride(event.weekIndex)
+            is MovieDistributionUiEvent.UpdateP1Input -> updateP1Input(event.value)
+            is MovieDistributionUiEvent.UpdateP2Input -> updateP2Input(event.value)
             is MovieDistributionUiEvent.UpdateEditableTitle -> updateEditableTitle(event.title)
             is MovieDistributionUiEvent.RevertTitle -> revertTitle()
-            is MovieDistributionUiEvent.RevertCommercialScore -> revertCommercialScore()
-            is MovieDistributionUiEvent.RevertAvailableSeats -> revertAvailableSeats()
             is MovieDistributionUiEvent.SaveMovieResult -> saveMovieResult(event.title)
             is MovieDistributionUiEvent.LoadMovieResult -> loadMovieResult(event.movieResultId)
-            is MovieDistributionUiEvent.UpdateMovieResult -> updateMovieResult(event.id, event.title, event.commercialScore, event.availableSeats)
+            is MovieDistributionUiEvent.UpdateMovieResult -> updateMovieResult(event.id, event.title, event.p1, event.p2)
             is MovieDistributionUiEvent.DeleteMovieResult -> deleteMovieResult(event.movieResultId)
             is MovieDistributionUiEvent.ClearAllMovieResults -> clearAllMovieResults()
             is MovieDistributionUiEvent.NewMovieResult -> newMovieResult()
@@ -62,117 +58,16 @@ class MovieDistributionViewModel(
         }
     }
 
-    private fun updateCommercialScoreInput(value: String) {
+    private fun updateP1Input(value: String) {
         val filtered = value.filterNumericInput()
-        _uiState.update { it.copy(commercialScoreInput = filtered) }
+        _uiState.update { it.copy(p1Input = filtered) }
         calculateResults()
     }
 
-    private fun updateAvailableSeatsInput(value: String) {
+    private fun updateP2Input(value: String) {
         val filtered = value.filterNumericInput()
-        _uiState.update { it.copy(availableSeatsInput = filtered) }
+        _uiState.update { it.copy(p2Input = filtered) }
         calculateResults()
-    }
-
-    private fun updateAvailableSeatsOverride(weekIndex: Int, value: String) {
-        val state = _uiState.value
-        val availableSeats = state.availableSeatsInput.toDoubleOrNull() ?: 0.0
-        
-        // Update input string immediately (no filtering here - done in UI)
-        val newInputs = state.availableSeatsOverrideInputs.toMutableMap()
-        if (value.isEmpty()) {
-            newInputs.remove(weekIndex)
-        } else {
-            newInputs[weekIndex] = value
-        }
-        
-        // Validate and update override value for calculation
-        val newOverrides = state.availableSeatsOverrides.toMutableMap()
-        val overrideValue = value.toDoubleOrNull()
-        
-        // Only update overrides map if value is valid
-        if (overrideValue != null && overrideValue >= 0.0 && overrideValue <= availableSeats) {
-            newOverrides[weekIndex] = overrideValue
-        } else if (value.isEmpty()) {
-            newOverrides.remove(weekIndex)
-        } else {
-            // Invalid value - remove from overrides but keep in inputs for UI display
-            newOverrides.remove(weekIndex)
-        }
-        
-        // Update state and recalculate only if overrides changed
-        val overridesChanged = state.availableSeatsOverrides != newOverrides
-        
-        _uiState.update { 
-            it.copy(
-                availableSeatsOverrideInputs = newInputs,
-                availableSeatsOverrides = newOverrides
-            ) 
-        }
-        
-        // Only recalculate if valid overrides changed (not on every keystroke)
-        if (overridesChanged) {
-            calculateResults()
-            
-            // Auto-save if there's a current movie loaded
-            if (state.currentMovieResultId != null) {
-                viewModelScope.launch {
-                    try {
-                        val commercialScore = state.commercialScoreInput.toDoubleOrNull()
-                        val availableSeatsValue = state.availableSeatsInput.toDoubleOrNull()
-                        val title = state.currentMovieResultTitle
-                        
-                        if (commercialScore != null && availableSeatsValue != null && title != null) {
-                            repository.updateMovieResult(
-                                state.currentMovieResultId,
-                                title,
-                                commercialScore,
-                                availableSeatsValue,
-                                newOverrides
-                            )
-                        }
-                    } catch (e: Exception) {
-                        // Silent fail for auto-save
-                    }
-                }
-            }
-        }
-    }
-
-    private fun clearAvailableSeatsOverride(weekIndex: Int) {
-        val state = _uiState.value
-        val newOverrides = state.availableSeatsOverrides - weekIndex
-        
-        _uiState.update { 
-            it.copy(
-                availableSeatsOverrideInputs = it.availableSeatsOverrideInputs - weekIndex,
-                availableSeatsOverrides = newOverrides
-            ) 
-        }
-        calculateResults()
-        
-        // Auto-save if there's a current movie loaded
-        if (state.currentMovieResultId != null) {
-            viewModelScope.launch {
-                try {
-                    val commercialScore = state.commercialScoreInput.toDoubleOrNull()
-                    val availableSeats = state.availableSeatsInput.toDoubleOrNull()
-                    val title = state.currentMovieResultTitle
-                    
-                    if (commercialScore != null && availableSeats != null && title != null) {
-                        repository.updateMovieResult(
-                            state.currentMovieResultId,
-                            title,
-                            commercialScore,
-                            availableSeats,
-                            newOverrides
-                        )
-                    }
-                } catch (e: Exception) {
-                    // Silent fail for auto-save
-                }
-            }
-        }
     }
 
     private fun updateEditableTitle(title: String) {
@@ -182,34 +77,21 @@ class MovieDistributionViewModel(
     private fun revertTitle() {
         _uiState.update { it.copy(editableTitle = it.originalTitle ?: "") }
     }
-    private fun revertCommercialScore() {
-        _uiState.update { it.copy(commercialScoreInput = it.originalCommercialScore ?: "") }
-        calculateResults()
-    }
-
-    private fun revertAvailableSeats() {
-        _uiState.update { it.copy(availableSeatsInput = it.originalAvailableSeats ?: "") }
-        calculateResults()
-    }
 
     private fun calculateResults() {
         val state = _uiState.value
-        val commercialScore = state.commercialScoreInput.toDoubleOrNull()
-        val availableSeats = state.availableSeatsInput.toDoubleOrNull()
+        val p1 = state.p1Input.toDoubleOrNull()
+        val p2 = state.p2Input.toDoubleOrNull()
 
-        val commercialScoreValid = commercialScore != null &&
-                     commercialScore >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN &&
-                     commercialScore <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
-        val availableSeatsValid = availableSeats != null &&
-                     availableSeats >= MovieDistributionConstants.Validation.SEATS_MIN &&
-                     availableSeats <= MovieDistributionConstants.Validation.SEATS_MAX
+        val p1Valid = p1 != null &&
+                     p1 >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN &&
+                     p1 <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
+        val p2Valid = p2 != null &&
+                     p2 >= MovieDistributionConstants.Validation.SEATS_MIN &&
+                     p2 <= MovieDistributionConstants.Validation.SEATS_MAX
 
-        val results = if (commercialScoreValid && availableSeatsValid) {
-            val rawResults = if (state.availableSeatsOverrides.isNotEmpty()) {
-                MovieDistributionCalculator.calculateWeeklyResultsWithOverrides(commercialScore, availableSeats, state.availableSeatsOverrides)
-            } else {
-                MovieDistributionCalculator.calculateWeeklyResults(commercialScore, availableSeats)
-            }
+        val results = if (p1Valid && p2Valid) {
+            val rawResults = MovieDistributionCalculator.calculateWeeklyResults(p1, p2)
             MovieDistributionCalculator.applyRoundingRules(rawResults)
         } else {
             emptyList()
@@ -222,19 +104,14 @@ class MovieDistributionViewModel(
         viewModelScope.launch {
             try {
                 val state = _uiState.value
-                val commercialScore = state.commercialScoreInput.toDoubleOrNull()
-                val availableSeats = state.availableSeatsInput.toDoubleOrNull()
+                val p1 = state.p1Input.toDoubleOrNull()
+                val p2 = state.p2Input.toDoubleOrNull()
 
-                if (title.isBlank() || commercialScore == null || availableSeats == null) return@launch
+                if (title.isBlank() || p1 == null || p2 == null) return@launch
 
-                // Check if title has changed from the original loaded movie
-                val titleChanged = state.currentMovieResultId != null && 
-                                  state.originalTitle != null && 
-                                  title != state.originalTitle
-
-                if (state.currentMovieResultId != null && !titleChanged) {
-                    // Update existing movie (same title)
-                    repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                if (state.currentMovieResultId != null) {
+                    // Update existing
+                    repository.updateMovieResult(state.currentMovieResultId, title, p1, p2)
                     _uiState.update {
                         it.copy(
                             currentMovieResultTitle = title,
@@ -247,8 +124,8 @@ class MovieDistributionViewModel(
                         )
                     }
                 } else {
-                    // Create new movie (no existing movie or title changed - "Save As" behavior)
-                    val newMovieResult = repository.saveMovieResult(title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                    // Create new
+                    val newMovieResult = repository.saveMovieResult(title, p1, p2)
                     _uiState.update {
                         it.copy(
                             currentMovieResultId = newMovieResult.id,
@@ -256,7 +133,7 @@ class MovieDistributionViewModel(
                             editableTitle = newMovieResult.title,
                             originalTitle = newMovieResult.title,
                             notification = NotificationMessage(
-                                if (titleChanged) "New movie created with different title" else "Movie result saved successfully",
+                                "Movie result saved successfully",
                                 NotificationType.SUCCESS
                             )
                         )
@@ -281,21 +158,14 @@ class MovieDistributionViewModel(
         viewModelScope.launch {
             val movieResult = repository.getMovieResultById(movieResultId)
             if (movieResult != null) {
-                // Convert availableSeatsOverrides to input strings
-                val overrideInputs = movieResult.availableSeatsOverrides.mapValues { it.value.toString() }
-                
                 _uiState.update {
                     it.copy(
-                        commercialScoreInput = movieResult.commercialScore.toString(),
-                        availableSeatsInput = movieResult.numberOfSeats.toString(),
-                        availableSeatsOverrides = movieResult.availableSeatsOverrides,
-                        availableSeatsOverrideInputs = overrideInputs,
+                        p1Input = movieResult.commercialScore.toString(),
+                        p2Input = movieResult.numberOfSeats.toString(),
                         currentMovieResultId = movieResult.id,
                         currentMovieResultTitle = movieResult.title,
                         editableTitle = movieResult.title,
                         originalTitle = movieResult.title,
-                        originalCommercialScore = movieResult.commercialScore.toString(),
-                        originalAvailableSeats = movieResult.numberOfSeats.toString(),
                         notification = NotificationMessage(
                             "Movie result loaded: ${movieResult.title}",
                             NotificationType.INFO
@@ -307,11 +177,10 @@ class MovieDistributionViewModel(
         }
     }
 
-    private fun updateMovieResult(id: String, title: String, commercialScore: Double, availableSeats: Double) {
+    private fun updateMovieResult(id: String, title: String, p1: Double, p2: Double) {
         viewModelScope.launch {
             try {
-                val state = _uiState.value
-                repository.updateMovieResult(id, title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                repository.updateMovieResult(id, title, p1, p2)
                 loadSavedMovieResults()
                 _uiState.update {
                     it.copy(
@@ -398,16 +267,12 @@ class MovieDistributionViewModel(
     private fun newMovieResult() {
         _uiState.update {
             it.copy(
-                commercialScoreInput = "",
-                availableSeatsInput = "",
-                availableSeatsOverrides = emptyMap(),
-                availableSeatsOverrideInputs = emptyMap(),
+                p1Input = "",
+                p2Input = "",
                 currentMovieResultId = null,
                 currentMovieResultTitle = null,
                 editableTitle = "",
                 originalTitle = null,
-                originalCommercialScore = null,
-                originalAvailableSeats = null,
                 resultsWithRounded = emptyList()
             )
         }
@@ -441,16 +306,16 @@ class MovieDistributionViewModel(
             try {
                 val state = _uiState.value
                 val title = state.editableTitle.ifBlank { return@launch }
-                val commercialScore = state.commercialScoreInput.toDoubleOrNull() ?: return@launch
-                val availableSeats = state.availableSeatsInput.toDoubleOrNull() ?: return@launch
+                val p1 = state.p1Input.toDoubleOrNull() ?: return@launch
+                val p2 = state.p2Input.toDoubleOrNull() ?: return@launch
 
                 // Validate inputs
-                val commercialScoreValid = commercialScore >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN &&
-                             commercialScore <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
-                val availableSeatsValid = availableSeats >= MovieDistributionConstants.Validation.SEATS_MIN &&
-                             availableSeats <= MovieDistributionConstants.Validation.SEATS_MAX
+                val p1Valid = p1 >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN &&
+                             p1 <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
+                val p2Valid = p2 >= MovieDistributionConstants.Validation.SEATS_MIN &&
+                             p2 <= MovieDistributionConstants.Validation.SEATS_MAX
 
-                if (!commercialScoreValid || !availableSeatsValid) return@launch
+                if (!p1Valid || !p2Valid) return@launch
 
                 // Check if a movie with this title already exists
                 val existingMovie = repository.getMovieResultByTitle(title)
@@ -460,8 +325,8 @@ class MovieDistributionViewModel(
                     // Check if the title was changed to match a different existing movie
                     if (existingMovie != null && existingMovie.id != state.currentMovieResultId) {
                         // Title conflicts with a different movie
-                        val parametersDifferent = existingMovie.commercialScore != commercialScore ||
-                                                 existingMovie.numberOfSeats != availableSeats
+                        val parametersDifferent = existingMovie.commercialScore != p1 ||
+                                                 existingMovie.numberOfSeats != p2
 
                         if (parametersDifferent) {
                             // Show conflict dialog
@@ -469,8 +334,8 @@ class MovieDistributionViewModel(
                                 it.copy(
                                     parameterConflict = ParameterConflict(
                                         existingMovie = existingMovie,
-                                        newCommercialScore = commercialScore,
-                                        newSeats = availableSeats
+                                        newCommercialScore = p1,
+                                        newSeats = p2
                                     )
                                 )
                             }
@@ -493,38 +358,18 @@ class MovieDistributionViewModel(
                         }
                     }
 
-                    // Check if title changed - if so, create new movie ("Save As" behavior)
-                    val titleChanged = state.originalTitle != null && title != state.originalTitle
-                    
-                    if (titleChanged) {
-                        // Title changed - create new movie
-                        val newMovieResult = repository.saveMovieResult(title, commercialScore, availableSeats, state.availableSeatsOverrides)
-                        _uiState.update {
-                            it.copy(
-                                currentMovieResultId = newMovieResult.id,
-                                currentMovieResultTitle = newMovieResult.title,
-                                editableTitle = newMovieResult.title,
-                                originalTitle = newMovieResult.title,
-                                notification = NotificationMessage(
-                                    "New movie created with different title",
-                                    NotificationType.SUCCESS
-                                )
+                    // Update the current movie (no title conflict)
+                    repository.updateMovieResult(state.currentMovieResultId, title, p1, p2)
+                    _uiState.update {
+                        it.copy(
+                            currentMovieResultTitle = title,
+                            editableTitle = title,
+                            originalTitle = title,
+                            notification = NotificationMessage(
+                                "Movie updated successfully",
+                                NotificationType.SUCCESS
                             )
-                        }
-                    } else {
-                        // Same title - update existing movie
-                        repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableSeats, state.availableSeatsOverrides)
-                        _uiState.update {
-                            it.copy(
-                                currentMovieResultTitle = title,
-                                editableTitle = title,
-                                originalTitle = title,
-                                notification = NotificationMessage(
-                                    "Movie updated successfully",
-                                    NotificationType.SUCCESS
-                                )
-                            )
-                        }
+                        )
                     }
                     loadSavedMovieResults()
                     return@launch
@@ -533,8 +378,8 @@ class MovieDistributionViewModel(
                 // Creating a new movie - check for conflicts
                 if (existingMovie != null) {
                     // Check if parameters are different
-                    val parametersDifferent = existingMovie.commercialScore != commercialScore ||
-                                             existingMovie.numberOfSeats != availableSeats
+                    val parametersDifferent = existingMovie.commercialScore != p1 ||
+                                             existingMovie.numberOfSeats != p2
 
                     if (parametersDifferent) {
                         // Show conflict dialog
@@ -542,8 +387,8 @@ class MovieDistributionViewModel(
                             it.copy(
                                 parameterConflict = ParameterConflict(
                                     existingMovie = existingMovie,
-                                    newCommercialScore = commercialScore,
-                                    newSeats = availableSeats
+                                    newCommercialScore = p1,
+                                    newSeats = p2
                                 )
                             )
                         }
@@ -567,7 +412,7 @@ class MovieDistributionViewModel(
                 }
 
                 // No conflict, create new movie
-                val newMovieResult = repository.saveMovieResult(title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                val newMovieResult = repository.saveMovieResult(title, p1, p2)
                 _uiState.update {
                     it.copy(
                         currentMovieResultId = newMovieResult.id,
@@ -609,8 +454,7 @@ class MovieDistributionViewModel(
                     conflict.existingMovie.id,
                     conflict.existingMovie.title,
                     conflict.newCommercialScore,
-                    conflict.newSeats,
-                    state.availableSeatsOverrides
+                    conflict.newSeats
                 )
 
                 // If we were editing a different movie, delete it (we're effectively replacing it)
@@ -652,21 +496,14 @@ class MovieDistributionViewModel(
     private fun keepExistingMovie() {
         val conflict = _uiState.value.parameterConflict ?: return
 
-        // Convert availableSeatsOverrides to input strings
-        val overrideInputs = conflict.existingMovie.availableSeatsOverrides.mapValues { it.value.toString() }
-
         _uiState.update {
             it.copy(
-                commercialScoreInput = conflict.existingMovie.commercialScore.toString(),
-                availableSeatsInput = conflict.existingMovie.numberOfSeats.toString(),
-                availableSeatsOverrides = conflict.existingMovie.availableSeatsOverrides,
-                availableSeatsOverrideInputs = overrideInputs,
+                p1Input = conflict.existingMovie.commercialScore.toString(),
+                p2Input = conflict.existingMovie.numberOfSeats.toString(),
                 currentMovieResultId = conflict.existingMovie.id,
                 currentMovieResultTitle = conflict.existingMovie.title,
                 editableTitle = conflict.existingMovie.title,
                 originalTitle = conflict.existingMovie.title,
-                originalCommercialScore = conflict.existingMovie.commercialScore.toString(),
-                originalAvailableSeats = conflict.existingMovie.numberOfSeats.toString(),
                 parameterConflict = null,
                 notification = NotificationMessage(
                     "Loaded existing movie: ${conflict.existingMovie.title}",
