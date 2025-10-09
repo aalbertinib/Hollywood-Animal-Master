@@ -172,7 +172,7 @@ Click **Calculate** to see your week-by-week seat distribution:
 While the tool is designed for Hollywood Animal players, it can calculate seat distributions for any similar scenario. However, the calculations are specifically tuned for the game's mechanics.
 
 ### Is it free?
-Yes! Completely free and open source (MIT License).
+Yes! Completely free and open source (GNU AGPL v3).
 
 ### Which platforms are supported?
 Desktop (Windows, Mac, Linux), Android, iOS, and web browsers.
@@ -208,7 +208,15 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, build instructio
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
+
+This means:
+- ✅ You can use, modify, and distribute this software freely
+- ✅ If you modify and deploy this as a web service, you must share your changes
+- ✅ Commercial use is allowed
+- ✅ Patent grant included
+
+See the [LICENSE](LICENSE) file for full details.
 
 ---
 
@@ -223,5 +231,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <p align="center">
   <b>🎬 Made with ❤️ for Hollywood Animal players 🎬</b>
   <br>
-  <em>"In Hollywood, nobody knows anything... except the math."</em>
 </p>
