@@ -1,3 +1,11 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.TaskAction
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -119,6 +127,24 @@ dependencies {
 compose.desktop {
     application {
         mainClass = "org.aalbertini.ham.MainKt"
+        
+        // jpackage requires JDK 17+ with jpackage.exe included
+        // Try multiple fallbacks to find a suitable JDK
+        javaHome = System.getenv("COMPOSE_DESKTOP_JAVA_HOME") 
+            ?: runCatching {
+                javaToolchains.launcherFor {
+                    languageVersion.set(JavaLanguageVersion.of(21))
+                    vendor.set(JvmVendorSpec.ORACLE)
+                }.get().metadata.installationPath.asFile.absolutePath
+            }.getOrElse {
+                runCatching {
+                    javaToolchains.launcherFor {
+                        languageVersion.set(JavaLanguageVersion.of(21))
+                    }.get().metadata.installationPath.asFile.absolutePath
+                }.getOrElse {
+                    System.getenv("JAVA_HOME")
+                }
+            }
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
@@ -126,4 +152,103 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+// Custom tasks to print output paths after building
+abstract class PrintOutputPathsTask : DefaultTask() {
+    @get:InputDirectory
+    @get:Optional
+    abstract val outputDirectory: DirectoryProperty
+    
+    @get:Input
+    abstract val taskTitle: Property<String>
+    
+    @get:Input
+    abstract val fileExtensions: ListProperty<String>
+    
+    @TaskAction
+    fun printPaths() {
+        val outputDir = outputDirectory.get().asFile
+        println("\n${"=".repeat(80)}")
+        println(taskTitle.get())
+        println("=".repeat(80))
+        println("Output directory: ${outputDir.absolutePath}")
+        
+        if (outputDir.exists()) {
+            outputDir.walkTopDown().maxDepth(2).forEach { file ->
+                if (file.isFile && (file.extension in fileExtensions.get())) {
+                    println("  ✓ ${file.name}")
+                    println("    Path: ${file.absolutePath}")
+                }
+            }
+        } else {
+            println("  (Directory will be created during build)")
+        }
+        println("=".repeat(80) + "\n")
+    }
+}
+
+tasks.register<PrintOutputPathsTask>("printPackagePaths") {
+    outputDirectory.set(layout.buildDirectory.dir("compose/binaries"))
+    taskTitle.set("BUILD OUTPUT LOCATION - DESKTOP")
+    fileExtensions.set(listOf("msi", "exe", "dmg", "deb", "rpm", "pkg"))
+}
+
+tasks.register<PrintOutputPathsTask>("printAndroidPaths") {
+    outputDirectory.set(layout.buildDirectory.dir("outputs/apk"))
+    taskTitle.set("BUILD OUTPUT LOCATION - ANDROID")
+    fileExtensions.set(listOf("apk"))
+}
+
+abstract class PrintWebPathsTask : DefaultTask() {
+    @get:InputDirectory
+    @get:Optional
+    abstract val outputDirectory: DirectoryProperty
+    
+    @TaskAction
+    fun printPaths() {
+        val wasmDir = outputDirectory.get().asFile
+        println("\n${"=".repeat(80)}")
+        println("BUILD OUTPUT LOCATION - WEB (WASM)")
+        println("=".repeat(80))
+        println("Output directory: ${wasmDir.absolutePath}")
+        
+        if (wasmDir.exists()) {
+            println("  ✓ index.html")
+            println("    Path: ${wasmDir.absolutePath}/index.html")
+            wasmDir.listFiles()?.filter { it.extension in listOf("wasm", "js") }?.forEach { file ->
+                println("  ✓ ${file.name}")
+            }
+        } else {
+            println("  (Directory will be created during build)")
+        }
+        println("=".repeat(80) + "\n")
+    }
+}
+
+tasks.register<PrintWebPathsTask>("printWebPaths") {
+    outputDirectory.set(layout.buildDirectory.dir("dist/wasmJs/productionExecutable"))
+}
+
+tasks.register<PrintOutputPathsTask>("printIosPaths") {
+    outputDirectory.set(layout.buildDirectory.dir("bin/iosSimulatorArm64/debugFramework"))
+    taskTitle.set("BUILD OUTPUT LOCATION - iOS FRAMEWORK")
+    fileExtensions.set(listOf("framework"))
+}
+
+// Attach output path printing to package tasks
+tasks.matching { it.name.startsWith("package") && it.name != "packageDistributionForCurrentOS" }.configureEach {
+    finalizedBy("printPackagePaths")
+}
+
+tasks.matching { it.name.contains("assembleDebug") || it.name.contains("assembleRelease") }.configureEach {
+    finalizedBy("printAndroidPaths")
+}
+
+tasks.matching { it.name.contains("wasmJsBrowserDistribution") }.configureEach {
+    finalizedBy("printWebPaths")
+}
+
+tasks.matching { it.name.contains("linkDebugFramework") }.configureEach {
+    finalizedBy("printIosPaths")
 }

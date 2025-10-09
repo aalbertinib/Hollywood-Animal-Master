@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Build All Platforms (Windows)" type="CompoundRunConfigurationType">
+    <toRun name="Build Windows EXE" type="GradleRunConfiguration" />
+    <toRun name="Build Linux DEB" type="GradleRunConfiguration" />
+    <toRun name="Build Web (WasmJS)" type="GradleRunConfiguration" />
+    <toRun name="Build Android APK" type="GradleRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>
