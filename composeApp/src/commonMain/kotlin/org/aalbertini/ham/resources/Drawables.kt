@@ -1,10 +1,11 @@
 package org.aalbertini.ham.resources
 
-import hollywoodanimalsmaster.composeapp.generated.resources.*
+import hollywoodanimalmaster.composeapp.generated.resources.Res
+import hollywoodanimalmaster.composeapp.generated.resources.compose_multiplatform
 import org.jetbrains.compose.resources.DrawableResource
 
 /**
- * Centralized drawable resources for the Hollywood Animals Master application.
+ * Centralized drawable resources for the Hollywood Animal Master application.
  * 
  * This object provides type-safe access to all drawable resources using Compose Multiplatform's
  * generated resources API (1.9.0). All drawables are located in composeResources/drawable/

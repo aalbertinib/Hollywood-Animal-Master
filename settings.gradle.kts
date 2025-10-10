@@ -1,4 +1,4 @@
-rootProject.name = "HollywoodAnimalsMaster"
+rootProject.name = "HollywoodAnimalMaster"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

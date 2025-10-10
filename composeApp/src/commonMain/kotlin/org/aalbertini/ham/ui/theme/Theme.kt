@@ -7,7 +7,7 @@ import org.aalbertini.ham.model.ThemeColorSchemes
 import org.aalbertini.ham.model.ThemePreset
 
 /**
- * Hollywood Animals Master theme configuration.
+ * Hollywood Animal Master theme configuration.
  * 
  * Implements Material Design 3 color scheme with multiple theme presets.
  * Supports both light and dark themes following platform conventions.
@@ -31,7 +31,7 @@ import org.aalbertini.ham.model.ThemePreset
  */
 
 /**
- * Main theme composable for Hollywood Animals Master.
+ * Main theme composable for Hollywood Animal Master.
  * 
  * @param darkTheme Whether to use dark theme. Defaults to system preference.
  * @param themePreset The theme preset to use. Defaults to HOLLYWOOD_CLASSIC.

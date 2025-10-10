@@ -122,7 +122,7 @@ gradle.properties (project.version=1.0.0)
     │   └─ CURRENT_PROJECT_VERSION: 10000
     │
     ├─> CI/CD Workflows
-    │   └─ Artifact names: hollywood-animals-master-1.0.0-*.zip
+    │   └─ Artifact names: hollywood-animal-master-1.0.0-*.zip
     │
     └─> Scripts
         ├─ get-version.sh → "1.0.0"

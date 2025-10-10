@@ -6,7 +6,7 @@ import androidx.compose.ui.unit.dp
 import org.aalbertini.ham.resources.Dimensions
 
 /**
- * Shape definitions for Hollywood Animals Master.
+ * Shape definitions for Hollywood Animal Master.
  * 
  * Follows Material Design 3 shape system with rounded corners.
  * Uses dimensions from Dimensions.kt for consistency.
@@ -18,3 +18,12 @@ val Shapes = Shapes(
     large = RoundedCornerShape(Dimensions.cornerRadiusXLarge),
     extraLarge = RoundedCornerShape(28.dp)
 )
+
+object CustomShapes {
+    val SectionContentShape = RoundedCornerShape(
+        topStart = 0.dp,
+        topEnd = 0.dp,
+        bottomStart = Dimensions.cornerRadiusLarge,
+        bottomEnd = Dimensions.cornerRadiusLarge
+    )
+}

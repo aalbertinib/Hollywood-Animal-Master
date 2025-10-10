@@ -1,0 +1,87 @@
+branches:
+  - main
+  - name: beta
+    prerelease: true
+  - name: alpha
+    prerelease: true
+
+plugins:
+  # Analyze commits to determine version bump
+  - "@semantic-release/commit-analyzer"
+  
+  # Generate release notes
+  - "@semantic-release/release-notes-generator"
+  
+  # Update CHANGELOG.md
+  - - "@semantic-release/changelog"
+    - changelogFile: "CHANGELOG.md"
+  
+  # Update version in gradle.properties (single source of truth)
+  - - "@semantic-release/exec"
+    - verifyReleaseCmd: "echo Preparing release ${nextRelease.version}"
+      prepareCmd: |
+        echo "🔄 Updating gradle.properties with version ${nextRelease.version}"
+        
+        # Update gradle.properties (project.version line)
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          # macOS
+          sed -i '' 's/^project\.version=.*/project.version=${nextRelease.version}/' gradle.properties
+        else
+          # Linux
+          sed -i 's/^project\.version=.*/project.version=${nextRelease.version}/' gradle.properties
+        fi
+        
+        echo "✅ Updated gradle.properties to version ${nextRelease.version}"
+        
+        # Sync version to package.json
+        echo "🔄 Syncing version to package.json..."
+        npm run sync-version || echo "⚠️  package.json sync skipped"
+        
+        # Sync version to iOS using the existing Gradle task
+        echo "🔄 Syncing version to iOS..."
+        if [ -f "gradlew" ]; then
+          chmod +x gradlew
+          ./gradlew :composeApp:syncVersionToIOS --quiet || echo "⚠️  iOS sync skipped (task may not be available)"
+        fi
+        
+        # Verify the version update
+        echo "🔍 Verifying version:"
+        if [ -f "gradlew" ]; then
+          ./gradlew :composeApp:printVersion --quiet || true
+        fi
+        
+        echo "✅ Version management complete"
+  
+  # Publish GitHub release (assets will be uploaded via GitHub action)
+  - - "@semantic-release/github"
+    - # Success comment on issues/PRs
+      successComment: |
+        :tada: This ${issue.pull_request ? 'PR is included' : 'issue has been resolved'} in version ${nextRelease.version} :tada:
+        
+        The release is available on [GitHub Releases](${releases[0].url})
+      
+      # Labels for issues/PRs that will be closed
+      labels:
+        - "released"
+      
+      # Additional release notes sections
+      addReleases: "bottom"
+      
+      # Retry failed uploads
+      failTitle: "The release build failed"
+      failComment: "The release from branch ${branch.name} had failed due to the following errors:\n- ${errors.map(err => err.message).join('\\n- ')}"
+  
+  # Commit changes back to repo
+  - - "@semantic-release/git"
+    - assets:
+        - "gradle.properties"
+        - "package.json"
+        - "CHANGELOG.md"
+        - "iosApp/Configuration/Config.xcconfig"
+      message: "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+
+# Commit message format for version detection
+preset: "conventionalcommits"
+
+# Tag format
+tagFormat: "v${version}"

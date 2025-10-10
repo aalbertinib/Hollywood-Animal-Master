@@ -7,12 +7,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
-import hollywoodanimalsmaster.composeapp.generated.resources.Res
-import hollywoodanimalsmaster.composeapp.generated.resources.app_icon
+import hollywoodanimalmaster.composeapp.generated.resources.Res
+import hollywoodanimalmaster.composeapp.generated.resources.app_icon
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import org.aalbertini.ham.preferences.DesktopWindowSettings

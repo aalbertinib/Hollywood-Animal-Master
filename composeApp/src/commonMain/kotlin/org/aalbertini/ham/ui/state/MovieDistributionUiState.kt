@@ -7,18 +7,18 @@ import org.aalbertini.ham.model.MovieResult
  */
 data class MovieDistributionUiState(
     val commercialScoreInput: String = "",
-    val availableSeatsInput: String = "",
-    val availableSeatsOverrides: Map<Int, Double> = emptyMap(), // Per-week availableSeats overrides (week index -> availableSeats value)
-    val availableSeatsOverrideInputs: Map<Int, String> = emptyMap(), // Per-week availableSeats input strings for UI
+    val availableScreeningsInput: String = "",
+    val availableScreeningsOverrides: Map<Int, Double> = emptyMap(), // Per-week availableScreenings overrides (week index -> availableScreenings value)
+    val availableScreeningsOverrideInputs: Map<Int, String> = emptyMap(), // Per-week availableScreenings input strings for UI
     val currentMovieResultId: String? = null,
     val currentMovieResultTitle: String? = null,
     val editableTitle: String = "",
     val originalTitle: String? = null,
     val originalCommercialScore: String? = null,
-    val originalAvailableSeats: String? = null,
+    val originalAvailableScreenings: String? = null,
     val savedMovieResults: List<MovieResult> = emptyList(),
     val expandResults: Boolean = true,
-    val expandSaved: Boolean = false,
+    val expandSaved: Boolean = true,
     val resultsWithRounded: List<Long> = emptyList(),
     val isLoading: Boolean = false,
     val notification: NotificationMessage? = null,
@@ -31,7 +31,7 @@ data class MovieDistributionUiState(
 data class ParameterConflict(
     val existingMovie: MovieResult,
     val newCommercialScore: Double,
-    val newSeats: Double
+    val newScreenings: Double
 )
 
 /**

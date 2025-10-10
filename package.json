@@ -1,0 +1,26 @@
+{
+  "name": "hollywood-animal-master",
+  "version": "1.0.0",
+  "description": "Movie Distribution Calculator for Hollywood Animal game",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aalbertinib/Hollywood-Animal-Master.git"
+  },
+  "scripts": {
+    "semantic-release": "semantic-release",
+    "get-version": "grep '^project.version=' gradle.properties | cut -d'=' -f2",
+    "sync-version": "node -e \"const fs=require('fs'); const v=fs.readFileSync('gradle.properties','utf8').match(/project\\.version=(.+)/)[1].trim(); const pkg=JSON.parse(fs.readFileSync('package.json','utf8')); pkg.version=v; fs.writeFileSync('package.json', JSON.stringify(pkg,null,2)+'\\n');\""
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^10.0.0",
+    "conventional-changelog-conventionalcommits": "^7.0.2",
+    "semantic-release": "^23.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -149,11 +149,11 @@ All CI workflows automatically extract the version from `gradle.properties`:
 When building releases, artifacts are automatically named with the version:
 
 ```
-hollywood-animals-master-1.0.0-windows-x64.zip
-hollywood-animals-master-1.0.0-macos-x64.zip
-hollywood-animals-master-1.0.0-linux-x64.zip
-hollywood-animals-master-1.0.0-release.apk
-hollywood-animals-master-1.0.0-web.zip
+hollywood-animal-master-1.0.0-windows-x64.zip
+hollywood-animal-master-1.0.0-macos-x64.zip
+hollywood-animal-master-1.0.0-linux-x64.zip
+hollywood-animal-master-1.0.0-release.apk
+hollywood-animal-master-1.0.0-web.zip
 ```
 
 ---

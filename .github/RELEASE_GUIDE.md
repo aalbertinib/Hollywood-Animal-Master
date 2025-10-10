@@ -52,23 +52,30 @@ The project uses GitHub Actions for:
 
 **Triggers:**
 - Push to `main` or `develop` branches
-- Pull requests to `main` or `develop`
+- **Pull requests** to any branch (required for merge)
 
 **Jobs:**
-- **Build Desktop (JVM)** - Compiles Kotlin/JVM code and runs tests
-- **Build Android** - Creates debug APK and uploads as artifact
-- **Build Web** - Compiles WASM build and uploads as artifact
-- **Code Quality** - Runs linting and quality checks
+- **Unit Tests** ⚡ **REQUIRED FOR PR MERGE** - Runs all test suites
+- **Build Android** - Creates debug APK and validates build
+- **Build Desktop** - Compiles Kotlin/JVM code
+- **Build Web** - Compiles WASM build and validates
 
 **Artifacts:**
-- `android-debug-apk` - Android debug APK (7 days retention)
-- `web-wasm-build` - Web WASM build (7 days retention)
+- `test-results` - Test reports and results (3 days retention)
+
+**✅ PR Requirements:**
+- All pull requests **must pass unit tests** before merging
+- See [PR_REQUIREMENTS.md](./PR_REQUIREMENTS.md) for branch protection setup
 
 ### 2. Release Workflow (`release.yml`)
 
 **Triggers:**
-- GitHub Release published
-- Manual workflow dispatch (with version input)
+- **Version tags** matching patterns (with or without `v` prefix, case insensitive):
+  - `v1.0.0` or `1.0.0` - Production release
+  - `v1.0.0-alpha.1` or `1.0.0-ALPHA.1` - Alpha pre-release
+  - `v1.0.0-beta.2` or `1.0.0-Beta.2` - Beta pre-release
+  - `v1.0.0-rc.3` or `1.0.0-RC.3` - Release candidate
+- Manual workflow dispatch
 
 **Jobs:**
 - **Build Desktop** - Creates packages for Windows, macOS, and Linux
@@ -133,18 +140,19 @@ The project uses GitHub Actions for:
    ```bash
    git checkout main
    git merge --no-ff release/1.0.0
-   git tag -a v1.0.0 -m "Release version 1.0.0"
+   # Tag with or without 'v' prefix (both work)
+   git tag -a v1.0.0 -m "Release version 1.0.0"  # or: git tag 1.0.0
    git push origin main --tags
    ```
 
-4. **Create GitHub Release:**
-   - Go to: `https://github.com/aalbertinib/Hollywood-Animals-Master/releases/new`
-   - Select tag: `v1.0.0`
-   - Release title: `Hollywood Animals Master v1.0.0`
-   - Add release notes describing changes
-   - Click "Publish release"
+4. **Push the tag to trigger release:**
+   ```bash
+   git push origin v1.0.0  # or: git push origin 1.0.0
+   ```
+   
+   **🚀 Release workflow automatically starts!**
 
-5. **Automatic builds start:**
+5. **Automatic builds run:**
    - Desktop builds (Windows, macOS, Linux)
    - Android APK
    - Web WASM package
@@ -180,7 +188,7 @@ The project uses GitHub Actions for:
 
 ---
 
-**For Hollywood Animal players:** This tool helps you calculate optimal theater seat distribution for your movies!
+**For Hollywood Animal players:** This tool helps you calculate optimal theater screening distribution for your movies!
 ```
 
 ---
@@ -209,7 +217,7 @@ For signed Android releases, add these secrets to your GitHub repository:
 # Generate keystore
 keytool -genkey -v -keystore release-keystore.jks \
   -keyalg RSA -keysize 2048 -validity 10000 \
-  -alias hollywood-animals-key
+  -alias hollywood-animal-key
 
 # Convert to base64 for GitHub secret
 base64 -w 0 release-keystore.jks > keystore.base64.txt
@@ -235,7 +243,7 @@ base64 -w 0 release-keystore.jks > keystore.base64.txt
 ### Access Your Web App
 
 After the first successful deployment:
-- **URL:** `https://aalbertinib.github.io/Hollywood-Animals-Master/`
+- **URL:** `https://aalbertinib.github.io/Hollywood-Animal-Master/`
 - **Custom Domain (Optional):** Configure in Pages settings
 
 ### Update README
@@ -243,7 +251,7 @@ After the first successful deployment:
 Replace `aalbertinib` in README.md with your actual GitHub username:
 
 ```markdown
-**Live Demo**: Available on [GitHub Pages](https://aalbertinib.github.io/Hollywood-Animals-Master/)
+**Live Demo**: Available on [GitHub Pages](https://aalbertinib.github.io/Hollywood-Animal-Master/)
 ```
 
 **Files to update:**
@@ -312,8 +320,8 @@ This redeploys the web app to GitHub Pages.
 **Distribution:**
 1. Extract ZIP file
 2. Run the platform-specific launcher:
-   - Windows: `hollywood-animals-master.bat`
-   - macOS/Linux: `./hollywood-animals-master`
+   - Windows: `hollywood-animal-master.bat`
+   - macOS/Linux: `./hollywood-animal-master`
 
 ### Android
 
@@ -327,7 +335,7 @@ This redeploys the web app to GitHub Pages.
 
 **Installation:**
 ```bash
-adb install hollywood-animals-master-*.apk
+adb install hollywood-animal-master-*.apk
 ```
 
 ### Web (WASM)
@@ -391,21 +399,52 @@ adb install hollywood-animals-master-*.apk
 
 ### Before Merging to Main
 
-- ✅ All CI checks pass
-- ✅ Code reviewed
+- ✅ **All CI checks pass (required by GitHub)**
+- ✅ **Unit tests pass (enforced for PRs)**
+- ✅ Code reviewed (if team workflow)
 - ✅ Tests added for new features
 - ✅ Documentation updated
 
+### Pull Request Workflow
+
+1. **Create feature branch:**
+   ```bash
+   git checkout -b feature/my-feature
+   ```
+
+2. **Make changes and commit:**
+   ```bash
+   git add .
+   git commit -m "feat: add new feature"
+   git push origin feature/my-feature
+   ```
+
+3. **Create Pull Request on GitHub**
+   - CI workflow runs automatically
+   - **Unit Tests must pass** (required check)
+   - Reviews can be added (optional, based on settings)
+
+4. **Merge when green:**
+   - All required checks pass ✅
+   - Merge pull request
+
+**Note:** See [PR_REQUIREMENTS.md](./PR_REQUIREMENTS.md) for configuring branch protection rules.
+
 ### Release Checklist
 
-- [ ] Version number updated
+- [ ] Version number updated in `gradle.properties`
 - [ ] CHANGELOG updated
-- [ ] All tests passing
+- [ ] All tests passing locally: `./gradlew test`
 - [ ] Desktop app tested locally
 - [ ] Android app tested on device/emulator
 - [ ] Web app tested in browser
-- [ ] Release notes prepared
-- [ ] Tag created and pushed
+- [ ] **Create and push version tag** (triggers release):
+  ```bash
+  git tag v1.0.0
+  git push origin v1.0.0
+  ```
+- [ ] Monitor release workflow in GitHub Actions
+- [ ] Verify all artifacts are uploaded to release
 
 ### Versioning Scheme
 

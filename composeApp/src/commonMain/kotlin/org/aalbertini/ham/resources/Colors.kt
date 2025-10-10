@@ -3,7 +3,7 @@ package org.aalbertini.ham.resources
 import androidx.compose.ui.graphics.Color
 
 /**
- * Centralized color palette for the Hollywood Animals Master application.
+ * Centralized color palette for the Hollywood Animal Master application.
  * 
  * Following Material Design 3 principles with custom Hollywood-themed colors
  * inspired by the 1920s Art Deco aesthetic.

@@ -3,15 +3,15 @@ package org.aalbertini.ham.ui.layout
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -47,9 +47,12 @@ enum class WindowSizeClass {
 @Composable
 fun AdaptiveMovieDistributionLayout(
     windowSizeClass: WindowSizeClass,
-    inputSection: @Composable () -> Unit,
-    resultsSection: @Composable () -> Unit,
-    savedSection: @Composable () -> Unit,
+    parametersHeader: @Composable () -> Unit,
+    parametersContent: @Composable () -> Unit,
+    resultsHeader: @Composable () -> Unit,
+    resultsContent: @Composable () -> Unit,
+    savedHeader: @Composable () -> Unit,
+    savedContent: @Composable () -> Unit,
     modifier: Modifier = Modifier
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -77,25 +80,34 @@ fun AdaptiveMovieDistributionLayout(
             canFitThreeColumns -> {
                 // Three column layout for desktop
                 ThreeColumnLayout(
-                    inputSection = inputSection,
-                    resultsSection = resultsSection,
-                    savedSection = savedSection
+                    parametersHeader = parametersHeader,
+                    parametersContent = parametersContent,
+                    resultsHeader = resultsHeader,
+                    resultsContent = resultsContent,
+                    savedHeader = savedHeader,
+                    savedContent = savedContent
                 )
             }
             canFitTwoColumns -> {
                 // Two column layout for tablets
                 TwoColumnLayout(
-                    inputSection = inputSection,
-                    resultsSection = resultsSection,
-                    savedSection = savedSection
+                    parametersHeader = parametersHeader,
+                    parametersContent = parametersContent,
+                    resultsHeader = resultsHeader,
+                    resultsContent = resultsContent,
+                    savedHeader = savedHeader,
+                    savedContent = savedContent
                 )
             }
             else -> {
                 // Single column for phones
                 SingleColumnLayout(
-                    inputSection = inputSection,
-                    resultsSection = resultsSection,
-                    savedSection = savedSection
+                    parametersHeader = parametersHeader,
+                    parametersContent = parametersContent,
+                    resultsHeader = resultsHeader,
+                    resultsContent = resultsContent,
+                    savedHeader = savedHeader,
+                    savedContent = savedContent
                 )
             }
         }
@@ -104,34 +116,42 @@ fun AdaptiveMovieDistributionLayout(
 
 @Composable
 private fun SingleColumnLayout(
-    inputSection: @Composable () -> Unit,
-    resultsSection: @Composable () -> Unit,
-    savedSection: @Composable () -> Unit
+    parametersHeader: @Composable () -> Unit,
+    parametersContent: @Composable () -> Unit,
+    resultsHeader: @Composable () -> Unit,
+    resultsContent: @Composable () -> Unit,
+    savedHeader: @Composable () -> Unit,
+    savedContent: @Composable () -> Unit
 ) {
-    val scrollState = rememberScrollState()
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(UiConstants.Layout.compactPadding)
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(UiConstants.Layout.mediumSpacing)
-        ) {
-            inputSection()
-            resultsSection()
-            savedSection()
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(UiConstants.Layout.compactPadding)
+    ) {
+        stickyHeader { parametersHeader() }
+        item { 
+            parametersContent()
+            Spacer(modifier = Modifier.height(UiConstants.Layout.mediumSpacing))
         }
+        stickyHeader { savedHeader() }
+        item { 
+            savedContent()
+            Spacer(modifier = Modifier.height(UiConstants.Layout.mediumSpacing))
+        }
+        stickyHeader { resultsHeader() }
+        item { resultsContent() }
     }
 }
 
 @Composable
 private fun TwoColumnLayout(
-    inputSection: @Composable () -> Unit,
-    resultsSection: @Composable () -> Unit,
-    savedSection: @Composable () -> Unit
+    parametersHeader: @Composable () -> Unit,
+    parametersContent: @Composable () -> Unit,
+    resultsHeader: @Composable () -> Unit,
+    resultsContent: @Composable () -> Unit,
+    savedHeader: @Composable () -> Unit,
+    savedContent: @Composable () -> Unit
 ) {
-    val scrollState1 = rememberScrollState()
-    val scrollState2 = rememberScrollState()
     Row(
         modifier = Modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(UiConstants.Layout.mediumSpacing)
@@ -142,15 +162,18 @@ private fun TwoColumnLayout(
                 .widthIn(min = UiConstants.Layout.minSectionWidth)
                 .fillMaxHeight()
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(UiConstants.Layout.compactPadding)
-                    .verticalScroll(scrollState1),
-                verticalArrangement = Arrangement.spacedBy(UiConstants.Layout.mediumSpacing)
             ) {
-                inputSection()
-                savedSection()
+                stickyHeader { parametersHeader() }
+                item { 
+                    parametersContent()
+                    Spacer(modifier = Modifier.height(UiConstants.Layout.mediumSpacing))
+                }
+                stickyHeader { savedHeader() }
+                item { savedContent() }
             }
         }
         Box(
@@ -159,14 +182,13 @@ private fun TwoColumnLayout(
                 .widthIn(min = UiConstants.Layout.minSectionWidth)
                 .fillMaxHeight()
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(UiConstants.Layout.compactPadding)
-                    .verticalScroll(scrollState2),
-                verticalArrangement = Arrangement.spacedBy(UiConstants.Layout.mediumSpacing)
             ) {
-                resultsSection()
+                stickyHeader { resultsHeader() }
+                item { resultsContent() }
             }
         }
     }
@@ -174,15 +196,14 @@ private fun TwoColumnLayout(
 
 @Composable
 private fun ThreeColumnLayout(
-    inputSection: @Composable () -> Unit,
-    resultsSection: @Composable () -> Unit,
-    savedSection: @Composable () -> Unit
+    parametersHeader: @Composable () -> Unit,
+    parametersContent: @Composable () -> Unit,
+    resultsHeader: @Composable () -> Unit,
+    resultsContent: @Composable () -> Unit,
+    savedHeader: @Composable () -> Unit,
+    savedContent: @Composable () -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val scrollState1 = rememberScrollState()
-        val scrollState2 = rememberScrollState()
-        val scrollState3 = rememberScrollState()
-        
         // Calculate widths explicitly to ensure minimums are respected
         val spacing = UiConstants.Layout.mediumSpacing
         val minWidth = UiConstants.Layout.minSectionWidth
@@ -211,50 +232,39 @@ private fun ThreeColumnLayout(
             modifier = Modifier.fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(spacing)
         ) {
-            // Input section
+            // Input + Saved sections (left column)
             Box(
                 modifier = Modifier
                     .width(inputWidth)
                     .fillMaxHeight()
             ) {
-                Column(
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(UiConstants.Layout.compactPadding)
-                        .verticalScroll(scrollState1)
                 ) {
-                    inputSection()
+                    stickyHeader { parametersHeader() }
+                    item { 
+                        parametersContent()
+                        Spacer(modifier = Modifier.height(UiConstants.Layout.mediumSpacing))
+                    }
+                    stickyHeader { savedHeader() }
+                    item { savedContent() }
                 }
             }
-            // Results section
+            // Results section (right column - takes remaining space)
             Box(
                 modifier = Modifier
-                    .width(resultsWidth)
+                    .width(resultsWidth + savedWidth + spacing)
                     .fillMaxHeight()
             ) {
-                Column(
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(UiConstants.Layout.compactPadding)
-                        .verticalScroll(scrollState2),
-                    verticalArrangement = Arrangement.spacedBy(UiConstants.Layout.mediumSpacing)
                 ) {
-                    resultsSection()
-                }
-            }
-            // Saved section
-            Box(
-                modifier = Modifier
-                    .width(savedWidth)
-                    .fillMaxHeight()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(UiConstants.Layout.compactPadding)
-                        .verticalScroll(scrollState3)
-                ) {
-                    savedSection()
+                    stickyHeader { resultsHeader() }
+                    item { resultsContent() }
                 }
             }
         }

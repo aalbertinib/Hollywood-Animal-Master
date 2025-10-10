@@ -1,6 +1,5 @@
 package org.aalbertini.ham.ui.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,10 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,88 +28,42 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import org.aalbertini.ham.model.MovieResult
+import org.aalbertini.ham.ui.theme.CustomShapes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedMovieResultsSection(
     movieResults: List<MovieResult>,
     expanded: Boolean,
-    onToggleExpand: () -> Unit,
     onLoadClick: (MovieResult) -> Unit,
     onEditClick: (MovieResult) -> Unit,
     onDeleteClick: (MovieResult) -> Unit,
-    onClearAllClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .padding(UiConstants.Card.padding)
-            .border(
-                width = UiConstants.Card.borderWidth,
-                color = MaterialTheme.colorScheme.outlineVariant,
-                shape = RoundedCornerShape(UiConstants.Card.cornerRadiusLarge)
-            )
-            .animateContentSize(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(UiConstants.Card.cornerRadiusLarge)
+            .animateContentSizeFast(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = CustomShapes.SectionContentShape
     ) {
-        Column {
-            // Sticky header with elevated surface
+        SectionAnimatedVisibility(visible = expanded) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                tonalElevation = UiConstants.SectionHeader.tonalElevation,
-                shadowElevation = UiConstants.SectionHeader.shadowElevation
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                shape = CustomShapes.SectionContentShape
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = UiConstants.SectionHeader.horizontalPadding, vertical = UiConstants.SectionHeader.verticalPadding),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.padding(
+                        horizontal = UiConstants.SectionHeader.horizontalPadding,
+                        vertical = UiConstants.SectionHeader.verticalPadding
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements)
                 ) {
-                    Text(
-                        text = UiStrings.savedMoviesCount(movieResults.size),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f),
-                        softWrap = true,
-                        maxLines = 2
-                    )
-                    if (movieResults.isNotEmpty()) {
-                        TooltipBox(
-                            positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                            tooltip = { PlainTooltip { Text(UiStrings.actionClearAll(movieResults.size)) } },
-                            state = rememberTooltipState()
-                        ) {
-                            IconButton(onClick = onClearAllClick) {
-                                Icon(
-                                    Icons.Filled.DeleteSweep,
-                                    contentDescription = UiStrings.CONTENT_DESC_CLEAR_ALL,
-                                    tint = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    }
-                    TooltipBox(
-                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                        tooltip = { PlainTooltip { Text(if (expanded) UiStrings.ACTION_COLLAPSE else UiStrings.ACTION_EXPAND) } },
-                        state = rememberTooltipState()
-                    ) {
-                        IconButton(onClick = onToggleExpand) {
-                            AnimatedIcon(
-                                imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                                contentDescription = if (expanded) UiStrings.CONTENT_DESC_COLLAPSE else UiStrings.CONTENT_DESC_EXPAND
-                            )
-                        }
-                    }
-                }
-            }
-            
-            SectionAnimatedVisibility(visible = expanded) {
-                Column(modifier = Modifier.padding(UiConstants.Padding.contentStandard), verticalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements)) {
                     if (movieResults.isEmpty()) {
-                        Text(
+                        TextIcon(
                             text = UiStrings.INFO_NO_SAVED_MOVIES,
+                            icon = UiStrings.INFO_NO_SAVED_MOVIES_ICON,
                             style = MaterialTheme.typography.bodyMedium,
                             softWrap = true
                         )
@@ -133,7 +83,8 @@ fun SavedMovieResultsSection(
                                 shape = RoundedCornerShape(UiConstants.Card.cornerRadiusSmall)
                             ) {
                                 Row(
-                                    modifier = Modifier.fillMaxWidth().padding(UiConstants.Padding.itemInCard),
+                                    modifier = Modifier.fillMaxWidth()
+                                        .padding(UiConstants.Padding.itemInCard),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
@@ -142,8 +93,18 @@ fun SavedMovieResultsSection(
                                             style = MaterialTheme.typography.titleSmall,
                                             softWrap = true
                                         )
-                                        Text(
-                                            text = UiStrings.movieResultDetails(movieResult.commercialScore, movieResult.numberOfSeats),
+                                        TextIcon(
+                                            text = UiStrings.movieResultCommercialScore(movieResult.commercialScore),
+                                            icon = UiStrings.MOVIE_RESULT_COMMERCIAL_SCORE_ICON,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            softWrap = true
+                                        )
+                                        TextIcon(
+                                            text = UiStrings.movieResultNumberOfScreening(
+                                                movieResult.numberOfScreenings
+                                            ),
+                                            icon = UiStrings.MOVIE_RESULT_SCREENINGS_ICON,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             softWrap = true
@@ -155,7 +116,10 @@ fun SavedMovieResultsSection(
                                         state = rememberTooltipState()
                                     ) {
                                         IconButton(onClick = { onLoadClick(movieResult) }) {
-                                            Icon(Icons.Filled.ContentCopy, contentDescription = UiStrings.ACTION_LOAD_MOVIE)
+                                            Icon(
+                                                Icons.Filled.ContentCopy,
+                                                contentDescription = UiStrings.ACTION_LOAD_MOVIE
+                                            )
                                         }
                                     }
                                     TooltipBox(
@@ -164,7 +128,10 @@ fun SavedMovieResultsSection(
                                         state = rememberTooltipState()
                                     ) {
                                         IconButton(onClick = { onEditClick(movieResult) }) {
-                                            Icon(Icons.Filled.Edit, contentDescription = UiStrings.ACTION_EDIT_MOVIE)
+                                            Icon(
+                                                Icons.Filled.Edit,
+                                                contentDescription = UiStrings.ACTION_EDIT_MOVIE
+                                            )
                                         }
                                     }
                                     TooltipBox(
@@ -173,7 +140,10 @@ fun SavedMovieResultsSection(
                                         state = rememberTooltipState()
                                     ) {
                                         IconButton(onClick = { onDeleteClick(movieResult) }) {
-                                            Icon(Icons.Filled.Delete, contentDescription = UiStrings.ACTION_DELETE_MOVIE)
+                                            Icon(
+                                                Icons.Filled.Delete,
+                                                contentDescription = UiStrings.ACTION_DELETE_MOVIE
+                                            )
                                         }
                                     }
                                 }

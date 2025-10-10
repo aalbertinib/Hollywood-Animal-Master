@@ -22,15 +22,15 @@ Thank you for your interest in contributing! This document provides all the tech
 
 ### Prerequisites
 
-- **JDK 17 or higher** - [Download](https://adoptium.net/)
+- **JDK 21 or higher** - [Download](https://adoptium.net/)
 - **Android Studio** or **IntelliJ IDEA** - [Download](https://developer.android.com/studio)
 - **Git** - [Download](https://git-scm.com/)
 
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/aalbertinib/Hollywood-Animals-Master.git
-cd Hollywood-Animals-Master
+git clone https://github.com/aalbertinib/Hollywood-Animal-Master.git
+cd Hollywood-Animal-Master
 ```
 
 ### Open in IDE
@@ -139,7 +139,7 @@ xcodebuild -scheme iosApp -configuration Debug
 ## Project Structure
 
 ```
-Hollywood-Animals-Master/
+Hollywood-Animal-Master/
 ├── .github/                    # GitHub workflows and documentation
 │   ├── workflows/
 │   │   ├── ci.yml              # Continuous Integration
@@ -289,15 +289,15 @@ Follow the [Kotlin Coding Conventions](https://kotlinlang.org/docs/coding-conven
 
 ```kotlin
 /**
- * Calculates weekly seat distribution for a movie.
+ * Calculates weekly screening distribution for a movie.
  * 
  * @param commercialScore The movie's commercial appeal (0-100)
- * @param totalSeats Total seats to distribute
- * @return List of seat counts per week
+ * @param totalScreenings Total screenings to distribute
+ * @return List of screening counts per week
  */
 fun calculateDistribution(
     commercialScore: Double,
-    totalSeats: Double
+    totalScreenings: Double
 ): List<Int> {
     // Implementation
 }
@@ -328,7 +328,7 @@ class MovieDistributionCalculatorTest {
     fun testCalculation() {
         val result = calculateDistribution(
             commercialScore = 85.0,
-            totalSeats = 50000.0
+            totalScreenings = 50000.0
         )
         
         assertTrue(result.isNotEmpty())
@@ -392,7 +392,7 @@ Aim for:
 
 4. **Commit with meaningful messages**
    ```bash
-   git commit -m "Add feature: seat distribution visualization"
+   git commit -m "Add feature: screening distribution visualization"
    ```
 
 5. **Push to your fork**

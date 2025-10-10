@@ -17,6 +17,7 @@ import org.aalbertini.ham.ui.state.MovieDistributionUiState
 import org.aalbertini.ham.ui.state.NotificationMessage
 import org.aalbertini.ham.ui.state.NotificationType
 import org.aalbertini.ham.ui.state.ParameterConflict
+import org.aalbertini.ham.util.filterIntegerInput
 import org.aalbertini.ham.util.filterNumericInput
 
 /**
@@ -38,16 +39,16 @@ class MovieDistributionViewModel(
     fun onEvent(event: MovieDistributionUiEvent) {
         when (event) {
             is MovieDistributionUiEvent.UpdateCommercialScoreInput -> updateCommercialScoreInput(event.value)
-            is MovieDistributionUiEvent.UpdateAvailableSeatsInput -> updateAvailableSeatsInput(event.value)
-            is MovieDistributionUiEvent.UpdateAvailableSeatsOverride -> updateAvailableSeatsOverride(event.weekIndex, event.value)
-            is MovieDistributionUiEvent.ClearAvailableSeatsOverride -> clearAvailableSeatsOverride(event.weekIndex)
+            is MovieDistributionUiEvent.UpdateAvailableScreeningsInput -> updateAvailableScreeningsInput(event.value)
+            is MovieDistributionUiEvent.UpdateAvailableScreeningsOverride -> updateAvailableScreeningsOverride(event.weekIndex, event.value)
+            is MovieDistributionUiEvent.ClearAvailableScreeningsOverride -> clearAvailableScreeningsOverride(event.weekIndex)
             is MovieDistributionUiEvent.UpdateEditableTitle -> updateEditableTitle(event.title)
             is MovieDistributionUiEvent.RevertTitle -> revertTitle()
             is MovieDistributionUiEvent.RevertCommercialScore -> revertCommercialScore()
-            is MovieDistributionUiEvent.RevertAvailableSeats -> revertAvailableSeats()
+            is MovieDistributionUiEvent.RevertAvailableScreenings -> revertAvailableScreenings()
             is MovieDistributionUiEvent.SaveMovieResult -> saveMovieResult(event.title)
             is MovieDistributionUiEvent.LoadMovieResult -> loadMovieResult(event.movieResultId)
-            is MovieDistributionUiEvent.UpdateMovieResult -> updateMovieResult(event.id, event.title, event.commercialScore, event.availableSeats)
+            is MovieDistributionUiEvent.UpdateMovieResult -> updateMovieResult(event.id, event.title, event.commercialScore, event.availableScreenings)
             is MovieDistributionUiEvent.DeleteMovieResult -> deleteMovieResult(event.movieResultId)
             is MovieDistributionUiEvent.ClearAllMovieResults -> clearAllMovieResults()
             is MovieDistributionUiEvent.NewMovieResult -> newMovieResult()
@@ -82,14 +83,14 @@ class MovieDistributionViewModel(
         calculateResults()
     }
 
-    private fun updateAvailableSeatsInput(value: String) {
-        val filtered = value.filterNumericInput()
+    private fun updateAvailableScreeningsInput(value: String) {
+        val filtered = value.filterIntegerInput()
         
         // Apply range restriction if value is complete (not just typing)
         val finalValue = if (filtered.isNotEmpty() && !filtered.endsWith(".")) {
             val numValue = filtered.toDoubleOrNull()
-            if (numValue != null && numValue > MovieDistributionConstants.Validation.SEATS_MAX) {
-                MovieDistributionConstants.Validation.SEATS_MAX.toLong().toString()
+            if (numValue != null && numValue > MovieDistributionConstants.Validation.SCREENINGS_MAX) {
+                MovieDistributionConstants.Validation.SCREENINGS_MAX.toLong().toString()
             } else {
                 filtered
             }
@@ -97,16 +98,16 @@ class MovieDistributionViewModel(
             filtered
         }
         
-        _uiState.update { it.copy(availableSeatsInput = finalValue) }
+        _uiState.update { it.copy(availableScreeningsInput = finalValue) }
         calculateResults()
     }
 
-    private fun updateAvailableSeatsOverride(weekIndex: Int, value: String) {
+    private fun updateAvailableScreeningsOverride(weekIndex: Int, value: String) {
         val state = _uiState.value
-        val availableSeats = state.availableSeatsInput.toDoubleOrNull() ?: 0.0
+        val availableScreenings = state.availableScreeningsInput.toDoubleOrNull() ?: 0.0
         
         // Update input string immediately (no filtering here - done in UI)
-        val newInputs = state.availableSeatsOverrideInputs.toMutableMap()
+        val newInputs = state.availableScreeningsOverrideInputs.toMutableMap()
         if (value.isEmpty()) {
             newInputs.remove(weekIndex)
         } else {
@@ -114,11 +115,11 @@ class MovieDistributionViewModel(
         }
         
         // Validate and update override value for calculation
-        val newOverrides = state.availableSeatsOverrides.toMutableMap()
+        val newOverrides = state.availableScreeningsOverrides.toMutableMap()
         val overrideValue = value.toDoubleOrNull()
         
-        // Only update overrides map if value is valid
-        if (overrideValue != null && overrideValue >= 0.0 && overrideValue <= availableSeats) {
+        // Only update overrides map if value is valid (with epsilon for floating point precision)
+        if (overrideValue != null && overrideValue >= 0.0 && overrideValue <= availableScreenings + 0.0001) {
             newOverrides[weekIndex] = overrideValue
         } else if (value.isEmpty()) {
             newOverrides.remove(weekIndex)
@@ -128,12 +129,12 @@ class MovieDistributionViewModel(
         }
         
         // Update state and recalculate only if overrides changed
-        val overridesChanged = state.availableSeatsOverrides != newOverrides
+        val overridesChanged = state.availableScreeningsOverrides != newOverrides
         
         _uiState.update { 
             it.copy(
-                availableSeatsOverrideInputs = newInputs,
-                availableSeatsOverrides = newOverrides
+                availableScreeningsOverrideInputs = newInputs,
+                availableScreeningsOverrides = newOverrides
             ) 
         }
         
@@ -142,19 +143,21 @@ class MovieDistributionViewModel(
             calculateResults()
             
             // Auto-save if there's a current movie loaded
+            // Note: currentMovieResultId is temporarily set to null during movie loading
+            // to prevent saving pending/invalid overrides from the previous movie
             if (state.currentMovieResultId != null) {
                 viewModelScope.launch {
                     try {
                         val commercialScore = state.commercialScoreInput.toDoubleOrNull()
-                        val availableSeatsValue = state.availableSeatsInput.toDoubleOrNull()
+                        val availableScreeningsValue = state.availableScreeningsInput.toDoubleOrNull()
                         val title = state.currentMovieResultTitle
                         
-                        if (commercialScore != null && availableSeatsValue != null && title != null) {
+                        if (commercialScore != null && availableScreeningsValue != null && title != null) {
                             repository.updateMovieResult(
                                 state.currentMovieResultId,
                                 title,
                                 commercialScore,
-                                availableSeatsValue,
+                                availableScreeningsValue,
                                 newOverrides
                             )
                         }
@@ -166,32 +169,34 @@ class MovieDistributionViewModel(
         }
     }
 
-    private fun clearAvailableSeatsOverride(weekIndex: Int) {
+    private fun clearAvailableScreeningsOverride(weekIndex: Int) {
         val state = _uiState.value
-        val newOverrides = state.availableSeatsOverrides - weekIndex
+        val newOverrides = state.availableScreeningsOverrides - weekIndex
         
         _uiState.update { 
             it.copy(
-                availableSeatsOverrideInputs = it.availableSeatsOverrideInputs - weekIndex,
-                availableSeatsOverrides = newOverrides
+                availableScreeningsOverrideInputs = it.availableScreeningsOverrideInputs - weekIndex,
+                availableScreeningsOverrides = newOverrides
             ) 
         }
         calculateResults()
         
         // Auto-save if there's a current movie loaded
+        // Note: currentMovieResultId is temporarily set to null during movie loading
+        // to prevent saving pending/invalid overrides from the previous movie
         if (state.currentMovieResultId != null) {
             viewModelScope.launch {
                 try {
                     val commercialScore = state.commercialScoreInput.toDoubleOrNull()
-                    val availableSeats = state.availableSeatsInput.toDoubleOrNull()
+                    val availableScreenings = state.availableScreeningsInput.toDoubleOrNull()
                     val title = state.currentMovieResultTitle
                     
-                    if (commercialScore != null && availableSeats != null && title != null) {
+                    if (commercialScore != null && availableScreenings != null && title != null) {
                         repository.updateMovieResult(
                             state.currentMovieResultId,
                             title,
                             commercialScore,
-                            availableSeats,
+                            availableScreenings,
                             newOverrides
                         )
                     }
@@ -214,28 +219,28 @@ class MovieDistributionViewModel(
         calculateResults()
     }
 
-    private fun revertAvailableSeats() {
-        _uiState.update { it.copy(availableSeatsInput = it.originalAvailableSeats ?: "") }
+    private fun revertAvailableScreenings() {
+        _uiState.update { it.copy(availableScreeningsInput = it.originalAvailableScreenings ?: "") }
         calculateResults()
     }
 
     private fun calculateResults() {
         val state = _uiState.value
         val commercialScore = state.commercialScoreInput.toDoubleOrNull()
-        val availableSeats = state.availableSeatsInput.toDoubleOrNull()
+        val availableScreenings = state.availableScreeningsInput.toDoubleOrNull()
 
         val commercialScoreValid = commercialScore != null &&
                      commercialScore >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN &&
                      commercialScore <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
-        val availableSeatsValid = availableSeats != null &&
-                     availableSeats >= MovieDistributionConstants.Validation.SEATS_MIN &&
-                     availableSeats <= MovieDistributionConstants.Validation.SEATS_MAX
+        val availableScreeningsValid = availableScreenings != null &&
+                     availableScreenings >= MovieDistributionConstants.Validation.SCREENINGS_MIN &&
+                     availableScreenings <= MovieDistributionConstants.Validation.SCREENINGS_MAX
 
-        val results = if (commercialScoreValid && availableSeatsValid) {
-            val rawResults = if (state.availableSeatsOverrides.isNotEmpty()) {
-                MovieDistributionCalculator.calculateWeeklyResultsWithOverrides(commercialScore, availableSeats, state.availableSeatsOverrides)
+        val results = if (commercialScoreValid && availableScreeningsValid) {
+            val rawResults = if (state.availableScreeningsOverrides.isNotEmpty()) {
+                MovieDistributionCalculator.calculateWeeklyResultsWithOverrides(commercialScore, availableScreenings, state.availableScreeningsOverrides)
             } else {
-                MovieDistributionCalculator.calculateWeeklyResults(commercialScore, availableSeats)
+                MovieDistributionCalculator.calculateWeeklyResults(commercialScore, availableScreenings)
             }
             MovieDistributionCalculator.applyRoundingRules(rawResults)
         } else {
@@ -250,9 +255,9 @@ class MovieDistributionViewModel(
             try {
                 val state = _uiState.value
                 val commercialScore = state.commercialScoreInput.toDoubleOrNull()
-                val availableSeats = state.availableSeatsInput.toDoubleOrNull()
+                val availableScreenings = state.availableScreeningsInput.toDoubleOrNull()
 
-                if (title.isBlank() || commercialScore == null || availableSeats == null) return@launch
+                if (title.isBlank() || commercialScore == null || availableScreenings == null) return@launch
 
                 // Check if title has changed from the original loaded movie
                 val titleChanged = state.currentMovieResultId != null && 
@@ -261,7 +266,7 @@ class MovieDistributionViewModel(
 
                 if (state.currentMovieResultId != null && !titleChanged) {
                     // Update existing movie (same title)
-                    repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                    repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
                     _uiState.update {
                         it.copy(
                             currentMovieResultTitle = title,
@@ -275,7 +280,7 @@ class MovieDistributionViewModel(
                     }
                 } else {
                     // Create new movie (no existing movie or title changed - "Save As" behavior)
-                    val newMovieResult = repository.saveMovieResult(title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                    val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
                     _uiState.update {
                         it.copy(
                             currentMovieResultId = newMovieResult.id,
@@ -305,24 +310,40 @@ class MovieDistributionViewModel(
     }
 
     private fun loadMovieResult(movieResultId: String) {
+        // First, clear any pending override inputs to prevent them from being saved
+        _uiState.update {
+            it.copy(
+                availableScreeningsOverrideInputs = emptyMap()
+            )
+        }
+        
         viewModelScope.launch {
             val movieResult = repository.getMovieResultById(movieResultId)
             if (movieResult != null) {
-                // Convert availableSeatsOverrides to input strings
-                val overrideInputs = movieResult.availableSeatsOverrides.mapValues { it.value.toString() }
+                // Convert availableScreeningsOverrides to input strings
+                val overrideInputs = movieResult.availableScreeningsOverrides.mapValues { entry ->
+                    val value = entry.value
+                    // Normalize: remove trailing zeros for whole numbers
+                    if (value == value.toLong().toDouble()) {
+                        value.toLong().toString()
+                    } else {
+                        value.toString()
+                    }
+                }
                 
                 _uiState.update {
                     it.copy(
                         commercialScoreInput = movieResult.commercialScore.toString(),
-                        availableSeatsInput = movieResult.numberOfSeats.toString(),
-                        availableSeatsOverrides = movieResult.availableSeatsOverrides,
-                        availableSeatsOverrideInputs = overrideInputs,
+                        availableScreeningsInput = movieResult.numberOfScreenings.toString(),
+                        availableScreeningsOverrides = movieResult.availableScreeningsOverrides,
+                        availableScreeningsOverrideInputs = overrideInputs,
                         currentMovieResultId = movieResult.id,
                         currentMovieResultTitle = movieResult.title,
                         editableTitle = movieResult.title,
                         originalTitle = movieResult.title,
                         originalCommercialScore = movieResult.commercialScore.toString(),
-                        originalAvailableSeats = movieResult.numberOfSeats.toString(),
+                        originalAvailableScreenings = movieResult.numberOfScreenings.toString(),
+                        expandResults = true,
                         notification = NotificationMessage(
                             "Movie result loaded: ${movieResult.title}",
                             NotificationType.INFO
@@ -334,11 +355,11 @@ class MovieDistributionViewModel(
         }
     }
 
-    private fun updateMovieResult(id: String, title: String, commercialScore: Double, availableSeats: Double) {
+    private fun updateMovieResult(id: String, title: String, commercialScore: Double, availableScreenings: Double) {
         viewModelScope.launch {
             try {
                 val state = _uiState.value
-                repository.updateMovieResult(id, title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                repository.updateMovieResult(id, title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
                 loadSavedMovieResults()
                 _uiState.update {
                     it.copy(
@@ -424,21 +445,22 @@ class MovieDistributionViewModel(
 
     private fun newMovieResult() {
         val defaultCommercialScore = MovieDistributionConstants.Defaults.COMMERCIAL_SCORE.toString()
-        val defaultAvailableSeats = MovieDistributionConstants.Defaults.AVAILABLE_SEATS.toLong().toString()
+        val defaultAvailableScreenings = MovieDistributionConstants.Defaults.AVAILABLE_SCREENINGS.toLong().toString()
         
         _uiState.update {
             it.copy(
                 commercialScoreInput = defaultCommercialScore,
-                availableSeatsInput = defaultAvailableSeats,
-                availableSeatsOverrides = emptyMap(),
-                availableSeatsOverrideInputs = emptyMap(),
+                availableScreeningsInput = defaultAvailableScreenings,
+                availableScreeningsOverrides = emptyMap(),
+                availableScreeningsOverrideInputs = emptyMap(),
                 currentMovieResultId = null,
                 currentMovieResultTitle = null,
                 editableTitle = "",
                 originalTitle = null,
                 originalCommercialScore = null,
-                originalAvailableSeats = null,
-                resultsWithRounded = emptyList()
+                originalAvailableScreenings = null,
+                resultsWithRounded = emptyList(),
+                expandResults = true
             )
         }
         // Trigger calculation with default values
@@ -474,15 +496,15 @@ class MovieDistributionViewModel(
                 val state = _uiState.value
                 val title = state.editableTitle.ifBlank { return@launch }
                 val commercialScore = state.commercialScoreInput.toDoubleOrNull() ?: return@launch
-                val availableSeats = state.availableSeatsInput.toDoubleOrNull() ?: return@launch
+                val availableScreenings = state.availableScreeningsInput.toDoubleOrNull() ?: return@launch
 
                 // Validate inputs
                 val commercialScoreValid = commercialScore >= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN &&
                              commercialScore <= MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
-                val availableSeatsValid = availableSeats >= MovieDistributionConstants.Validation.SEATS_MIN &&
-                             availableSeats <= MovieDistributionConstants.Validation.SEATS_MAX
+                val availableScreeningsValid = availableScreenings >= MovieDistributionConstants.Validation.SCREENINGS_MIN &&
+                             availableScreenings <= MovieDistributionConstants.Validation.SCREENINGS_MAX
 
-                if (!commercialScoreValid || !availableSeatsValid) return@launch
+                if (!commercialScoreValid || !availableScreeningsValid) return@launch
 
                 // Check if a movie with this title already exists
                 val existingMovie = repository.getMovieResultByTitle(title)
@@ -493,7 +515,7 @@ class MovieDistributionViewModel(
                     if (existingMovie != null && existingMovie.id != state.currentMovieResultId) {
                         // Title conflicts with a different movie
                         val parametersDifferent = existingMovie.commercialScore != commercialScore ||
-                                                 existingMovie.numberOfSeats != availableSeats
+                                                 existingMovie.numberOfScreenings != availableScreenings
 
                         if (parametersDifferent) {
                             // Show conflict dialog
@@ -502,7 +524,7 @@ class MovieDistributionViewModel(
                                     parameterConflict = ParameterConflict(
                                         existingMovie = existingMovie,
                                         newCommercialScore = commercialScore,
-                                        newSeats = availableSeats
+                                        newScreenings = availableScreenings
                                     )
                                 )
                             }
@@ -530,7 +552,7 @@ class MovieDistributionViewModel(
                     
                     if (titleChanged) {
                         // Title changed - create new movie
-                        val newMovieResult = repository.saveMovieResult(title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                        val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
                         _uiState.update {
                             it.copy(
                                 currentMovieResultId = newMovieResult.id,
@@ -545,7 +567,7 @@ class MovieDistributionViewModel(
                         }
                     } else {
                         // Same title - update existing movie
-                        repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                        repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
                         _uiState.update {
                             it.copy(
                                 currentMovieResultTitle = title,
@@ -566,7 +588,7 @@ class MovieDistributionViewModel(
                 if (existingMovie != null) {
                     // Check if parameters are different
                     val parametersDifferent = existingMovie.commercialScore != commercialScore ||
-                                             existingMovie.numberOfSeats != availableSeats
+                                             existingMovie.numberOfScreenings != availableScreenings
 
                     if (parametersDifferent) {
                         // Show conflict dialog
@@ -575,7 +597,7 @@ class MovieDistributionViewModel(
                                 parameterConflict = ParameterConflict(
                                     existingMovie = existingMovie,
                                     newCommercialScore = commercialScore,
-                                    newSeats = availableSeats
+                                    newScreenings = availableScreenings
                                 )
                             )
                         }
@@ -599,7 +621,7 @@ class MovieDistributionViewModel(
                 }
 
                 // No conflict, create new movie
-                val newMovieResult = repository.saveMovieResult(title, commercialScore, availableSeats, state.availableSeatsOverrides)
+                val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
                 _uiState.update {
                     it.copy(
                         currentMovieResultId = newMovieResult.id,
@@ -641,8 +663,8 @@ class MovieDistributionViewModel(
                     conflict.existingMovie.id,
                     conflict.existingMovie.title,
                     conflict.newCommercialScore,
-                    conflict.newSeats,
-                    state.availableSeatsOverrides
+                    conflict.newScreenings,
+                    state.availableScreeningsOverrides
                 )
 
                 // If we were editing a different movie, delete it (we're effectively replacing it)
@@ -683,22 +705,40 @@ class MovieDistributionViewModel(
      */
     private fun keepExistingMovie() {
         val conflict = _uiState.value.parameterConflict ?: return
+        
+        // First, clear any pending override state and temporarily null the movie ID to prevent auto-save
+        _uiState.update {
+            it.copy(
+                availableScreeningsOverrideInputs = emptyMap(),
+                availableScreeningsOverrides = emptyMap(),
+                currentMovieResultId = null
+            )
+        }
 
-        // Convert availableSeatsOverrides to input strings
-        val overrideInputs = conflict.existingMovie.availableSeatsOverrides.mapValues { it.value.toString() }
+        // Convert availableScreeningsOverrides to input strings (normalize to integers)
+        val overrideInputs = conflict.existingMovie.availableScreeningsOverrides.mapValues { entry ->
+            val value = entry.value
+            // Normalize: remove trailing zeros for whole numbers
+            if (value == value.toLong().toDouble()) {
+                value.toLong().toString()
+            } else {
+                value.toString()
+            }
+        }
 
         _uiState.update {
             it.copy(
                 commercialScoreInput = conflict.existingMovie.commercialScore.toString(),
-                availableSeatsInput = conflict.existingMovie.numberOfSeats.toString(),
-                availableSeatsOverrides = conflict.existingMovie.availableSeatsOverrides,
-                availableSeatsOverrideInputs = overrideInputs,
+                availableScreeningsInput = conflict.existingMovie.numberOfScreenings.toString(),
+                availableScreeningsOverrides = conflict.existingMovie.availableScreeningsOverrides,
+                availableScreeningsOverrideInputs = overrideInputs,
                 currentMovieResultId = conflict.existingMovie.id,
                 currentMovieResultTitle = conflict.existingMovie.title,
                 editableTitle = conflict.existingMovie.title,
                 originalTitle = conflict.existingMovie.title,
                 originalCommercialScore = conflict.existingMovie.commercialScore.toString(),
-                originalAvailableSeats = conflict.existingMovie.numberOfSeats.toString(),
+                originalAvailableScreenings = conflict.existingMovie.numberOfScreenings.toString(),
+                expandResults = true,
                 parameterConflict = null,
                 notification = NotificationMessage(
                     "Loaded existing movie: ${conflict.existingMovie.title}",
@@ -716,3 +756,11 @@ class MovieDistributionViewModel(
         _uiState.update { it.copy(parameterConflict = null) }
     }
 }
+
+
+
+
+
+
+
+

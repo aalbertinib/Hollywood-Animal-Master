@@ -259,11 +259,7 @@ $RECYCLE.BIN/
 
 # Kotlin/JS
 node_modules/
-yarn.lock
-package-lock.json
 
-# Kotlin/Wasm
-*.wasm
 
 # ===========================
 # Environment & Secrets
@@ -289,3 +285,8 @@ keystore.properties
 # Temporary files
 *.tmp
 *.temp
+.idea/deploymentTargetSelector.xml
+
+.idea/artifacts/
+
+.idea/misc.xml

@@ -1,4 +1,4 @@
-﻿package org.aalbertini.ham.repository
+package org.aalbertini.ham.repository
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -43,8 +43,8 @@ class MovieResultRepository(
     fun saveMovieResult(
         title: String, 
         commercialScore: Double, 
-        numberOfSeats: Double,
-        availableSeatsOverrides: Map<Int, Double> = emptyMap()
+        numberOfScreenings: Double,
+        availableScreeningsOverrides: Map<Int, Double> = emptyMap()
     ): MovieResult {
         val movieResults = loadMovieResults().toMutableList()
         val currentTime = Clock.System.now().toEpochMilliseconds()
@@ -52,8 +52,8 @@ class MovieResultRepository(
             id = generateId(),
             title = title,
             commercialScore = commercialScore,
-            numberOfSeats = numberOfSeats,
-            availableSeatsOverrides = availableSeatsOverrides,
+            numberOfScreenings = numberOfScreenings,
+            availableScreeningsOverrides = availableScreeningsOverrides,
             createdAt = currentTime,
             updatedAt = currentTime
         )
@@ -77,8 +77,8 @@ class MovieResultRepository(
         id: String,
         title: String,
         commercialScore: Double,
-        numberOfSeats: Double,
-        availableSeatsOverrides: Map<Int, Double> = emptyMap()
+        numberOfScreenings: Double,
+        availableScreeningsOverrides: Map<Int, Double> = emptyMap()
     ): Boolean {
         val movieResults = loadMovieResults().toMutableList()
         val index = movieResults.indexOfFirst { it.id == id }
@@ -86,8 +86,8 @@ class MovieResultRepository(
             val updated = movieResults[index].copy(
                 title = title,
                 commercialScore = commercialScore,
-                numberOfSeats = numberOfSeats,
-                availableSeatsOverrides = availableSeatsOverrides,
+                numberOfScreenings = numberOfScreenings,
+                availableScreeningsOverrides = availableScreeningsOverrides,
                 updatedAt = Clock.System.now().toEpochMilliseconds()
             )
             movieResults[index] = updated

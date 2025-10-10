@@ -1,260 +1,382 @@
-name: Release Build
+name: Release
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      # Production releases: v1.0.0 or 1.0.0
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+'
+      # Pre-releases with v prefix (case insensitive)
+      - 'v[0-9]+.[0-9]+.[0-9]+-[aA][lL][pP][hH][aA].[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-[bB][eE][tT][aA].[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-[rR][cC].[0-9]+'
+      # Pre-releases without v prefix (case insensitive)
+      - '[0-9]+.[0-9]+.[0-9]+-[aA][lL][pP][hH][aA].[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-[bB][eE][tT][aA].[0-9]+'
+      - '[0-9]+.[0-9]+.[0-9]+-[rR][cC].[0-9]+'
   workflow_dispatch:
-    # Version is read from gradle.properties automatically
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  pages: write
+  id-token: write
 
 env:
-  APP_NAME: hollywood-animals-master
-  JAVA_VERSION: '17'
+  APP_NAME: Hollywood-Animal-Master
+  JAVA_VERSION: '21'
+  NODE_VERSION: '20'
+  GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
 
 jobs:
+  # Run tests first
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ env.JAVA_VERSION }}
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Upgrade Package Lock
+      run: ./gradlew kotlinUpgradePackageLock kotlinWasmUpgradePackageLock --no-build-cache --rerun-tasks
+
+    - name: Run Tests
+      run: ./gradlew :composeApp:testReleaseUnitTest --stacktrace
+      
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          **/build/test-results/**/*.xml
+          **/build/reports/**
+        retention-days: 7
+
+  # Build artifacts in parallel
   build-desktop:
-    name: Build Desktop (Windows, macOS, Linux)
+    name: Desktop (${{ matrix.platform }}-${{ matrix.arch }})
+    needs: test
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            platform: linux
-            artifact_name: linux-x64
+            platform: Linux
+            arch: x64
           - os: windows-latest
-            platform: windows
-            artifact_name: windows-x64
+            platform: Windows
+            arch: x64
+          - os: macos-13
+            platform: macOS
+            arch: x64
           - os: macos-latest
-            platform: macos
-            artifact_name: macos-x64
+            platform: macOS
+            arch: ARM64
     
     runs-on: ${{ matrix.os }}
     
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
       
-    - name: Set up JDK 17
+    - name: Setup JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
-        cache: 'gradle'
         
-    - name: Grant execute permission for gradlew (Unix)
-      if: runner.os != 'Windows'
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
+    - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
-    - name: Extract version from gradle.properties
+
+    - name: Extract Version
       id: version
       shell: bash
       run: |
         VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
         echo "app_version=$VERSION" >> $GITHUB_OUTPUT
-        echo "📦 Building version: $VERSION"
+        echo "📦 Version: $VERSION"
       
-    - name: Build Desktop JAR
+    - name: Build Desktop
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          ./gradlew.bat :composeApp:packageDistributionForCurrentOS --no-daemon
+          ./gradlew.bat :composeApp:packageDistributionForCurrentOS
         else
-          ./gradlew :composeApp:packageDistributionForCurrentOS --no-daemon
+          ./gradlew :composeApp:packageDistributionForCurrentOS
         fi
       
-    - name: Package Desktop App
+    - name: Package Artifacts
       shell: bash
       run: |
         VERSION="${{ steps.version.outputs.app_version }}"
         cd composeApp/build/compose/binaries/main
+        PLATFORM="${{ matrix.platform }}"
+        ARCH="${{ matrix.arch }}"
         if [ "$RUNNER_OS" == "Windows" ]; then
-          7z a -tzip "${{ env.APP_NAME }}-${VERSION}-${{ matrix.artifact_name }}.zip" *
+          7z a -tzip "${{ env.APP_NAME }}-${VERSION}-${PLATFORM}-${ARCH}.zip" *
         else
-          zip -r "${{ env.APP_NAME }}-${VERSION}-${{ matrix.artifact_name }}.zip" *
+          zip -r "${{ env.APP_NAME }}-${VERSION}-${PLATFORM}-${ARCH}.zip" *
         fi
         
-    - name: Upload Desktop Build
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: desktop-${{ matrix.artifact_name }}
+        name: desktop-${{ matrix.platform }}-${{ matrix.arch }}
         path: composeApp/build/compose/binaries/main/*.zip
-        retention-days: 30
-        
-    - name: Upload to Release
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: composeApp/build/compose/binaries/main/*.zip
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        retention-days: 7
 
   build-android:
-    name: Build Android APK
+    name: Android APK
+    needs: test
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
       
-    - name: Set up JDK 17
+    - name: Setup JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
-        cache: 'gradle'
         
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
-    - name: Extract version from gradle.properties
+
+    - name: Extract Version
       id: version
       run: |
         VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
         echo "app_version=$VERSION" >> $GITHUB_OUTPUT
-        echo "📦 Building version: $VERSION"
+        echo "📦 Version: $VERSION"
       
-    - name: Build Android Release APK
-      run: ./gradlew :composeApp:assembleRelease --no-daemon
-      
-    - name: Sign APK (if keystore available)
-      id: sign_apk
+    - name: Setup Keystore
+      id: keystore
       continue-on-error: true
       run: |
         if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
-          ./gradlew :composeApp:assembleRelease \
-            -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks \
-            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
-            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
-            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
+          echo "KEYSTORE_FILE=$(pwd)/keystore.jks" >> $GITHUB_ENV
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
           echo "signed=true" >> $GITHUB_OUTPUT
+          echo "✅ Signed APK"
         else
           echo "signed=false" >> $GITHUB_OUTPUT
+          echo "⚠️ Unsigned APK"
         fi
+      
+    - name: Build APK
+      run: ./gradlew :composeApp:assembleRelease
       
     - name: Rename APK
       run: |
         VERSION="${{ steps.version.outputs.app_version }}"
         cd composeApp/build/outputs/apk/release
-        if [ "${{ steps.sign_apk.outputs.signed }}" == "true" ]; then
-          mv *.apk "${{ env.APP_NAME }}-${VERSION}-release-signed.apk"
-        else
-          mv *.apk "${{ env.APP_NAME }}-${VERSION}-release-unsigned.apk"
-        fi
+        mv *.apk "${{ env.APP_NAME }}-${VERSION}-Android-Universal.apk"
         
-    - name: Upload Android APK
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: android-release
+        name: android
         path: composeApp/build/outputs/apk/release/*.apk
-        retention-days: 30
-        
-    - name: Upload to Release
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: composeApp/build/outputs/apk/release/*.apk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        retention-days: 7
 
   build-web:
-    name: Build Web (WASM)
+    name: Web WASM
+    needs: test
     runs-on: ubuntu-latest
     
     env:
       NODE_OPTIONS: --no-deprecation
     
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
       
-    - name: Set up JDK 17
+    - name: Setup JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
-        cache: 'gradle'
         
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v4
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-      
-    - name: Extract version from gradle.properties
+
+    - name: Extract Version
       id: version
       run: |
         VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
         echo "app_version=$VERSION" >> $GITHUB_OUTPUT
-        echo "📦 Building version: $VERSION"
+        echo "📦 Version: $VERSION"
+
+    - name: Upgrade Package Lock
+      run: ./gradlew kotlinUpgradePackageLock kotlinWasmUpgradePackageLock --no-build-cache --rerun-tasks
+
+    - name: Build Web
+      run: ./gradlew :composeApp:wasmJsBrowserDistribution
       
-    - name: Build Web WASM
-      run: ./gradlew :composeApp:wasmJsBrowserDistribution --no-daemon
-      
-    - name: Package Web Build
+    - name: Package Artifacts
       run: |
         VERSION="${{ steps.version.outputs.app_version }}"
         cd composeApp/build/dist/wasmJs/productionExecutable
-        zip -r "${{ env.APP_NAME }}-${VERSION}-web.zip" *
+        zip -r "${{ env.APP_NAME }}-${VERSION}-Web.zip" *
         
-    - name: Upload Web Build
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: web-wasm
+        name: web
         path: composeApp/build/dist/wasmJs/productionExecutable/*.zip
-        retention-days: 30
-        
-    - name: Upload to Release
-      if: github.event_name == 'release'
-      uses: softprops/action-gh-release@v1
+        retention-days: 7
+
+  # Semantic Release - creates tag and GitHub release with all artifacts
+  release:
+    name: Create Release
+    needs: [build-desktop, build-android, build-web]
+    runs-on: ubuntu-latest
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
       with:
-        files: composeApp/build/dist/wasmJs/productionExecutable/*.zip
+        fetch-depth: 0
+        persist-credentials: false
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    
+    - name: Install Dependencies
+      run: npm ci
+      
+    - name: Download Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
+        
+    - name: Organize Artifacts
+      run: |
+        mkdir -p composeApp/build/compose/binaries/main
+        mkdir -p composeApp/build/outputs/apk/release
+        mkdir -p composeApp/build/dist/wasmJs/productionExecutable
+        
+        # Copy all desktop architectures
+        cp artifacts/desktop-Windows-x64/*.zip composeApp/build/compose/binaries/main/ 2>/dev/null || true
+        cp artifacts/desktop-macOS-x64/*.zip composeApp/build/compose/binaries/main/ 2>/dev/null || true
+        cp artifacts/desktop-macOS-ARM64/*.zip composeApp/build/compose/binaries/main/ 2>/dev/null || true
+        cp artifacts/desktop-Linux-x64/*.zip composeApp/build/compose/binaries/main/ 2>/dev/null || true
+        
+        # Copy Android and Web
+        cp artifacts/android/*.apk composeApp/build/outputs/apk/release/ 2>/dev/null || true
+        cp artifacts/web/*.zip composeApp/build/dist/wasmJs/productionExecutable/ 2>/dev/null || true
+        
+        echo "📦 Release assets:"
+        find composeApp/build -type f \( -name "*.zip" -o -name "*.apk" \) -exec basename {} \;
+      
+    - name: Run Semantic Release
+      id: semantic
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GIT_AUTHOR_NAME: semantic-release-bot
+        GIT_AUTHOR_EMAIL: semantic-release-bot@users.noreply.github.com
+        GIT_COMMITTER_NAME: semantic-release-bot
+        GIT_COMMITTER_EMAIL: semantic-release-bot@users.noreply.github.com
+      run: |
+        npx semantic-release
+        
+        LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        if [ -n "$LATEST_TAG" ]; then
+          echo "new_release_published=true" >> $GITHUB_OUTPUT
+          echo "new_release_version=${LATEST_TAG#v}" >> $GITHUB_OUTPUT
+          echo "✅ Release: $LATEST_TAG"
+        else
+          echo "new_release_published=false" >> $GITHUB_OUTPUT
+          echo "⚠️ No release created"
+        fi
+      
+    - name: Summary
+      run: |
+        echo "## 🎬 Release Complete" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ steps.semantic.outputs.new_release_published }}" == "true" ]; then
+          echo "### ✅ v${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "[View Release](https://github.com/${{ github.repository }}/releases/tag/v${{ steps.semantic.outputs.new_release_version }})" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ℹ️ No release created" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # Upload artifacts as release assets
+  upload-assets:
+    name: Upload Release Assets
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
+        
+    - name: Upload Release Assets
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: v${{ needs.release.outputs.new_release_version }}
+        files: |
+          artifacts/desktop-Windows-x64/*.zip
+          artifacts/desktop-macOS-x64/*.zip
+          artifacts/desktop-macOS-ARM64/*.zip
+          artifacts/desktop-Linux-x64/*.zip
+          artifacts/android/*.apk
+          artifacts/web/*.zip
+        fail_on_unmatched_files: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  create-release-notes:
-    name: Create Release Summary
-    needs: [build-desktop, build-android, build-web]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-    
-    steps:
-    - name: Update Release Notes
-      uses: softprops/action-gh-release@v1
-      with:
-        append_body: true
-        body: |
-          
-          ---
-          
-          ## 📦 Available Downloads
-          
-          ### 🖥️ Desktop Applications
-          - **Windows (x64)**: `hollywood-animals-master-*-windows-x64.zip`
-          - **macOS (x64)**: `hollywood-animals-master-*-macos-x64.zip`
-          - **Linux (x64)**: `hollywood-animals-master-*-linux-x64.zip`
-          
-          ### 📱 Mobile
-          - **Android**: `hollywood-animals-master-*-release.apk`
-          
-          ### 🌐 Web
-          - **WASM**: `hollywood-animals-master-*-web.zip` (extract and host on web server)
-          - **Live Demo**: Available on [GitHub Pages](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)
-          
-          > **Note**: GitHub Pages deployment is triggered automatically and may take a few minutes to update after release.
-          
-          ---
-          
-          Built with Kotlin Multiplatform & Compose Multiplatform 🎬
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Output Summary
-      run: |
-        echo "## 🎬 Release Build Complete" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### ✅ All artifacts uploaded to release" >> $GITHUB_STEP_SUMMARY
-        echo "- Desktop (Windows, macOS, Linux)" >> $GITHUB_STEP_SUMMARY
-        echo "- Android APK" >> $GITHUB_STEP_SUMMARY
-        echo "- Web WASM package" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🌐 GitHub Pages" >> $GITHUB_STEP_SUMMARY
-        echo "Live demo will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "> The GitHub Pages deployment workflow is running in parallel. Check the [Actions tab](https://github.com/${{ github.repository }}/actions/workflows/deploy-web.yml) for deployment status." >> $GITHUB_STEP_SUMMARY
+  # Deploy web app to GitHub Pages
+  deploy-web:
+    name: Deploy Web
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true'
+    uses: ./.github/workflows/deploy-web.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

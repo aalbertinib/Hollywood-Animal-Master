@@ -85,15 +85,15 @@ cd AndroidKeystores
 Run this command (copy the entire command):
 
 ```bash
-keytool -genkey -v -keystore hollywood-animals-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias hollywood-animals-key
+keytool -genkey -v -keystore hollywood-animal-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias hollywood-animal-key
 ```
 
 **Breaking down the command:**
-- `hollywood-animals-release.jks` - Your keystore filename
+- `hollywood-animal-release.jks` - Your keystore filename
 - `-keyalg RSA` - Encryption algorithm (RSA)
 - `-keysize 2048` - Key size (2048 bits is standard)
 - `-validity 10000` - Valid for ~27 years
-- `hollywood-animals-key` - Alias (name of the key inside the keystore)
+- `hollywood-animal-key` - Alias (name of the key inside the keystore)
 
 ### Fill in the Information
 
@@ -116,7 +116,7 @@ Re-enter new password:
 #### 2. Enter key password
 
 ```
-Enter key password for <hollywood-animals-key>
+Enter key password for <hollywood-animal-key>
     (RETURN if same as keystore password):
 ```
 
@@ -162,10 +162,10 @@ You should see:
 ```
 Generating 2,048 bit RSA key pair and self-signed certificate (SHA256withRSA) with a validity of 10,000 days
         for: CN=John Doe, OU=Development, O=Your Company Name, L=Your City, ST=Your State, C=US
-[Storing hollywood-animals-release.jks]
+[Storing hollywood-animal-release.jks]
 ```
 
-**Your keystore file `hollywood-animals-release.jks` is created!**
+**Your keystore file `hollywood-animal-release.jks` is created!**
 
 ---
 
@@ -181,9 +181,9 @@ Create a text file with all your keystore details:
 ANDROID KEYSTORE INFORMATION
 ============================
 App: Hollywood Animals Master
-Keystore File: hollywood-animals-release.jks
+Keystore File: hollywood-animal-release.jks
 Keystore Password: [YOUR_PASSWORD_HERE]
-Key Alias: hollywood-animals-key
+Key Alias: hollywood-animal-key
 Key Password: [SAME_AS_KEYSTORE or YOUR_KEY_PASSWORD]
 Created: [TODAY'S_DATE]
 
@@ -198,7 +198,7 @@ If lost, you cannot update your app on Google Play Store!
 1. **USB Drive/External Hard Drive**
    ```
    Copy both files:
-   - hollywood-animals-release.jks
+   - hollywood-animal-release.jks
    - keystore-info.txt
    
    Store USB drive in a safe place (fireproof safe, safety deposit box)
@@ -207,7 +207,7 @@ If lost, you cannot update your app on Google Play Store!
 2. **Password Manager** (Recommended: 1Password, Bitwarden, LastPass)
    - Create a secure note titled "Hollywood Animals Android Keystore"
    - Paste the information from `keystore-info.txt`
-   - Attach the `hollywood-animals-release.jks` file if supported
+   - Attach the `hollywood-animal-release.jks` file if supported
    - **Most secure option!**
 
 3. **Cloud Storage** (Encrypted!)
@@ -216,10 +216,10 @@ If lost, you cannot update your app on Google Play Store!
    - Example:
      ```bash
      # Windows (7-Zip)
-     7z a -p hollywood-animals-keystore.zip hollywood-animals-release.jks keystore-info.txt
+     7z a -p hollywood-animal-keystore.zip hollywood-animal-release.jks keystore-info.txt
      
      # Mac (zip with password)
-     zip -e hollywood-animals-keystore.zip hollywood-animals-release.jks keystore-info.txt
+     zip -e hollywood-animal-keystore.zip hollywood-animal-release.jks keystore-info.txt
      ```
 
 **⚠️ WARNING:** Never store the keystore password in plain text on your computer or in git!
@@ -237,7 +237,7 @@ GitHub Secrets require the keystore to be in Base64 format (text) rather than bi
 cd C:\Users\YourUsername\Documents\AndroidKeystores
 
 # Convert to Base64
-certutil -encode hollywood-animals-release.jks keystore-base64.txt
+certutil -encode hollywood-animal-release.jks keystore-base64.txt
 
 # Clean up the header/footer
 (Get-Content keystore-base64.txt | Where-Object { $_ -notmatch "^-" }) -join "" | Set-Content keystore-base64-clean.txt
@@ -252,10 +252,10 @@ certutil -encode hollywood-animals-release.jks keystore-base64.txt
 cd ~/Documents/AndroidKeystores
 
 # Convert to Base64 (single line, no wrapping)
-base64 -i hollywood-animals-release.jks -o keystore-base64.txt
+base64 -i hollywood-animal-release.jks -o keystore-base64.txt
 
 # For Linux, if you need unwrapped version:
-base64 -w 0 hollywood-animals-release.jks > keystore-base64.txt
+base64 -w 0 hollywood-animal-release.jks > keystore-base64.txt
 ```
 
 **Result:** `keystore-base64.txt` contains the Base64 string
@@ -273,7 +273,7 @@ Open `keystore-base64.txt` (or `keystore-base64-clean.txt` on Windows):
 
 ### Navigate to GitHub Repository
 
-1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animals-Master`
+1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animal-Master`
 2. **Click:** `Settings` (top menu bar)
 3. **Click:** `Secrets and variables` → `Actions` (left sidebar)
 4. **Click:** Green `New repository secret` button
@@ -300,7 +300,7 @@ Open `keystore-base64.txt` (or `keystore-base64-clean.txt` on Windows):
 
 1. **Click:** Green `New repository secret` button
 2. **Name:** `KEY_ALIAS`
-3. **Secret:** `hollywood-animals-key` (the alias from the keytool command)
+3. **Secret:** `hollywood-animal-key` (the alias from the keytool command)
 4. **Click:** "Add secret"
 
 ### Add Secret 4: KEY_PASSWORD
@@ -378,7 +378,7 @@ The file `.github/workflows/release.yml` already contains:
    ```
 
 2. **Create GitHub Release:**
-   - Go to: `https://github.com/aalbertinib/Hollywood-Animals-Master/releases/new`
+   - Go to: `https://github.com/aalbertinib/Hollywood-Animal-Master/releases/new`
    - Choose tag: `v0.1.0-test`
    - Title: `Test Release`
    - Description: `Testing Android APK signing`
@@ -401,16 +401,16 @@ The file `.github/workflows/release.yml` already contains:
 
 **In the "Rename APK" step, you should see:**
 ```
-mv *.apk hollywood-animals-master-0.1.0-test-release-signed.apk
+mv *.apk hollywood-animal-master-0.1.0-test-release-signed.apk
 ```
 
 **Download the APK from release assets and verify:**
 ```bash
 # Windows
-sigcheck -a hollywood-animals-master-*.apk
+sigcheck -a hollywood-animal-master-*.apk
 
 # Mac/Linux (need apksigner from Android SDK)
-apksigner verify --verbose hollywood-animals-master-*.apk
+apksigner verify --verbose hollywood-animal-master-*.apk
 ```
 
 ---
@@ -437,7 +437,7 @@ apksigner verify --verbose hollywood-animals-master-*.apk
 **Fix:**
 1. Try to open keystore locally to verify password:
    ```bash
-   keytool -list -v -keystore hollywood-animals-release.jks
+   keytool -list -v -keystore hollywood-animal-release.jks
    ```
 2. If that works, re-add the `KEYSTORE_PASSWORD` secret on GitHub
 3. Make sure `KEY_PASSWORD` matches (same as keystore if you pressed ENTER)
@@ -498,23 +498,23 @@ apksigner verify --verbose hollywood-animals-master-*.apk
 |-------------|---------------|---------------|
 | `KEYSTORE_BASE64` | `MIIJqwIBAzCCC...` | Output of base64 encoding |
 | `KEYSTORE_PASSWORD` | `MySecure2024!Pass` | Password you entered in keytool |
-| `KEY_ALIAS` | `hollywood-animals-key` | From `-alias` in keytool command |
+| `KEY_ALIAS` | `hollywood-animal-key` | From `-alias` in keytool command |
 | `KEY_PASSWORD` | `MySecure2024!Pass` | Same as keystore (if you pressed ENTER) |
 
 ### Commands Cheat Sheet
 
 ```bash
 # Generate keystore
-keytool -genkey -v -keystore hollywood-animals-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias hollywood-animals-key
+keytool -genkey -v -keystore hollywood-animal-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias hollywood-animal-key
 
 # List keystore contents (verify password)
-keytool -list -v -keystore hollywood-animals-release.jks
+keytool -list -v -keystore hollywood-animal-release.jks
 
 # Convert to Base64 (Windows)
-certutil -encode hollywood-animals-release.jks keystore-base64.txt
+certutil -encode hollywood-animal-release.jks keystore-base64.txt
 
 # Convert to Base64 (Mac/Linux)
-base64 hollywood-animals-release.jks > keystore-base64.txt
+base64 hollywood-animal-release.jks > keystore-base64.txt
 
 # Verify APK signature (Mac/Linux)
 apksigner verify --verbose your-app.apk
@@ -535,7 +535,7 @@ apksigner verify --verbose your-app.apk
    ↓
 5. Sign APK with keystore + passwords
    ↓
-6. Rename: hollywood-animals-master-VERSION-release-signed.apk
+6. Rename: hollywood-animal-master-VERSION-release-signed.apk
    ↓
 7. Upload to GitHub Release
    ↓
@@ -550,7 +550,7 @@ apksigner verify --verbose your-app.apk
 
 Before creating your first release:
 
-- [ ] Keystore generated (`hollywood-animals-release.jks`)
+- [ ] Keystore generated (`hollywood-animal-release.jks`)
 - [ ] Keystore backed up (USB + password manager + cloud)
 - [ ] Keystore info documented (`keystore-info.txt`)
 - [ ] Converted to Base64 (`keystore-base64.txt`)

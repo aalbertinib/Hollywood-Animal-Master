@@ -7,7 +7,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 /**
- * Typography scale for Hollywood Animals Master.
+ * Typography scale for Hollywood Animal Master.
  * 
  * Follows Material Design 3 typography guidelines with customizations
  * for the Art Deco theme aesthetic.

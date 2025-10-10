@@ -19,7 +19,7 @@ try {
     exit 1
 }
 
-$svgFile = "hollywood-animals-icon.svg"
+$svgFile = "hollywood-animal-icon.svg"
 if (-not (Test-Path $svgFile)) {
     Write-Host "✗ SVG file not found: $svgFile" -ForegroundColor Red
     exit 1

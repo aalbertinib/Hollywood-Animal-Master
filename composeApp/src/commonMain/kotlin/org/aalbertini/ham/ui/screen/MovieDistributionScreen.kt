@@ -46,8 +46,12 @@ import org.aalbertini.ham.ui.components.ClearAllConfirmationDialog
 import org.aalbertini.ham.ui.components.EditDialog
 import org.aalbertini.ham.ui.components.ParameterComparisonDialog
 import org.aalbertini.ham.ui.components.ParametersSection
+import org.aalbertini.ham.ui.components.ParametersSectionHeader
 import org.aalbertini.ham.ui.components.ResultsSection
+import org.aalbertini.ham.ui.components.TextIcon
+import org.aalbertini.ham.ui.components.ResultsSectionHeader
 import org.aalbertini.ham.ui.components.SavedMovieResultsSection
+import org.aalbertini.ham.ui.components.SavedMoviesSectionHeader
 import org.aalbertini.ham.ui.components.SettingsDialog
 import org.aalbertini.ham.ui.components.UiConstants
 import org.aalbertini.ham.ui.components.UiStrings
@@ -104,8 +108,9 @@ fun MovieWeeklyDistributionCalculatorScreen(
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
-                        Text(
+                        TextIcon(
                             text = UiStrings.SCREEN_TITLE,
+                            icon = UiStrings.SCREEN_TITLE_ICON,
                             style = if (windowSizeClass == WindowSizeClass.EXPANDED) {
                                 MaterialTheme.typography.titleLarge
                             } else {
@@ -208,69 +213,108 @@ fun MovieWeeklyDistributionCalculatorScreen(
                     .padding(horizontal = UiConstants.Padding.contentStandard)
                     .padding(top = UiConstants.Padding.contentStandard, bottom = UiConstants.Padding.contentStandard)
             
+            // Calculate parameter validation state for headers
+            val commercialScore = uiState.commercialScoreInput.toDoubleOrNull()
+            val commercialScoreValid = commercialScore != null && 
+                commercialScore >= org.aalbertini.ham.MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN && 
+                commercialScore <= org.aalbertini.ham.MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX
+            val availableScreenings = uiState.availableScreeningsInput.toDoubleOrNull()
+            val availableScreeningsValid = availableScreenings != null && 
+                availableScreenings >= org.aalbertini.ham.MovieDistributionConstants.Validation.SCREENINGS_MIN && 
+                availableScreenings <= org.aalbertini.ham.MovieDistributionConstants.Validation.SCREENINGS_MAX
+            val hasCurrentMovieResult = uiState.currentMovieResultTitle != null
+            val hasUnsavedChanges = hasCurrentMovieResult && (
+                uiState.editableTitle != uiState.originalTitle ||
+                uiState.commercialScoreInput != uiState.originalCommercialScore ||
+                uiState.availableScreeningsInput != uiState.originalAvailableScreenings
+            )
+            val isSavedWithoutChanges = hasCurrentMovieResult && commercialScoreValid && availableScreeningsValid && !hasUnsavedChanges
+            
             // Adaptive layout based on window size
             AdaptiveMovieDistributionLayout(
                 windowSizeClass = windowSizeClass,
                 modifier = contentModifier,
-                inputSection = {
-                            ParametersSection(
-                                commercialScoreInput = uiState.commercialScoreInput,
-                                availableSeatsInput = uiState.availableSeatsInput,
-                                currentMovieResultTitle = uiState.currentMovieResultTitle,
-                                editableTitle = uiState.editableTitle,
-                                originalTitle = uiState.originalTitle,
-                                originalCommercialScore = uiState.originalCommercialScore,
-                                originalAvailableSeats = uiState.originalAvailableSeats,
-                                onTitleChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateEditableTitle(it)) },
-                                onCommercialScoreChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateCommercialScoreInput(it)) },
-                                onAvailableSeatsChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableSeatsInput(it)) },
-                                onSaveClick = { viewModel.onEvent(MovieDistributionUiEvent.AutoSaveMovieResult) },
-                                onNewClick = { viewModel.onEvent(MovieDistributionUiEvent.NewMovieResult) },
-                                onRevertTitle = { viewModel.onEvent(MovieDistributionUiEvent.RevertTitle) },
-                                onRevertCommercialScore = { viewModel.onEvent(MovieDistributionUiEvent.RevertCommercialScore) },
-                                onRevertAvailableSeats = { viewModel.onEvent(MovieDistributionUiEvent.RevertAvailableSeats) }
-                            )
-                        },
-                        resultsSection = {
-                            ResultsSection(
-                                results = uiState.resultsWithRounded,
-                                expanded = uiState.expandResults,
-                                availableSeatsValue = uiState.availableSeatsInput.toDoubleOrNull() ?: 0.0,
-                                availableSeatsOverrideInputs = uiState.availableSeatsOverrideInputs,
-                                onToggleExpand = { viewModel.onEvent(MovieDistributionUiEvent.ToggleResultsExpand) },
-                                onCopyClick = {
-                                    val text = buildString {
-                                        append("Results\n")
-                                        uiState.resultsWithRounded.forEachIndexed { idx, v ->
-                                            append("Week ${idx + 1}: $v\n")
-                                        }
-                                    }
-                                    clipboard.setText(AnnotatedString(text.trimEnd()))
-                                    viewModel.onEvent(MovieDistributionUiEvent.CopyResults(uiState.resultsWithRounded))
-                                },
-                                onAvailableSeatsOverrideChange = { weekIndex, value ->
-                                    viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableSeatsOverride(weekIndex, value))
+                parametersHeader = {
+                    ParametersSectionHeader(
+                        hasCurrentMovieResult = hasCurrentMovieResult,
+                        commercialScoreValid = commercialScoreValid,
+                        availableScreeningsValid = availableScreeningsValid,
+                        isSavedWithoutChanges = isSavedWithoutChanges,
+                        expanded = true, // Parameters section is always expanded
+                        onSaveClick = { viewModel.onEvent(MovieDistributionUiEvent.AutoSaveMovieResult) },
+                        onNewClick = { viewModel.onEvent(MovieDistributionUiEvent.NewMovieResult) }
+                    )
+                },
+                parametersContent = {
+                    ParametersSection(
+                        commercialScoreInput = uiState.commercialScoreInput,
+                        availableScreeningsInput = uiState.availableScreeningsInput,
+                        currentMovieResultTitle = uiState.currentMovieResultTitle,
+                        editableTitle = uiState.editableTitle,
+                        originalTitle = uiState.originalTitle,
+                        originalCommercialScore = uiState.originalCommercialScore,
+                        originalAvailableScreenings = uiState.originalAvailableScreenings,
+                        onTitleChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateEditableTitle(it)) },
+                        onCommercialScoreChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateCommercialScoreInput(it)) },
+                        onAvailableScreeningsChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableScreeningsInput(it)) },
+                        onRevertTitle = { viewModel.onEvent(MovieDistributionUiEvent.RevertTitle) },
+                        onRevertCommercialScore = { viewModel.onEvent(MovieDistributionUiEvent.RevertCommercialScore) },
+                        onRevertAvailableScreenings = { viewModel.onEvent(MovieDistributionUiEvent.RevertAvailableScreenings) }
+                    )
+                },
+                resultsHeader = {
+                    ResultsSectionHeader(
+                        hasResults = uiState.resultsWithRounded.isNotEmpty(),
+                        expanded = uiState.expandResults,
+                        onCopyClick = {
+                            val text = buildString {
+                                append("Results\n")
+                                uiState.resultsWithRounded.forEachIndexed { idx, v ->
+                                    append("Week ${idx + 1}: $v\n")
                                 }
-                            )
+                            }
+                            clipboard.setText(AnnotatedString(text.trimEnd()))
+                            viewModel.onEvent(MovieDistributionUiEvent.CopyResults(uiState.resultsWithRounded))
                         },
-                        savedSection = {
-                            SavedMovieResultsSection(
-                                movieResults = uiState.savedMovieResults,
-                                expanded = uiState.expandSaved,
-                                onToggleExpand = { viewModel.onEvent(MovieDistributionUiEvent.ToggleSavedExpand) },
-                                onLoadClick = { movieResult ->
-                                    viewModel.onEvent(MovieDistributionUiEvent.LoadMovieResult(movieResult.id))
-                                },
-                                onEditClick = { movieResult ->
-                                    showEditDialog = movieResult
-                                },
-                                onDeleteClick = { movieResult ->
-                                    viewModel.onEvent(MovieDistributionUiEvent.DeleteMovieResult(movieResult.id))
-                                },
-                                onClearAllClick = { showClearAllDialog = true }
-                            )
+                        onToggleExpand = { viewModel.onEvent(MovieDistributionUiEvent.ToggleResultsExpand) }
+                    )
+                },
+                resultsContent = {
+                    ResultsSection(
+                        results = uiState.resultsWithRounded,
+                        expanded = uiState.expandResults,
+                        availableScreeningsValue = uiState.availableScreeningsInput.toDoubleOrNull() ?: 0.0,
+                        availableScreeningsOverrideInputs = uiState.availableScreeningsOverrideInputs,
+                        currentMovieResultId = uiState.currentMovieResultId,
+                        onAvailableScreeningsOverrideChange = { weekIndex, value ->
+                            viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableScreeningsOverride(weekIndex, value))
                         }
                     )
+                },
+                savedHeader = {
+                    SavedMoviesSectionHeader(
+                        movieCount = uiState.savedMovieResults.size,
+                        expanded = uiState.expandSaved,
+                        onClearAllClick = { showClearAllDialog = true },
+                        onToggleExpand = { viewModel.onEvent(MovieDistributionUiEvent.ToggleSavedExpand) }
+                    )
+                },
+                savedContent = {
+                    SavedMovieResultsSection(
+                        movieResults = uiState.savedMovieResults,
+                        expanded = uiState.expandSaved,
+                        onLoadClick = { movieResult ->
+                            viewModel.onEvent(MovieDistributionUiEvent.LoadMovieResult(movieResult.id))
+                        },
+                        onEditClick = { movieResult ->
+                            showEditDialog = movieResult
+                        },
+                        onDeleteClick = { movieResult ->
+                            viewModel.onEvent(MovieDistributionUiEvent.DeleteMovieResult(movieResult.id))
+                        }
+                    )
+                }
+            )
             }
         }
     }
@@ -280,9 +324,9 @@ fun MovieWeeklyDistributionCalculatorScreen(
         ParameterComparisonDialog(
             movieTitle = conflict.existingMovie.title,
             existingCommercialScore = conflict.existingMovie.commercialScore,
-            existingSeats = conflict.existingMovie.numberOfSeats,
+            existingScreenings = conflict.existingMovie.numberOfScreenings,
             newCommercialScore = conflict.newCommercialScore,
-            newSeats = conflict.newSeats,
+            newScreenings = conflict.newScreenings,
             onDismiss = { viewModel.onEvent(MovieDistributionUiEvent.DismissParameterConflict) },
             onKeepExisting = { viewModel.onEvent(MovieDistributionUiEvent.KeepExistingMovie) },
             onOverwrite = { viewModel.onEvent(MovieDistributionUiEvent.OverwriteConflictingMovie) }
@@ -293,8 +337,8 @@ fun MovieWeeklyDistributionCalculatorScreen(
         EditDialog(
             movieResult = movieResult,
             onDismiss = { showEditDialog = null },
-            onUpdate = { title, commercialScore, availableSeats ->
-                viewModel.onEvent(MovieDistributionUiEvent.UpdateMovieResult(movieResult.id, title, commercialScore, availableSeats))
+            onUpdate = { title, commercialScore, availableScreenings ->
+                viewModel.onEvent(MovieDistributionUiEvent.UpdateMovieResult(movieResult.id, title, commercialScore, availableScreenings))
                 showEditDialog = null
             }
         )

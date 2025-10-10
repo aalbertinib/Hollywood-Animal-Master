@@ -30,6 +30,7 @@ object UiConstants {
         val shadowElevation = 4.dp
         val horizontalPadding = 16.dp
         val verticalPadding = 12.dp
+        val minHeight = 56.dp
     }
     
     // Content padding
@@ -65,5 +66,8 @@ object UiConstants {
     object Animation {
         const val sectionExpandCollapseDurationMs = 150
         const val errorMessageDurationMs = 150
+        const val contentSizeDurationMs = 200
+        const val headerCornerRadiusDurationMs = 200
+        const val headerCornerRadiusDelayMs = 150  // Delay for collapse animation
     }
 }

@@ -3,6 +3,9 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -133,6 +136,35 @@ android {
     namespace = "org.aalbertini.ham"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    // Load keystore properties from file or environment variables
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties()
+    
+    val useKeystoreConfig = if (keystorePropertiesFile.exists()) {
+        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+        true
+    } else {
+        // Try to load from environment variables (for CI/CD)
+        System.getenv("KEYSTORE_FILE")?.let { keystoreProperties["storeFile"] = it }
+        System.getenv("KEYSTORE_PASSWORD")?.let { keystoreProperties["storePassword"] = it }
+        System.getenv("KEY_ALIAS")?.let { keystoreProperties["keyAlias"] = it }
+        System.getenv("KEY_PASSWORD")?.let { keystoreProperties["keyPassword"] = it }
+        
+        keystoreProperties.containsKey("storeFile") && 
+        keystoreProperties.containsKey("storePassword")
+    }
+
+    signingConfigs {
+        if (useKeystoreConfig) {
+            create("release") {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "org.aalbertini.ham"
         minSdk = libs.versions.android.minSdk.get().toInt()
@@ -148,6 +180,9 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            if (useKeystoreConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
     compileOptions {
@@ -378,3 +413,6 @@ tasks.named("printIosPaths") {
     }
 }
 
+rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
+    rootProject.the<YarnRootExtension>().yarnLockAutoReplace = true
+}

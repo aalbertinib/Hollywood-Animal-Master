@@ -53,11 +53,11 @@ object MovieDistributionConstants {
         /** Maximum commercial score value */
         const val COMMERCIAL_SCORE_MAX = 10.0
         
-        /** Minimum number of seats value */
-        const val SEATS_MIN = 0.0
+        /** Minimum number of screenings value */
+        const val SCREENINGS_MIN = 0.0
         
-        /** Maximum number of seats value */
-        const val SEATS_MAX = 1_000_000.0
+        /** Maximum number of screenings value */
+        const val SCREENINGS_MAX = 1_000_000.0
     }
     
     /**
@@ -67,7 +67,7 @@ object MovieDistributionConstants {
         /** Default commercial score for new movies */
         const val COMMERCIAL_SCORE = 5.0
         
-        /** Default number of available seats for new movies */
-        const val AVAILABLE_SEATS = 3_200
+        /** Default number of available screenings for new movies */
+        const val AVAILABLE_SCREENINGS = 3_200
     }
 }

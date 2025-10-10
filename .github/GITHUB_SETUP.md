@@ -24,7 +24,7 @@
 
 1. **Go to GitHub:** https://github.com/new
 2. **Fill in details:**
-   - **Repository name:** `Hollywood-Animals-Master` (or your preferred name)
+   - **Repository name:** `Hollywood-Animal-Master` (or your preferred name)
    - **Description:** `Movie Distribution Calculator for Hollywood Animal game`
    - **Visibility:** 
      - ✅ **Public** (recommended for open source)
@@ -36,7 +36,7 @@
 
 GitHub will show you commands like:
 ```bash
-git remote add origin https://github.com/aalbertinib/Hollywood-Animals-Master.git
+git remote add origin https://github.com/aalbertinib/Hollywood-Animal-Master.git
 ```
 
 **IMPORTANT:** Replace `aalbertinib` with your actual GitHub username!
@@ -108,7 +108,7 @@ git diff
 
 ```bash
 # Navigate to your project directory
-cd C:\Users\Adrien\Documents\Git\Perso\Hollywood-Animals-Master
+cd C:\Users\Adrien\Documents\Git\Perso\Hollywood-Animal-Master
 
 # Initialize git (if not already done)
 git init
@@ -126,7 +126,7 @@ git diff --cached
 git commit -m "Initial commit: Hollywood Animals Master calculator"
 
 # Add GitHub as remote (REPLACE aalbertinib!)
-git remote add origin https://github.com/aalbertinib/Hollywood-Animals-Master.git
+git remote add origin https://github.com/aalbertinib/Hollywood-Animal-Master.git
 
 # Push to GitHub
 git push -u origin main
@@ -178,7 +178,7 @@ For detailed step-by-step instructions with troubleshooting, see:
 
 1. **Generate keystore:**
    ```bash
-   keytool -genkey -v -keystore hollywood-animals-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias hollywood-animals-key
+   keytool -genkey -v -keystore hollywood-animal-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias hollywood-animal-key
    ```
 
 2. **Backup keystore** (CRITICAL!)
@@ -187,10 +187,10 @@ For detailed step-by-step instructions with troubleshooting, see:
 3. **Convert to Base64:**
    ```bash
    # Windows
-   certutil -encode hollywood-animals-release.jks keystore-base64.txt
+   certutil -encode hollywood-animal-release.jks keystore-base64.txt
    
    # Mac/Linux
-   base64 hollywood-animals-release.jks > keystore-base64.txt
+   base64 hollywood-animal-release.jks > keystore-base64.txt
    ```
 
 ##### Add Secrets to GitHub
@@ -206,7 +206,7 @@ For detailed step-by-step instructions with troubleshooting, see:
 |-------------|-------|---------------|
 | `KEYSTORE_BASE64` | Content of `keystore.base64.txt` | Open file, copy ALL text |
 | `KEYSTORE_PASSWORD` | Your keystore password | What you entered during `keytool` |
-| `KEY_ALIAS` | `hollywood-animals-key` | The `-alias` value from `keytool` |
+| `KEY_ALIAS` | `hollywood-animal-key` | The `-alias` value from `keytool` |
 | `KEY_PASSWORD` | Your key password | What you entered during `keytool` |
 
 **For each secret:**
@@ -259,7 +259,7 @@ git push origin v1.0.0
 
 #### Step 3: Create GitHub Release
 
-1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animals-Master/releases/new`
+1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animal-Master/releases/new`
 2. **Choose tag:** Select `v1.0.0` from dropdown
 3. **Release title:** `Hollywood Animals Master v1.0.0`
 4. **Description:** Add release notes:
@@ -270,7 +270,7 @@ git push origin v1.0.0
 Initial release of the Movie Distribution Calculator for Hollywood Animal!
 
 ### ✨ Features
-- Calculate seat distribution across weeks
+- Calculate screening distribution across weeks
 - Save and load multiple movies
 - 5 beautiful Art Deco themes
 - Dark/Light mode with smooth animations
@@ -302,7 +302,7 @@ For Hollywood Animal players - enjoy optimizing your distributions! 🎭
 
 #### Step 5: Download Your Builds
 
-1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animals-Master/releases`
+1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animal-Master/releases`
 2. **Find:** Your release (v1.0.0)
 3. **Download:** Under "Assets" section
 
@@ -345,7 +345,7 @@ For Hollywood Animal players - enjoy optimizing your distributions! 🎭
 ### Access Your Web App
 
 After first deployment:
-- **URL:** `https://aalbertinib.github.io/Hollywood-Animals-Master/`
+- **URL:** `https://aalbertinib.github.io/Hollywood-Animal-Master/`
 - **Wait:** 2-5 minutes for first deployment
 - **Check:** "Actions" tab for deployment status
 
@@ -439,11 +439,11 @@ git remote -v
 
 ### Important URLs (Replace aalbertinib)
 
-- **Repository:** `https://github.com/aalbertinib/Hollywood-Animals-Master`
-- **Actions:** `https://github.com/aalbertinib/Hollywood-Animals-Master/actions`
-- **Releases:** `https://github.com/aalbertinib/Hollywood-Animals-Master/releases`
-- **Settings:** `https://github.com/aalbertinib/Hollywood-Animals-Master/settings`
-- **Web App:** `https://aalbertinib.github.io/Hollywood-Animals-Master/`
+- **Repository:** `https://github.com/aalbertinib/Hollywood-Animal-Master`
+- **Actions:** `https://github.com/aalbertinib/Hollywood-Animal-Master/actions`
+- **Releases:** `https://github.com/aalbertinib/Hollywood-Animal-Master/releases`
+- **Settings:** `https://github.com/aalbertinib/Hollywood-Animal-Master/settings`
+- **Web App:** `https://aalbertinib.github.io/Hollywood-Animal-Master/`
 
 ---
 

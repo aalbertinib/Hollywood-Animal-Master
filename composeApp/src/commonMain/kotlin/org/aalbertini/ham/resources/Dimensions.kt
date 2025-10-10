@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Centralized dimension values for the Hollywood Animals Master application.
+ * Centralized dimension values for the Hollywood Animal Master application.
  * 
  * Following Material Design 3 spacing system with 4dp base unit.
  * All dimensions are immutable and thread-safe.

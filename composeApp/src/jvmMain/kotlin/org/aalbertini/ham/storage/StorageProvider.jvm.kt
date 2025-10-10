@@ -8,7 +8,7 @@ import java.io.File
 actual class StorageProvider {
     private val storageDir: File by lazy {
         val userHome = System.getProperty("user.home")
-        val appDir = File(userHome, ".hollywoodanimals")
+        val appDir = File(userHome, ".hollywood_animal_master")
         if (!appDir.exists()) {
             appDir.mkdirs()
         }

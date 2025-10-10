@@ -28,7 +28,7 @@ This directory contains all images and screenshots used in the main README.md fi
 - **Filename:** `screenshot-parameters.png`
 - **Size:** 800x600px
 - **Description:** Parameters section with filled values
-- **Recommendation:** Show "Commercial Score: 85" and "Number of Seats: 50000"
+- **Recommendation:** Show "Commercial Score: 85" and "Number of Screenings: 50000"
 
 #### Results Display
 - **Filename:** `screenshot-results.png`
@@ -84,7 +84,7 @@ Create screenshots for each theme in both light and dark mode:
 - **Sample Data:** Use realistic Hollywood movie titles and scores
   - Example titles: "The Jazz Singer", "Gone with the Wind", "Casablanca"
   - Commercial scores: 75-95 range
-  - Seat counts: 25,000-75,000 range
+  - Screening counts: 25,000-75,000 range
 - **Theme:** Prefer Midnight Purple or Hollywood Classic for main screenshots
 - **State:** Show app in use, not empty states
 
@@ -152,7 +152,7 @@ Platform Showcase:      1600x900px  (16:9)
 2. **Enter sample data:** 
    - Title: "The Jazz Singer"
    - Commercial Score: 85
-   - Seats: 50,000
+   - Screenings: 50,000
 3. **Screenshot:** Parameters section → `screenshot-parameters.png`
 4. **Click Calculate**
 5. **Screenshot:** Results section → `screenshot-results.png`

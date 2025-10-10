@@ -83,6 +83,26 @@ fun String.filterNumericInput(maxDecimalPlaces: Int? = null): String {
 }
 
 /**
+ * Filters user text input to integers only (no decimals)
+ * - digits only, no decimal separator allowed
+ * - minus sign is not allowed (values must be > 0)
+ */
+fun String.filterIntegerInput(): String {
+    // Remove any formatting first (commas, spaces)
+    val normalized = this.replace(",", "").replace(" ", "")
+    val sb = StringBuilder()
+    
+    normalized.forEach { c ->
+        if (c in '0'..'9') {
+            sb.append(c)
+        }
+        // Skip everything else including decimal points
+    }
+    
+    return sb.toString()
+}
+
+/**
  * Clamps a numeric string to a range, returns empty if invalid
  */
 fun String.clampToRange(min: Double, max: Double): String {
