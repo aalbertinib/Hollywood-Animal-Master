@@ -1,0 +1,260 @@
+name: Release Build
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    # Version is read from gradle.properties automatically
+
+env:
+  APP_NAME: hollywood-animals-master
+  JAVA_VERSION: '17'
+
+jobs:
+  build-desktop:
+    name: Build Desktop (Windows, macOS, Linux)
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            artifact_name: linux-x64
+          - os: windows-latest
+            platform: windows
+            artifact_name: windows-x64
+          - os: macos-latest
+            platform: macos
+            artifact_name: macos-x64
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ env.JAVA_VERSION }}
+        cache: 'gradle'
+        
+    - name: Grant execute permission for gradlew (Unix)
+      if: runner.os != 'Windows'
+      run: chmod +x gradlew
+      
+    - name: Extract version from gradle.properties
+      id: version
+      shell: bash
+      run: |
+        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        echo "app_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Building version: $VERSION"
+      
+    - name: Build Desktop JAR
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          ./gradlew.bat :composeApp:packageDistributionForCurrentOS --no-daemon
+        else
+          ./gradlew :composeApp:packageDistributionForCurrentOS --no-daemon
+        fi
+      
+    - name: Package Desktop App
+      shell: bash
+      run: |
+        VERSION="${{ steps.version.outputs.app_version }}"
+        cd composeApp/build/compose/binaries/main
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          7z a -tzip "${{ env.APP_NAME }}-${VERSION}-${{ matrix.artifact_name }}.zip" *
+        else
+          zip -r "${{ env.APP_NAME }}-${VERSION}-${{ matrix.artifact_name }}.zip" *
+        fi
+        
+    - name: Upload Desktop Build
+      uses: actions/upload-artifact@v4
+      with:
+        name: desktop-${{ matrix.artifact_name }}
+        path: composeApp/build/compose/binaries/main/*.zip
+        retention-days: 30
+        
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: composeApp/build/compose/binaries/main/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ env.JAVA_VERSION }}
+        cache: 'gradle'
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Extract version from gradle.properties
+      id: version
+      run: |
+        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        echo "app_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Building version: $VERSION"
+      
+    - name: Build Android Release APK
+      run: ./gradlew :composeApp:assembleRelease --no-daemon
+      
+    - name: Sign APK (if keystore available)
+      id: sign_apk
+      continue-on-error: true
+      run: |
+        if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+          ./gradlew :composeApp:assembleRelease \
+            -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks \
+            -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
+            -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \
+            -Pandroid.injected.signing.key.password="${{ secrets.KEY_PASSWORD }}"
+          echo "signed=true" >> $GITHUB_OUTPUT
+        else
+          echo "signed=false" >> $GITHUB_OUTPUT
+        fi
+      
+    - name: Rename APK
+      run: |
+        VERSION="${{ steps.version.outputs.app_version }}"
+        cd composeApp/build/outputs/apk/release
+        if [ "${{ steps.sign_apk.outputs.signed }}" == "true" ]; then
+          mv *.apk "${{ env.APP_NAME }}-${VERSION}-release-signed.apk"
+        else
+          mv *.apk "${{ env.APP_NAME }}-${VERSION}-release-unsigned.apk"
+        fi
+        
+    - name: Upload Android APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: android-release
+        path: composeApp/build/outputs/apk/release/*.apk
+        retention-days: 30
+        
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: composeApp/build/outputs/apk/release/*.apk
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-web:
+    name: Build Web (WASM)
+    runs-on: ubuntu-latest
+    
+    env:
+      NODE_OPTIONS: --no-deprecation
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: ${{ env.JAVA_VERSION }}
+        cache: 'gradle'
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Extract version from gradle.properties
+      id: version
+      run: |
+        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        echo "app_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Building version: $VERSION"
+      
+    - name: Build Web WASM
+      run: ./gradlew :composeApp:wasmJsBrowserDistribution --no-daemon
+      
+    - name: Package Web Build
+      run: |
+        VERSION="${{ steps.version.outputs.app_version }}"
+        cd composeApp/build/dist/wasmJs/productionExecutable
+        zip -r "${{ env.APP_NAME }}-${VERSION}-web.zip" *
+        
+    - name: Upload Web Build
+      uses: actions/upload-artifact@v4
+      with:
+        name: web-wasm
+        path: composeApp/build/dist/wasmJs/productionExecutable/*.zip
+        retention-days: 30
+        
+    - name: Upload to Release
+      if: github.event_name == 'release'
+      uses: softprops/action-gh-release@v1
+      with:
+        files: composeApp/build/dist/wasmJs/productionExecutable/*.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  create-release-notes:
+    name: Create Release Summary
+    needs: [build-desktop, build-android, build-web]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Update Release Notes
+      uses: softprops/action-gh-release@v1
+      with:
+        append_body: true
+        body: |
+          
+          ---
+          
+          ## 📦 Available Downloads
+          
+          ### 🖥️ Desktop Applications
+          - **Windows (x64)**: `hollywood-animals-master-*-windows-x64.zip`
+          - **macOS (x64)**: `hollywood-animals-master-*-macos-x64.zip`
+          - **Linux (x64)**: `hollywood-animals-master-*-linux-x64.zip`
+          
+          ### 📱 Mobile
+          - **Android**: `hollywood-animals-master-*-release.apk`
+          
+          ### 🌐 Web
+          - **WASM**: `hollywood-animals-master-*-web.zip` (extract and host on web server)
+          - **Live Demo**: Available on [GitHub Pages](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)
+          
+          > **Note**: GitHub Pages deployment is triggered automatically and may take a few minutes to update after release.
+          
+          ---
+          
+          Built with Kotlin Multiplatform & Compose Multiplatform 🎬
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Output Summary
+      run: |
+        echo "## 🎬 Release Build Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ All artifacts uploaded to release" >> $GITHUB_STEP_SUMMARY
+        echo "- Desktop (Windows, macOS, Linux)" >> $GITHUB_STEP_SUMMARY
+        echo "- Android APK" >> $GITHUB_STEP_SUMMARY
+        echo "- Web WASM package" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🌐 GitHub Pages" >> $GITHUB_STEP_SUMMARY
+        echo "Live demo will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "> The GitHub Pages deployment workflow is running in parallel. Check the [Actions tab](https://github.com/${{ github.repository }}/actions/workflows/deploy-web.yml) for deployment status." >> $GITHUB_STEP_SUMMARY

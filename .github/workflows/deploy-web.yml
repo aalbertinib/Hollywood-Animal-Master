@@ -1,0 +1,207 @@
+name: Deploy Web App to GitHub Pages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'composeApp/src/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    
+    env:
+      NODE_OPTIONS: --no-deprecation
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        cache: 'gradle'
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Build Web WASM
+      run: ./gradlew :composeApp:wasmJsBrowserDistribution --no-daemon
+      
+    - name: Prepare deployment directory
+      run: |
+        mkdir -p _site
+        cp -r composeApp/build/dist/wasmJs/productionExecutable/* _site/
+        
+    - name: Create index redirect
+      run: |
+        cat > _site/index.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="refresh" content="0; url=./composeApp.html">
+            <title>Hollywood Animals Master - Redirecting...</title>
+            <meta name="description" content="Movie Distribution Calculator for Hollywood Animal game">
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #2a1810 0%, #1a0f08 100%);
+                    color: #f4d58d;
+                }
+                .container {
+                    text-align: center;
+                }
+                h1 {
+                    font-size: 2.5rem;
+                    margin-bottom: 1rem;
+                }
+                .spinner {
+                    border: 4px solid rgba(244, 213, 141, 0.3);
+                    border-radius: 50%;
+                    border-top: 4px solid #f4d58d;
+                    width: 40px;
+                    height: 40px;
+                    animation: spin 1s linear infinite;
+                    margin: 2rem auto;
+                }
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                a {
+                    color: #d4af37;
+                    text-decoration: none;
+                }
+                a:hover {
+                    text-decoration: underline;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🎬 Hollywood Animals Master</h1>
+                <p>Loading application...</p>
+                <div class="spinner"></div>
+                <p><a href="./composeApp.html">Click here if not redirected automatically</a></p>
+            </div>
+        </body>
+        </html>
+        EOF
+        
+    - name: Create 404 page
+      run: |
+        cat > _site/404.html << 'EOF'
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>404 - Page Not Found | Hollywood Animals Master</title>
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    height: 100vh;
+                    margin: 0;
+                    background: linear-gradient(135deg, #2a1810 0%, #1a0f08 100%);
+                    color: #f4d58d;
+                }
+                .container {
+                    text-align: center;
+                    max-width: 600px;
+                    padding: 2rem;
+                }
+                h1 {
+                    font-size: 5rem;
+                    margin: 0;
+                }
+                h2 {
+                    font-size: 2rem;
+                    margin: 1rem 0;
+                }
+                p {
+                    margin: 1rem 0;
+                    color: #cd7f32;
+                }
+                a {
+                    display: inline-block;
+                    margin-top: 2rem;
+                    padding: 1rem 2rem;
+                    background: #d4af37;
+                    color: #1a0f08;
+                    text-decoration: none;
+                    border-radius: 8px;
+                    font-weight: bold;
+                }
+                a:hover {
+                    background: #f4d58d;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>404</h1>
+                <h2>🎬 Scene Not Found</h2>
+                <p>The page you're looking for doesn't exist in this production.</p>
+                <a href="/">Return to Main Feature</a>
+            </div>
+        </body>
+        </html>
+        EOF
+        
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: '_site'
+        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      
+    - name: Output deployment URL
+      run: |
+        echo "🎬 Hollywood Animals Master deployed!"
+        echo "Visit: ${{ steps.deployment.outputs.page_url }}"
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## 🎬 GitHub Pages Deployment Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ Web application deployed successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Live URL**: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ github.event_name }}" == "release" ]; then
+          echo "> This deployment was triggered by a release. Download executables from the [Releases page](https://github.com/${{ github.repository }}/releases)." >> $GITHUB_STEP_SUMMARY
+        fi

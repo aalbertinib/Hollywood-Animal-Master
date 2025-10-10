@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Art Deco Background Gradient (Dark to Light) -->
+    <radialGradient id="bgGrad" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#2a1810;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a0f08;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Golden Art Deco Gradient -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f4d58d;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#d4af37;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#b8860b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b6914;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Bronze Gradient for text shadow -->
+    <linearGradient id="bronzeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#cd7f32;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5a2b;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Red Gradient for accent -->
+    <linearGradient id="redGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#c41e3a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b0000;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background with rounded corners -->
+  <rect width="1024" height="1024" fill="url(#bgGrad)" rx="180"/>
+  
+  <!-- Art Deco Decorative Border -->
+  <rect x="40" y="40" width="944" height="944" fill="none" stroke="url(#goldGrad)" stroke-width="8" rx="160"/>
+  <rect x="60" y="60" width="904" height="904" fill="none" stroke="url(#bronzeGrad)" stroke-width="3" rx="150"/>
+  
+  <!-- Art Deco Corner Ornaments -->
+  <g fill="url(#goldGrad)">
+    <!-- Top Left -->
+    <path d="M 80,80 L 200,80 L 140,140 L 80,200 Z" opacity="0.8"/>
+    <!-- Top Right -->
+    <path d="M 944,80 L 824,80 L 884,140 L 944,200 Z" opacity="0.8"/>
+    <!-- Bottom Left -->
+    <path d="M 80,944 L 200,944 L 140,884 L 80,824 Z" opacity="0.8"/>
+    <!-- Bottom Right -->
+    <path d="M 944,944 L 824,944 L 884,884 L 944,824 Z" opacity="0.8"/>
+  </g>
+  
+  <!-- Art Deco Radiating Lines (Sunburst) -->
+  <g opacity="0.15" stroke="url(#goldGrad)" stroke-width="2" fill="none">
+    <line x1="512" y1="512" x2="512" y2="100"/>
+    <line x1="512" y1="512" x2="750" y2="150"/>
+    <line x1="512" y1="512" x2="874" y2="274"/>
+    <line x1="512" y1="512" x2="924" y2="512"/>
+    <line x1="512" y1="512" x2="874" y2="750"/>
+    <line x1="512" y1="512" x2="750" y2="874"/>
+    <line x1="512" y1="512" x2="512" y2="924"/>
+    <line x1="512" y1="512" x2="274" y2="874"/>
+    <line x1="512" y1="512" x2="150" y2="750"/>
+    <line x1="512" y1="512" x2="100" y2="512"/>
+    <line x1="512" y1="512" x2="150" y2="274"/>
+    <line x1="512" y1="512" x2="274" y2="150"/>
+  </g>
+  
+  <!-- Central Circle (Film Reel Style) -->
+  <circle cx="512" cy="512" r="380" fill="none" stroke="url(#goldGrad)" stroke-width="6" opacity="0.4"/>
+  <circle cx="512" cy="512" r="360" fill="none" stroke="url(#goldGrad)" stroke-width="3" opacity="0.6"/>
+  
+  <!-- HAM Text (Art Deco Style - Inspired by 1920s Hollywood Signage) -->
+  <g id="hamText" transform="translate(512, 520)">
+    <!-- Text "HAM" with 3D Art Deco effect -->
+    <defs>
+      <!-- Shadow for 3D effect -->
+      <filter id="textShadow">
+        <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+        <feOffset dx="4" dy="4" result="offsetblur"/>
+        <feComponentTransfer>
+          <feFuncA type="linear" slope="0.5"/>
+        </feComponentTransfer>
+        <feMerge>
+          <feMergeNode/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+    
+    <!-- Letter H -->
+    <g transform="translate(-200, 0)">
+      <!-- 3D back layer (dark) -->
+      <path d="M -40,-120 L -20,-120 L -20,-10 L 10,-10 L 10,-120 L 30,-120 L 30,120 L 10,120 L 10,10 L -20,10 L -20,120 L -40,120 Z" 
+            fill="#8b6914" transform="translate(6, 6)"/>
+      <!-- Main letter (gold gradient) -->
+      <path d="M -40,-120 L -20,-120 L -20,-10 L 10,-10 L 10,-120 L 30,-120 L 30,120 L 10,120 L 10,10 L -20,10 L -20,120 L -40,120 Z" 
+            fill="url(#goldGrad)" stroke="#f4d58d" stroke-width="3"/>
+      <!-- Inner highlight -->
+      <path d="M -35,-115 L -25,-115 L -25,-10 L 5,-10 L 5,-115 L 25,-115 L 25,115 L 5,115 L 5,10 L -25,10 L -25,115 L -35,115 Z" 
+            fill="none" stroke="#f4d58d" stroke-width="2" opacity="0.6"/>
+      <!-- Inline detail (classic Art Deco) -->
+      <path d="M -32,-110 L -28,-110 L -28,-15 L 2,-15 L 2,-110 L 22,-110 L 22,110 L 2,110 L 2,15 L -28,15 L -28,110 L -32,110 Z" 
+            fill="none" stroke="#2a1810" stroke-width="2"/>
+    </g>
+    
+    <!-- Letter A -->
+    <g transform="translate(0, 0)">
+      <!-- 3D back layer (dark) -->
+      <path d="M 0,-120 L 50,120 L 25,120 L 17,90 L -17,90 L -25,120 L -50,120 Z M -10,70 L 10,70 L 0,-80 Z" 
+            fill="#8b6914" transform="translate(6, 6)"/>
+      <!-- Main letter (gold gradient) -->
+      <path d="M 0,-120 L 50,120 L 25,120 L 17,90 L -17,90 L -25,120 L -50,120 Z M -10,70 L 10,70 L 0,-80 Z" 
+            fill="url(#goldGrad)" stroke="#f4d58d" stroke-width="3"/>
+      <!-- Inner highlight -->
+      <path d="M 0,-110 L 43,115 L 28,115 L 20,90 L -20,90 L -28,115 L -43,115 Z" 
+            fill="none" stroke="#f4d58d" stroke-width="2" opacity="0.6"/>
+      <!-- Inline detail -->
+      <line x1="-12" y1="75" x2="12" y2="75" stroke="#2a1810" stroke-width="2"/>
+      <path d="M 0,-105 L 38,108 L -38,108" fill="none" stroke="#2a1810" stroke-width="2"/>
+    </g>
+    
+    <!-- Letter M -->
+    <g transform="translate(200, 0)">
+      <!-- 3D back layer (dark) -->
+      <path d="M -45,-120 L -25,-120 L 0,-40 L 25,-120 L 45,-120 L 45,120 L 25,120 L 25,-60 L 5,10 L -5,10 L -25,-60 L -25,120 L -45,120 Z" 
+            fill="#8b6914" transform="translate(6, 6)"/>
+      <!-- Main letter (gold gradient) -->
+      <path d="M -45,-120 L -25,-120 L 0,-40 L 25,-120 L 45,-120 L 45,120 L 25,120 L 25,-60 L 5,10 L -5,10 L -25,-60 L -25,120 L -45,120 Z" 
+            fill="url(#goldGrad)" stroke="#f4d58d" stroke-width="3"/>
+      <!-- Inner highlight -->
+      <path d="M -40,-115 L -28,-115 L 0,-50 L 28,-115 L 40,-115 L 40,115 L 28,115 L 28,-50 L 3,5 L -3,5 L -28,-50 L -28,115 L -40,115 Z" 
+            fill="none" stroke="#f4d58d" stroke-width="2" opacity="0.6"/>
+      <!-- Inline detail -->
+      <path d="M -37,-110 L -30,-110 L 0,-45 L 30,-110 L 37,-110 L 37,110 L 30,110 L 30,-40 L -30,-40 L -30,110 L -37,110 Z" 
+            fill="none" stroke="#2a1810" stroke-width="2"/>
+    </g>
+  </g>
+  
+  <!-- Bottom Banner (Art Deco Ribbon) -->
+  <g transform="translate(512, 850)">
+    <!-- Banner background -->
+    <path d="M -280,-40 L 280,-40 L 260,-20 L 260,20 L 240,40 L -240,40 L -260,20 L -260,-20 Z" 
+          fill="url(#redGrad)" stroke="url(#goldGrad)" stroke-width="3"/>
+    
+    <!-- Banner decorative elements -->
+    <line x1="-250" y1="-30" x2="-250" y2="30" stroke="url(#goldGrad)" stroke-width="2"/>
+    <line x1="250" y1="-30" x2="250" y2="30" stroke="url(#goldGrad)" stroke-width="2"/>
+    
+    <!-- Film strip decoration on sides -->
+    <g fill="url(#goldGrad)" opacity="0.6">
+      <rect x="-275" y="-25" width="15" height="10" rx="2"/>
+      <rect x="-275" y="-10" width="15" height="10" rx="2"/>
+      <rect x="-275" y="5" width="15" height="10" rx="2"/>
+      <rect x="-275" y="20" width="15" height="10" rx="2"/>
+      <rect x="260" y="-25" width="15" height="10" rx="2"/>
+      <rect x="260" y="-10" width="15" height="10" rx="2"/>
+      <rect x="260" y="5" width="15" height="10" rx="2"/>
+      <rect x="260" y="20" width="15" height="10" rx="2"/>
+    </g>
+  </g>
+  
+  <!-- Decorative film reel perforations around the circle -->
+  <g fill="#d4af37" opacity="0.3">
+    <circle cx="512" cy="132" r="12"/>
+    <circle cx="652" cy="162" r="12"/>
+    <circle cx="772" cy="252" r="12"/>
+    <circle cx="862" cy="372" r="12"/>
+    <circle cx="892" cy="512" r="12"/>
+    <circle cx="862" cy="652" r="12"/>
+    <circle cx="772" cy="772" r="12"/>
+    <circle cx="652" cy="862" r="12"/>
+    <circle cx="512" cy="892" r="12"/>
+    <circle cx="372" cy="862" r="12"/>
+    <circle cx="252" cy="772" r="12"/>
+    <circle cx="162" cy="652" r="12"/>
+    <circle cx="132" cy="512" r="12"/>
+    <circle cx="162" cy="372" r="12"/>
+    <circle cx="252" cy="252" r="12"/>
+    <circle cx="372" cy="162" r="12"/>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Build All Platforms (Mac)" type="CompoundRunConfigurationType">
+    <toRun name="Build Mac DMG" type="GradleRunConfiguration" />
+    <toRun name="Build Linux DEB" type="GradleRunConfiguration" />
+    <toRun name="Build Web (WasmJS)" type="GradleRunConfiguration" />
+    <toRun name="Build Android APK" type="GradleRunConfiguration" />
+    <toRun name="Build iOS Framework" type="GradleRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Hollywood Animals Launcher Icon Foreground
+    Features: Clapperboard with paw print
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <group
+        android:scaleX="0.7"
+        android:scaleY="0.7"
+        android:translateX="16.2"
+        android:translateY="16.2">
+        
+        <!-- Clapperboard top (striped part) -->
+        <group android:translateX="54" android:translateY="29.7">
+            <!-- Background rect -->
+            <path
+                android:fillColor="#2d2d44"
+                android:pathData="M-29.7,-6.3h59.4v12.7h-59.4z"/>
+            <!-- Gold stripes -->
+            <path
+                android:fillColor="#ffd700"
+                android:pathData="M-29.7,-6.3h7.4v12.7h-7.4z"/>
+            <path
+                android:fillColor="#ffd700"
+                android:pathData="M-10.6,-6.3h7.4v12.7h-7.4z"/>
+            <path
+                android:fillColor="#ffd700"
+                android:pathData="M8.5,-6.3h7.4v12.7h-7.4z"/>
+        </group>
+        
+        <!-- Clapperboard bottom (white) -->
+        <path
+            android:fillColor="#ffffff"
+            android:pathData="M24.6,36h58.8v44.4h-58.8z"/>
+        
+        <!-- Paw print -->
+        <group android:translateX="54" android:translateY="59.2">
+            <!-- Main pad -->
+            <path
+                android:fillColor="#ff6b6b"
+                android:pathData="M-7.4,2.1a7.4,9,0,1,0,14.8,0a7.4,9,0,1,0,-14.8,0"/>
+            <!-- Top left toe -->
+            <path
+                android:fillColor="#ff6b6b"
+                android:pathData="M-9.3,-5.3a3.7,5.3,15,1,0,7.4,0a3.7,5.3,15,1,0,-7.4,0"/>
+            <!-- Top center toe -->
+            <path
+                android:fillColor="#ff6b6b"
+                android:pathData="M-3.7,-6.3a3.7,5.3,0,1,0,7.4,0a3.7,5.3,0,1,0,-7.4,0"/>
+            <!-- Top right toe -->
+            <path
+                android:fillColor="#ff6b6b"
+                android:pathData="M1.9,-5.3a3.7,5.3,-15,1,0,7.4,0a3.7,5.3,-15,1,0,-7.4,0"/>
+            <!-- Side toe -->
+            <path
+                android:fillColor="#ff6b6b"
+                android:pathData="M-11.6,1.1a3.2,4.7,25,1,0,6.4,0a3.2,4.7,25,1,0,-6.4,0"/>
+        </group>
+    </group>
+</vector>
