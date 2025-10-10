@@ -1,14 +1,8 @@
-import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.TaskAction
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -35,6 +29,8 @@ kotlin {
         iosTarget.binaries.framework {
             baseName = "ComposeApp"
             isStatic = true
+            // Export necessary dependencies for Swift interop
+            export(libs.androidx.lifecycle.viewmodelCompose)
         }
     }
     
@@ -45,17 +41,47 @@ kotlin {
     }
     
     js {
-        browser()
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+                devServer = devServer?.copy(
+                    open = false
+                )
+            }
+        }
         binaries.executable()
     }
     
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        browser()
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+                devServer =
+                    (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                        // Suppress Node.js deprecation warnings
+                        open = false
+                        static =
+                            (static ?: mutableListOf()).apply {
+                                // Serve sources to debug inside browser
+                                add(project.rootDir.path)
+                                add(project.projectDir.path)
+                            }
+                    }
+                sourceMaps = true
+            }
+        }
         binaries.executable()
     }
     
+    // Apply default hierarchy template to enable webMain source set for JS and WASM-JS targets
+    // This automatically creates webMain as a parent of jsMain and wasmJsMain
+    applyDefaultHierarchyTemplate()
+    
     sourceSets {
+        // Kotlin 2.2.20+ automatically provides webMain as parent of jsMain and wasmJsMain
+        // via the default hierarchy template. No manual dependsOn() calls needed.
+        
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
@@ -87,7 +113,10 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
         }
-        webMain.dependencies {
+        
+        // Web platform dependencies (shared by JS and WasmJS)
+        // Access webMain through getByName since it's automatically created by default hierarchy
+        getByName("webMain").dependencies {
             implementation(libs.kotlinx.browser)
         }
     }
@@ -155,9 +184,10 @@ compose.desktop {
 }
 
 // Custom tasks to print output paths after building
+// Note: outputDirectory uses @Internal instead of @InputDirectory to avoid
+// Gradle validation failures when directory doesn't exist yet (e.g., in CI)
 abstract class PrintOutputPathsTask : DefaultTask() {
-    @get:InputDirectory
-    @get:Optional
+    @get:Internal
     abstract val outputDirectory: DirectoryProperty
     
     @get:Input
@@ -201,8 +231,7 @@ tasks.register<PrintOutputPathsTask>("printAndroidPaths") {
 }
 
 abstract class PrintWebPathsTask : DefaultTask() {
-    @get:InputDirectory
-    @get:Optional
+    @get:Internal
     abstract val outputDirectory: DirectoryProperty
     
     @TaskAction
@@ -252,3 +281,31 @@ tasks.matching { it.name.contains("wasmJsBrowserDistribution") }.configureEach {
 tasks.matching { it.name.contains("linkDebugFramework") }.configureEach {
     finalizedBy("printIosPaths")
 }
+
+// Configure print tasks to only run locally (not in CI) when their directories exist
+val isCI = System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIONS") == "true"
+
+tasks.named("printPackagePaths") {
+    onlyIf { 
+        !isCI && (this as PrintOutputPathsTask).outputDirectory.get().asFile.exists()
+    }
+}
+
+tasks.named("printAndroidPaths") {
+    onlyIf { 
+        !isCI && (this as PrintOutputPathsTask).outputDirectory.get().asFile.exists()
+    }
+}
+
+tasks.named("printWebPaths") {
+    onlyIf { 
+        !isCI && (this as PrintWebPathsTask).outputDirectory.get().asFile.exists()
+    }
+}
+
+tasks.named("printIosPaths") {
+    onlyIf { 
+        !isCI && (this as PrintOutputPathsTask).outputDirectory.get().asFile.exists()
+    }
+}
+

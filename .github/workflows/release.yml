@@ -149,6 +149,9 @@ jobs:
     name: Build Web (WASM)
     runs-on: ubuntu-latest
     
+    env:
+      NODE_OPTIONS: --no-deprecation
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
