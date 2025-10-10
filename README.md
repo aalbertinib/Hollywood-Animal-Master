@@ -15,7 +15,7 @@
   <a href="../../releases/latest">
     <img src="https://img.shields.io/badge/Download-Latest%20Release-blue?style=for-the-badge" alt="Download"/>
   </a>
-  <a href="https://yourusername.github.io/Hollywood-Animals-Master/">
+  <a href="https://aalbertinib.github.io/Hollywood-Animals-Master/">
     <img src="https://img.shields.io/badge/Try-Web%20App-green?style=for-the-badge" alt="Web App"/>
   </a>
 </p>
@@ -38,7 +38,7 @@ When releasing a movie in Hollywood Animal, you need to decide how many seats to
 
 ### Try It Now - No Installation!
 
-**🌐 [Open Web App](https://yourusername.github.io/Hollywood-Animals-Master/)** - Works in any modern browser
+**🌐 [Open Web App](https://aalbertinib.github.io/Hollywood-Animals-Master/)** - Works in any modern browser
 
 ### Or Download for Your Platform
 
@@ -191,7 +191,7 @@ Click the Settings icon (⚙️) in the top-right corner, then choose your prefe
 ## 🔗 Links
 
 - **🎮 Hollywood Animal on Steam:** https://store.steampowered.com/app/2680550/Hollywood_Animal/
-- **🌐 Try Web App:** https://yourusername.github.io/Hollywood-Animals-Master/
+- **🌐 Try Web App:** https://aalbertinib.github.io/Hollywood-Animals-Master/
 - **📥 Download Releases:** [GitHub Releases](../../releases)
 - **🐛 Report Issues:** [GitHub Issues](../../issues)
 - **💬 Discussions:** [GitHub Discussions](../../discussions)

@@ -240,7 +240,7 @@ After the first successful deployment:
 
 ### Update README
 
-Replace `yourusername` in README.md with your actual GitHub username:
+Replace `aalbertinib` in README.md with your actual GitHub username:
 
 ```markdown
 **Live Demo**: Available on [GitHub Pages](https://aalbertinib.github.io/Hollywood-Animals-Master/)
