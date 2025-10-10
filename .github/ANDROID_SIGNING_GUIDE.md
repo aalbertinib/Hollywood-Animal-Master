@@ -273,7 +273,7 @@ Open `keystore-base64.txt` (or `keystore-base64-clean.txt` on Windows):
 
 ### Navigate to GitHub Repository
 
-1. **Go to:** `https://github.com/YOUR_USERNAME/Hollywood-Animals-Master`
+1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animals-Master`
 2. **Click:** `Settings` (top menu bar)
 3. **Click:** `Secrets and variables` → `Actions` (left sidebar)
 4. **Click:** Green `New repository secret` button
@@ -378,7 +378,7 @@ The file `.github/workflows/release.yml` already contains:
    ```
 
 2. **Create GitHub Release:**
-   - Go to: `https://github.com/YOUR_USERNAME/Hollywood-Animals-Master/releases/new`
+   - Go to: `https://github.com/aalbertinib/Hollywood-Animals-Master/releases/new`
    - Choose tag: `v0.1.0-test`
    - Title: `Test Release`
    - Description: `Testing Android APK signing`

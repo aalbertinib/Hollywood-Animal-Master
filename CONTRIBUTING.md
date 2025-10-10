@@ -29,7 +29,7 @@ Thank you for your interest in contributing! This document provides all the tech
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/Hollywood-Animals-Master.git
+git clone https://github.com/aalbertinib/Hollywood-Animals-Master.git
 cd Hollywood-Animals-Master
 ```
 

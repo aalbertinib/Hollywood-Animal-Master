@@ -97,7 +97,7 @@ The project uses GitHub Actions for:
    ```
 
 4. **Create GitHub Release:**
-   - Go to: `https://github.com/<username>/Hollywood-Animals-Master/releases/new`
+   - Go to: `https://github.com/aalbertinib/Hollywood-Animals-Master/releases/new`
    - Select tag: `v1.0.0`
    - Release title: `Hollywood Animals Master v1.0.0`
    - Add release notes describing changes
@@ -106,8 +106,15 @@ The project uses GitHub Actions for:
 5. **Automatic builds start:**
    - Desktop builds (Windows, macOS, Linux)
    - Android APK
-   - Web WASM
-   - GitHub Pages deployment
+   - Web WASM package
+   - **GitHub Pages deployment** (runs in parallel)
+   
+6. **What happens automatically:**
+   - All executables are built and attached to the release
+   - Release notes are updated with download links
+   - **GitHub Pages link is automatically included** with your repository's actual URL
+   - Web app is deployed live within minutes
+   - Action summaries provide direct links to deployments
 
 ### Release Notes Template
 
@@ -187,16 +194,39 @@ base64 -w 0 release-keystore.jks > keystore.base64.txt
 ### Access Your Web App
 
 After the first successful deployment:
-- **URL:** `https://<username>.github.io/Hollywood-Animals-Master/`
+- **URL:** `https://aalbertinib.github.io/Hollywood-Animals-Master/`
 - **Custom Domain (Optional):** Configure in Pages settings
 
 ### Update README
 
-Replace `<username>` in README.md with your actual GitHub username:
+Replace `yourusername` in README.md with your actual GitHub username:
 
 ```markdown
-**Live Demo**: Available on [GitHub Pages](https://YOUR_USERNAME.github.io/Hollywood-Animals-Master/)
+**Live Demo**: Available on [GitHub Pages](https://aalbertinib.github.io/Hollywood-Animals-Master/)
 ```
+
+**Files to update:**
+- Line 18: Badge link
+- Line 41: Quick Start link
+- Line 194: Links section
+
+### How Releases and GitHub Pages Work Together
+
+When you publish a release:
+
+1. **Release Workflow** (`release.yml`) starts:
+   - Builds all platform executables (Desktop, Android, Web)
+   - Uploads them as release assets
+   - Updates release notes with download links
+   - **Automatically includes GitHub Pages URL** (dynamically generated from your repository)
+
+2. **Deploy Web Workflow** (`deploy-web.yml`) triggers in parallel:
+   - Builds fresh WASM bundle
+   - Deploys to GitHub Pages
+   - Updates live web app
+   - Links back to release in deployment summary
+
+**Result:** Users can download executables from the release page AND try the web app immediately via the included GitHub Pages link!
 
 ---
 
@@ -339,10 +369,10 @@ Follow [Semantic Versioning](https://semver.org/):
 ## Support
 
 For issues with CI/CD:
-1. Check [Actions](https://github.com/<username>/Hollywood-Animals-Master/actions) logs
+1. Check [Actions](../../actions) logs in your repository
 2. Review this guide
 3. Check [GitHub Actions documentation](https://docs.github.com/en/actions)
-4. Open an issue
+4. Open an [issue](../../issues) in your repository
 
 ---
 

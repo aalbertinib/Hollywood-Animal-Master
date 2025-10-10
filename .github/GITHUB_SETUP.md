@@ -36,10 +36,10 @@
 
 GitHub will show you commands like:
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/Hollywood-Animals-Master.git
+git remote add origin https://github.com/aalbertinib/Hollywood-Animals-Master.git
 ```
 
-**IMPORTANT:** Replace `YOUR_USERNAME` with your actual GitHub username!
+**IMPORTANT:** Replace `aalbertinib` with your actual GitHub username!
 
 ---
 
@@ -125,8 +125,8 @@ git diff --cached
 # Create first commit
 git commit -m "Initial commit: Hollywood Animals Master calculator"
 
-# Add GitHub as remote (REPLACE YOUR_USERNAME!)
-git remote add origin https://github.com/YOUR_USERNAME/Hollywood-Animals-Master.git
+# Add GitHub as remote (REPLACE aalbertinib!)
+git remote add origin https://github.com/aalbertinib/Hollywood-Animals-Master.git
 
 # Push to GitHub
 git push -u origin main
@@ -259,7 +259,7 @@ git push origin v1.0.0
 
 #### Step 3: Create GitHub Release
 
-1. **Go to:** `https://github.com/YOUR_USERNAME/Hollywood-Animals-Master/releases/new`
+1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animals-Master/releases/new`
 2. **Choose tag:** Select `v1.0.0` from dropdown
 3. **Release title:** `Hollywood Animals Master v1.0.0`
 4. **Description:** Add release notes:
@@ -302,7 +302,7 @@ For Hollywood Animal players - enjoy optimizing your distributions! 🎭
 
 #### Step 5: Download Your Builds
 
-1. **Go to:** `https://github.com/YOUR_USERNAME/Hollywood-Animals-Master/releases`
+1. **Go to:** `https://github.com/aalbertinib/Hollywood-Animals-Master/releases`
 2. **Find:** Your release (v1.0.0)
 3. **Download:** Under "Assets" section
 
@@ -345,14 +345,14 @@ For Hollywood Animal players - enjoy optimizing your distributions! 🎭
 ### Access Your Web App
 
 After first deployment:
-- **URL:** `https://YOUR_USERNAME.github.io/Hollywood-Animals-Master/`
+- **URL:** `https://aalbertinib.github.io/Hollywood-Animals-Master/`
 - **Wait:** 2-5 minutes for first deployment
 - **Check:** "Actions" tab for deployment status
 
 ### Custom Domain (Optional)
 
 If you own a domain:
-1. **Add** CNAME record pointing to `YOUR_USERNAME.github.io`
+1. **Add** CNAME record pointing to `aalbertinib.github.io`
 2. **Enter** domain in Pages settings
 3. **Enable** "Enforce HTTPS"
 
@@ -437,13 +437,13 @@ git push origin v1.0.0
 git remote -v
 ```
 
-### Important URLs (Replace YOUR_USERNAME)
+### Important URLs (Replace aalbertinib)
 
-- **Repository:** `https://github.com/YOUR_USERNAME/Hollywood-Animals-Master`
-- **Actions:** `https://github.com/YOUR_USERNAME/Hollywood-Animals-Master/actions`
-- **Releases:** `https://github.com/YOUR_USERNAME/Hollywood-Animals-Master/releases`
-- **Settings:** `https://github.com/YOUR_USERNAME/Hollywood-Animals-Master/settings`
-- **Web App:** `https://YOUR_USERNAME.github.io/Hollywood-Animals-Master/`
+- **Repository:** `https://github.com/aalbertinib/Hollywood-Animals-Master`
+- **Actions:** `https://github.com/aalbertinib/Hollywood-Animals-Master/actions`
+- **Releases:** `https://github.com/aalbertinib/Hollywood-Animals-Master/releases`
+- **Settings:** `https://github.com/aalbertinib/Hollywood-Animals-Master/settings`
+- **Web App:** `https://aalbertinib.github.io/Hollywood-Animals-Master/`
 
 ---
 

@@ -195,3 +195,13 @@ jobs:
       run: |
         echo "🎬 Hollywood Animals Master deployed!"
         echo "Visit: ${{ steps.deployment.outputs.page_url }}"
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## 🎬 GitHub Pages Deployment Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ Web application deployed successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Live URL**: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ github.event_name }}" == "release" ]; then
+          echo "> This deployment was triggered by a release. Download executables from the [Releases page](https://github.com/${{ github.repository }}/releases)." >> $GITHUB_STEP_SUMMARY
+        fi

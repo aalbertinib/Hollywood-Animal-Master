@@ -217,10 +217,26 @@ jobs:
           
           ### 🌐 Web
           - **WASM**: `hollywood-animals-master-*-web.zip` (extract and host on web server)
-          - **Live Demo**: Available on [GitHub Pages](https://<username>.github.io/Hollywood-Animals-Master/)
+          - **Live Demo**: Available on [GitHub Pages](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)
+          
+          > **Note**: GitHub Pages deployment is triggered automatically and may take a few minutes to update after release.
           
           ---
           
           Built with Kotlin Multiplatform & Compose Multiplatform 🎬
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Output Summary
+      run: |
+        echo "## 🎬 Release Build Complete" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ All artifacts uploaded to release" >> $GITHUB_STEP_SUMMARY
+        echo "- Desktop (Windows, macOS, Linux)" >> $GITHUB_STEP_SUMMARY
+        echo "- Android APK" >> $GITHUB_STEP_SUMMARY
+        echo "- Web WASM package" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🌐 GitHub Pages" >> $GITHUB_STEP_SUMMARY
+        echo "Live demo will be available at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "> The GitHub Pages deployment workflow is running in parallel. Check the [Actions tab](https://github.com/${{ github.repository }}/actions/workflows/deploy-web.yml) for deployment status." >> $GITHUB_STEP_SUMMARY
