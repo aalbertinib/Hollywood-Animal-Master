@@ -4,11 +4,7 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version (e.g., 1.0.0)'
-        required: true
-        default: '1.0.0'
+    # Version is read from gradle.properties automatically
 
 env:
   APP_NAME: hollywood-animals-master
@@ -48,6 +44,14 @@ jobs:
       if: runner.os != 'Windows'
       run: chmod +x gradlew
       
+    - name: Extract version from gradle.properties
+      id: version
+      shell: bash
+      run: |
+        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        echo "app_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Building version: $VERSION"
+      
     - name: Build Desktop JAR
       shell: bash
       run: |
@@ -60,7 +64,7 @@ jobs:
     - name: Package Desktop App
       shell: bash
       run: |
-        VERSION="${{ github.event.release.tag_name || github.event.inputs.version }}"
+        VERSION="${{ steps.version.outputs.app_version }}"
         cd composeApp/build/compose/binaries/main
         if [ "$RUNNER_OS" == "Windows" ]; then
           7z a -tzip "${{ env.APP_NAME }}-${VERSION}-${{ matrix.artifact_name }}.zip" *
@@ -101,6 +105,13 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
+    - name: Extract version from gradle.properties
+      id: version
+      run: |
+        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        echo "app_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Building version: $VERSION"
+      
     - name: Build Android Release APK
       run: ./gradlew :composeApp:assembleRelease --no-daemon
       
@@ -122,7 +133,7 @@ jobs:
       
     - name: Rename APK
       run: |
-        VERSION="${{ github.event.release.tag_name || github.event.inputs.version }}"
+        VERSION="${{ steps.version.outputs.app_version }}"
         cd composeApp/build/outputs/apk/release
         if [ "${{ steps.sign_apk.outputs.signed }}" == "true" ]; then
           mv *.apk "${{ env.APP_NAME }}-${VERSION}-release-signed.apk"
@@ -166,12 +177,19 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
+    - name: Extract version from gradle.properties
+      id: version
+      run: |
+        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        echo "app_version=$VERSION" >> $GITHUB_OUTPUT
+        echo "📦 Building version: $VERSION"
+      
     - name: Build Web WASM
       run: ./gradlew :composeApp:wasmJsBrowserDistribution --no-daemon
       
     - name: Package Web Build
       run: |
-        VERSION="${{ github.event.release.tag_name || github.event.inputs.version }}"
+        VERSION="${{ steps.version.outputs.app_version }}"
         cd composeApp/build/dist/wasmJs/productionExecutable
         zip -r "${{ env.APP_NAME }}-${VERSION}-web.zip" *
         

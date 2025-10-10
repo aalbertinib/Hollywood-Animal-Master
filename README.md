@@ -204,6 +204,23 @@ Click the Settings icon (⚙️) in the top-right corner, then choose your prefe
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, build instructions, and contribution guidelines.
 
+### Version Management
+
+This project uses centralized version management from `gradle.properties`:
+
+```bash
+# View current version
+./gradlew :composeApp:printVersion
+
+# Update version: Edit gradle.properties, then sync
+./gradlew :composeApp:syncVersionToIOS
+```
+
+📖 **Documentation:**
+- [VERSION_MANAGEMENT.md](.github/VERSION_MANAGEMENT.md) - Complete guide
+- [VERSION_QUICK_REFERENCE.md](.github/VERSION_QUICK_REFERENCE.md) - Quick commands
+- [RELEASE_GUIDE.md](.github/RELEASE_GUIDE.md) - Release process
+
 ---
 
 ## 📝 License
@@ -224,7 +241,6 @@ See the [LICENSE](LICENSE) file for full details.
 
 - **Game:** [Hollywood Animal](https://store.steampowered.com/app/2680550/Hollywood_Animal/) by [Weappy Studio](https://weappy-studio.com/)
 - **Framework:** [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) & [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
-- **Design:** Inspired by 1920s Art Deco Hollywood aesthetic
 
 ---
 

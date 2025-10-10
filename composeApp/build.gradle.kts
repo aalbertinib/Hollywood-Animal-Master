@@ -122,6 +122,13 @@ kotlin {
     }
 }
 
+// Version management - read from gradle.properties
+val appVersion = project.findProperty("project.version") as String? ?: "1.0.0"
+val versionParts = appVersion.split(".")
+val appVersionCode = versionParts[0].toInt() * 10000 + 
+                     (versionParts.getOrNull(1)?.toInt() ?: 0) * 100 + 
+                     (versionParts.getOrNull(2)?.toInt() ?: 0)
+
 android {
     namespace = "org.aalbertini.ham"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -130,8 +137,8 @@ android {
         applicationId = "org.aalbertini.ham"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersion
     }
     packaging {
         resources {
@@ -178,7 +185,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "org.aalbertini.ham"
-            packageVersion = "1.0.0"
+            packageVersion = appVersion
         }
     }
 }
@@ -280,6 +287,68 @@ tasks.matching { it.name.contains("wasmJsBrowserDistribution") }.configureEach {
 
 tasks.matching { it.name.contains("linkDebugFramework") }.configureEach {
     finalizedBy("printIosPaths")
+}
+
+// Task to export version for CI/CD
+tasks.register("exportVersion") {
+    group = "versioning"
+    description = "Exports project version to a file for CI/CD consumption"
+    
+    doLast {
+        val versionFile = file("${project.rootDir}/build/version.txt")
+        versionFile.parentFile.mkdirs()
+        versionFile.writeText(appVersion)
+        println("Version exported: $appVersion")
+        println("Version file: ${versionFile.absolutePath}")
+    }
+}
+
+// Task to print current version
+tasks.register("printVersion") {
+    group = "versioning"
+    description = "Prints the current project version"
+    
+    doLast {
+        println("=".repeat(60))
+        println("Project Version Information")
+        println("=".repeat(60))
+        println("Version: $appVersion")
+        println("Android Version Code: $appVersionCode")
+        println("Android Version Name: $appVersion")
+        println("Desktop Package Version: $appVersion")
+        println("iOS Marketing Version: $appVersion")
+        println("=".repeat(60))
+    }
+}
+
+// Task to sync version to iOS configuration
+tasks.register("syncVersionToIOS") {
+    group = "versioning"
+    description = "Syncs version from gradle.properties to iOS Config.xcconfig"
+    
+    doLast {
+        val iosConfigFile = file("${project.rootDir}/iosApp/Configuration/Config.xcconfig")
+        if (iosConfigFile.exists()) {
+            var content = iosConfigFile.readText()
+            
+            // Update MARKETING_VERSION
+            content = content.replace(
+                Regex("MARKETING_VERSION=.*"),
+                "MARKETING_VERSION=$appVersion"
+            )
+            
+            // Update CURRENT_PROJECT_VERSION (build number from versionCode)
+            content = content.replace(
+                Regex("CURRENT_PROJECT_VERSION=.*"),
+                "CURRENT_PROJECT_VERSION=$appVersionCode"
+            )
+            
+            iosConfigFile.writeText(content)
+            println("✅ iOS version synced: $appVersion (build $appVersionCode)")
+        } else {
+            println("⚠️  iOS Config.xcconfig not found, skipping sync")
+        }
+    }
 }
 
 // Configure print tasks to only run locally (not in CI) when their directories exist

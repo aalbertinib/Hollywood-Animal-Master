@@ -5,11 +5,35 @@ This document explains how to use the GitHub Actions CI/CD pipelines for Hollywo
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Version Management](#version-management)
 - [Workflows](#workflows)
 - [Creating a Release](#creating-a-release)
 - [Setting Up Secrets](#setting-up-secrets)
 - [GitHub Pages Setup](#github-pages-setup)
 - [Manual Workflow Triggers](#manual-workflow-triggers)
+
+---
+
+## Version Management
+
+**🎯 All versions managed from one place: `gradle.properties`**
+
+```properties
+project.version=1.0.0
+```
+
+**Quick Reference:**
+- 📖 Full Guide: [VERSION_MANAGEMENT.md](./VERSION_MANAGEMENT.md)
+- 📋 Quick Ref: [VERSION_QUICK_REFERENCE.md](./VERSION_QUICK_REFERENCE.md)
+
+**Common Commands:**
+```bash
+# Print version
+./gradlew :composeApp:printVersion
+
+# Sync to iOS
+./gradlew :composeApp:syncVersionToIOS
+```
 
 ---
 
@@ -73,6 +97,8 @@ The project uses GitHub Actions for:
 
 ## Creating a Release
 
+> **📋 Version Management:** This project uses centralized version management. See [VERSION_MANAGEMENT.md](./VERSION_MANAGEMENT.md) for complete details.
+
 ### Using Git Flow
 
 1. **Create a release branch:**
@@ -81,12 +107,27 @@ The project uses GitHub Actions for:
    ```
 
 2. **Update version information:**
-   - Update version in `gradle.properties` or version file
-   - Update `README.md` if needed
-   - Commit changes:
-     ```bash
-     git commit -am "Bump version to 1.0.0"
-     ```
+   
+   **Edit `gradle.properties`:**
+   ```properties
+   project.version=1.0.0
+   ```
+   
+   **Sync to iOS (if needed):**
+   ```bash
+   ./gradlew :composeApp:syncVersionToIOS
+   ```
+   
+   **Verify version:**
+   ```bash
+   ./gradlew :composeApp:printVersion
+   ```
+   
+   **Commit changes:**
+   ```bash
+   git add gradle.properties iosApp/Configuration/Config.xcconfig
+   git commit -m "Bump version to 1.0.0"
+   ```
 
 3. **Merge to main:**
    ```bash
@@ -234,10 +275,20 @@ When you publish a release:
 
 ### Trigger Release Build Manually
 
-1. **Go to:** `Actions > Release Build`
-2. **Click:** "Run workflow"
-3. **Enter:** Version number (e.g., `1.0.0`)
-4. **Click:** "Run workflow"
+1. **Update version in `gradle.properties`** first:
+   ```bash
+   nano gradle.properties  # Edit project.version
+   git add gradle.properties
+   git commit -m "Update version to X.Y.Z"
+   git push
+   ```
+
+2. **Go to:** `Actions > Release Build`
+3. **Click:** "Run workflow"
+4. **Select:** Branch (usually `main`)
+5. **Click:** "Run workflow"
+
+**Note:** Version is automatically read from `gradle.properties`, no manual input needed.
 
 This creates all platform builds without creating a GitHub release.
 
