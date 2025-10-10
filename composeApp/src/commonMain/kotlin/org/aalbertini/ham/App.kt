@@ -17,7 +17,8 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @Preview
 fun App(
     alwaysOnTop: Boolean = false,
-    onAlwaysOnTopChange: ((Boolean) -> Unit)? = null
+    onAlwaysOnTopChange: ((Boolean) -> Unit)? = null,
+    onResetWindowSize: (() -> Unit)? = null
 ) {
     val settingsPreferences = remember { SettingsPreferences() }
     val themePreset by settingsPreferences.themePreset.collectAsState()
@@ -45,7 +46,8 @@ fun App(
                 settingsPreferences.saveThemePreset(preset)
             },
             alwaysOnTop = alwaysOnTop,
-            onAlwaysOnTopChange = onAlwaysOnTopChange
+            onAlwaysOnTopChange = onAlwaysOnTopChange,
+            onResetWindowSize = onResetWindowSize
         )
     }
 }

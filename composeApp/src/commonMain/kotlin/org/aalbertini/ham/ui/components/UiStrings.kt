@@ -20,7 +20,7 @@ object UiStrings {
      */
     fun formatNumber(number: Int): String = formatNumber(number.toLong())
     // Screen titles
-    const val SCREEN_TITLE = "Movie Weekly Distribution Calculator"
+    const val SCREEN_TITLE = "Hollywood Animal - Movie Weekly Distribution Calculator"
 
     // Section titles
     const val SECTION_PARAMETERS = "Movie Parameters"

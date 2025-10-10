@@ -18,6 +18,11 @@ object UiConstants {
         val elevationDefault = 2.dp
         val elevationDialog = 8.dp
     }
+
+    object Dialog {
+        val defaultDialogWidth = 600.dp
+        val defaultDialogHeight = 800.dp
+    }
     
     // Section header dimensions
     object SectionHeader {
@@ -44,13 +49,14 @@ object UiConstants {
     
     // Window/Layout dimensions
     object Window {
-        val desktopWidth = 1200.dp
-        val desktopHeight = 800.dp
+        val desktopWidth = 1280.dp
+        val desktopHeight = 720.dp
     }
     
     // Layout constants
     object Layout {
-        val expandedColumnWidth = 400.dp
+        val minSectionWidth = 300.dp  // Minimum width for each section in adaptive layout
+        val expandedColumnWidth = 400.dp  // Maximum width for fixed-width columns (input/saved)
         val compactPadding = 4.dp
         val mediumSpacing = 16.dp
     }

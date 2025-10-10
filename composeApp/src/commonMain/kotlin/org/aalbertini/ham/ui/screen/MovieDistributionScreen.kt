@@ -1,4 +1,4 @@
-﻿package org.aalbertini.ham.ui.screen
+package org.aalbertini.ham.ui.screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.aalbertini.ham.model.MovieResult
@@ -50,7 +51,8 @@ import org.aalbertini.ham.ui.components.SavedMovieResultsSection
 import org.aalbertini.ham.ui.components.SettingsDialog
 import org.aalbertini.ham.ui.components.UiConstants
 import org.aalbertini.ham.ui.components.UiStrings
-import org.aalbertini.ham.ui.layout.AdaptiveCalculatorLayout
+import org.aalbertini.ham.ui.layout.AdaptiveMovieDistributionLayout
+import org.aalbertini.ham.ui.layout.WindowSizeClass
 import org.aalbertini.ham.ui.layout.rememberWindowSizeClass
 import org.aalbertini.ham.ui.state.MovieDistributionUiEvent
 import org.aalbertini.ham.ui.state.NotificationType
@@ -67,6 +69,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
     onThemePresetChange: (ThemePreset) -> Unit = {},
     alwaysOnTop: Boolean = false,
     onAlwaysOnTopChange: ((Boolean) -> Unit)? = null,
+    onResetWindowSize: (() -> Unit)? = null,
     viewModel: MovieDistributionViewModel = viewModel { MovieDistributionViewModel() }
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -102,8 +105,13 @@ fun MovieWeeklyDistributionCalculatorScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            UiStrings.SCREEN_TITLE,
-                            style = MaterialTheme.typography.titleLarge
+                            text = UiStrings.SCREEN_TITLE,
+                            style = if (windowSizeClass == WindowSizeClass.EXPANDED) {
+                                MaterialTheme.typography.titleLarge
+                            } else {
+                                MaterialTheme.typography.titleMedium
+                            },
+                            textAlign = TextAlign.Center
                         )
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -201,7 +209,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                     .padding(top = UiConstants.Padding.contentStandard, bottom = UiConstants.Padding.contentStandard)
             
             // Adaptive layout based on window size
-            AdaptiveCalculatorLayout(
+            AdaptiveMovieDistributionLayout(
                 windowSizeClass = windowSizeClass,
                 modifier = contentModifier,
                 inputSection = {
@@ -312,6 +320,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                 // Use the theme toggle button position for the circular reveal animation
                 onThemeToggle(themeButtonPosition)
             },
+            onResetWindowSize = onResetWindowSize,
             onDismiss = { showSettingsDialog = false }
         )
     }
