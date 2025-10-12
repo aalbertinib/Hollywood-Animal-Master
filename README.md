@@ -65,23 +65,15 @@ When releasing a movie in Hollywood Animal, you need to decide how many screenin
 - Edit saved movies anytime
 - Copy results to clipboard
 
-### 🎭 Beautiful Themes
-Choose from **5 stunning Art Deco themes**:
-- **Hollywood Classic** - Authentic game colors with golden accents
+### 🎭 Themes
+Choose from **themes**:
+- **Hollywood Classic** - Inspired by game colors with golden accents
 - **Midnight Purple** - Deep purples and lavender
 - **Ocean Breeze** - Cool blues and aqua
 - **Forest Whisper** - Natural greens and earth tones
 - **Sunset Glow** - Warm oranges and coral
 
 Each theme supports both **light and dark mode** with smooth animated transitions!
-
-### 📱 Cross-Platform
-- 🖥️ **Desktop** - Windows, macOS, Linux
-- 🤖 **Android** - Phones & Tablets
-- 🍎 **iOS** - iPhone & iPad
-- 🌐 **Web** - Any modern browser
-
----
 
 ## 📖 How to Use
 
@@ -110,13 +102,6 @@ Click **Calculate** to see your week-by-week screening distribution:
 ## 🎮 About Hollywood Animal
 
 [**Hollywood Animal**](https://store.steampowered.com/app/2680550/Hollywood_Animal/) is a strategic tycoon game where you build and manage a Hollywood movie studio from the 1920s onwards.
-
-**Key Features:**
-- 🎭 Make movies with deep creative control
-- 🏢 Build your studio empire
-- 📽️ Manage actors, directors, and staff
-- 💰 Balance budgets and box office success
-- 🎯 Navigate censorship, wars, and industry changes
 
 **Developer:** [Weappy Studio](https://weappy-studio.com/hollywood-animal/)  
 **Platform:** [Steam (Windows)](https://store.steampowered.com/app/2680550/Hollywood_Animal/)
