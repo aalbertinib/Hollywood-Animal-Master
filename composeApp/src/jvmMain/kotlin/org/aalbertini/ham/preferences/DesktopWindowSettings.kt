@@ -5,7 +5,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.aalbertini.ham.storage.StorageProvider
+import org.aalbertini.ham.core.data.storage.StorageProvider
 import java.util.concurrent.atomic.AtomicReference
 
 /**

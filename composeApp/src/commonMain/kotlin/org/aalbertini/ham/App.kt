@@ -8,9 +8,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
-import org.aalbertini.ham.preferences.SettingsPreferences
-import org.aalbertini.ham.ui.screen.MovieWeeklyDistributionCalculatorScreen
-import org.aalbertini.ham.ui.theme.HAMTheme
+import org.aalbertini.ham.features.settings.data.preferences.SettingsPreferences
+import org.aalbertini.ham.features.movie_distribution.presentation.screen.MovieWeeklyDistributionCalculatorScreen
+import org.aalbertini.ham.core.ui.theme.HAMTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable

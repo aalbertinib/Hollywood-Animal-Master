@@ -15,15 +15,14 @@ import hollywoodanimalmaster.composeapp.generated.resources.app_icon
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import org.aalbertini.ham.preferences.DesktopWindowSettings
-import org.aalbertini.ham.ui.components.UiConstants
-import org.aalbertini.ham.ui.components.UiStrings
+import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.core.ui.resources.UiStrings
 import org.jetbrains.compose.resources.painterResource
 
 @OptIn(FlowPreview::class)
 fun main() = application {
     // Initialize desktop window settings
     val windowSettings = remember { DesktopWindowSettings() }
-    
     // Load saved window size or use default
     val defaultSize = DpSize(UiConstants.Window.desktopWidth, UiConstants.Window.desktopHeight)
     val initialSize = remember { windowSettings.loadWindowSize(defaultSize) }
