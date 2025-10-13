@@ -36,10 +36,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
+import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionConstants
 import org.aalbertini.ham.core.ui.resources.UiConstants
 import org.aalbertini.ham.core.ui.resources.UiStrings
 import org.aalbertini.ham.core.ui.components.SectionAnimatedVisibility
 import org.aalbertini.ham.core.ui.components.animateContentSizeFast
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Content-only wrapper for Parameters Section
@@ -81,22 +84,22 @@ fun ParametersSectionContent(
             OutlinedTextField(
                 value = editableTitle,
                 onValueChange = onTitleChange,
-                label = { Text(UiStrings.LABEL_MOVIE_NAME) },
+                label = { Text(stringResource(Strings.movieNameLabel)) },
                 singleLine = false,
                 maxLines = 3,
-                placeholder = { Text(UiStrings.PLACEHOLDER_UNSAVED) },
+                placeholder = { Text(stringResource(Strings.unsavedText)) },
                 modifier = Modifier.fillMaxWidth(),
                 trailingIcon = if (originalTitle != null && editableTitle != originalTitle && editableTitle.isNotBlank()) {
                     {
                         TooltipBox(
                             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                            tooltip = { PlainTooltip { Text(UiStrings.ACTION_REVERT_TO_ORIGINAL) } },
+                            tooltip = { PlainTooltip { Text(stringResource(Strings.actionRevertToOriginal)) } },
                             state = rememberTooltipState()
                         ) {
                             IconButton(onClick = onRevertTitle) {
                                 Icon(
                                     Icons.AutoMirrored.Filled.Undo,
-                                    contentDescription = UiStrings.ACTION_REVERT_TO_ORIGINAL,
+                                    contentDescription = stringResource(Strings.actionRevertToOriginal),
                                     tint = MaterialTheme.colorScheme.secondary
                                 )
                             }
@@ -148,14 +151,25 @@ fun ResultsSectionContent(
                 Column(modifier = Modifier.padding(UiConstants.Padding.contentStandard)) {
                     if (list.isEmpty()) {
                         Text(
-                            text = UiStrings.messageEnterValidParameters(),
+                            text = stringResource(
+                                Strings.messageEnterValidParameters,
+                                MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN.toString(),
+                                MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX.toInt().toString(),
+                                MovieDistributionConstants.Validation.SCREENINGS_MIN.toInt().toString()
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             softWrap = true
                         )
                     } else {
                         // Render results - simplified for now
                         list.forEachIndexed { index, value ->
-                            Text("Week ${index + 1}: ${UiStrings.formatNumber(value)}")
+                            Text(
+                                stringResource(
+                                    Strings.weekResultsLine,
+                                    index + 1,
+                                    UiStrings.formatNumber(value)
+                                )
+                            )
                             if (index < list.size - 1) {
                                 Spacer(modifier = Modifier.height(UiConstants.Spacing.betweenElements))
                             }
@@ -166,7 +180,6 @@ fun ResultsSectionContent(
         }
     }
 }
-
 /**
  * Content-only wrapper for Saved Movies Section
  */
@@ -197,7 +210,7 @@ fun SavedMoviesSectionContent(
             Column(modifier = Modifier.padding(UiConstants.Padding.contentStandard), verticalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements)) {
                 if (movieResults.isEmpty()) {
                     Text(
-                        text = UiStrings.INFO_NO_SAVED_MOVIES,
+                        text = stringResource(Strings.infoNoSavedMovies),
                         style = MaterialTheme.typography.bodyMedium,
                         softWrap = true
                     )
@@ -227,13 +240,16 @@ fun SavedMoviesSectionContent(
                                         softWrap = true
                                     )
                                     Text(
-                                        text = UiStrings.movieResultCommercialScore(movieResult.commercialScore),
+                                        text = stringResource(Strings.commercial_score_with_value, movieResult.commercialScore.toString()),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         softWrap = true
                                     )
                                     Text(
-                                        text = UiStrings.movieResultNumberOfScreening(movieResult.numberOfScreenings),
+                                        text = stringResource(
+                                            Strings.number_of_screenings_with_value,
+                                            UiStrings.formatNumber(movieResult.numberOfScreenings.toInt())
+                                        ),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         softWrap = true
@@ -241,29 +257,29 @@ fun SavedMoviesSectionContent(
                                 }
                                 TooltipBox(
                                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                    tooltip = { PlainTooltip { Text(UiStrings.ACTION_LOAD_MOVIE) } },
+                                    tooltip = { PlainTooltip { Text(stringResource(Strings.actionLoadMovie)) } },
                                     state = rememberTooltipState()
                                 ) {
                                     IconButton(onClick = { onLoadClick(movieResult) }) {
-                                        Icon(Icons.Filled.ContentCopy, contentDescription = UiStrings.ACTION_LOAD_MOVIE)
+                                        Icon(Icons.Filled.ContentCopy, contentDescription = stringResource(Strings.actionLoadMovie))
                                     }
                                 }
                                 TooltipBox(
                                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                    tooltip = { PlainTooltip { Text(UiStrings.ACTION_EDIT_MOVIE) } },
+                                    tooltip = { PlainTooltip { Text(stringResource(Strings.actionEditMovie)) } },
                                     state = rememberTooltipState()
                                 ) {
                                     IconButton(onClick = { onEditClick(movieResult) }) {
-                                        Icon(Icons.Filled.Edit, contentDescription = UiStrings.ACTION_EDIT_MOVIE)
+                                        Icon(Icons.Filled.Edit, contentDescription = stringResource(Strings.actionEditMovie))
                                     }
                                 }
                                 TooltipBox(
                                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                    tooltip = { PlainTooltip { Text(UiStrings.ACTION_DELETE_MOVIE) } },
+                                    tooltip = { PlainTooltip { Text(stringResource(Strings.actionDeleteMovie)) } },
                                     state = rememberTooltipState()
                                 ) {
                                     IconButton(onClick = { onDeleteClick(movieResult) }) {
-                                        Icon(Icons.Filled.Delete, contentDescription = UiStrings.ACTION_DELETE_MOVIE)
+                                        Icon(Icons.Filled.Delete, contentDescription = stringResource(Strings.actionDeleteMovie))
                                     }
                                 }
                             }

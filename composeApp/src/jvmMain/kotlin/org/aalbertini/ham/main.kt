@@ -16,11 +16,13 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import org.aalbertini.ham.preferences.DesktopWindowSettings
 import org.aalbertini.ham.core.ui.resources.UiConstants
-import org.aalbertini.ham.core.ui.resources.UiStrings
+import org.aalbertini.ham.core.ui.resources.Strings
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(FlowPreview::class)
 fun main() = application {
+
     // Initialize desktop window settings
     val windowSettings = remember { DesktopWindowSettings() }
     // Load saved window size or use default
@@ -49,7 +51,7 @@ fun main() = application {
     
     Window(
         onCloseRequest = ::exitApplication,
-        title = UiStrings.SCREEN_TITLE,
+        title = stringResource(Strings.screenTitle),
         state = windowState,
         alwaysOnTop = alwaysOnTop,
         icon = painterResource(Res.drawable.app_icon)

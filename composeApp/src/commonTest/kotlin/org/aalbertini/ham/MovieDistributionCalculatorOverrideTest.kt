@@ -1,5 +1,6 @@
 package org.aalbertini.ham
 
+import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionCalculator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

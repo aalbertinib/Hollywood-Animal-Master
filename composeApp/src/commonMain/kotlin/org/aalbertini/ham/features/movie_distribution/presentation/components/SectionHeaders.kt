@@ -17,6 +17,8 @@ import org.aalbertini.ham.core.ui.components.AnimatedIcon
 import org.aalbertini.ham.core.ui.components.GenericActionButton
 import org.aalbertini.ham.core.ui.components.GenericSectionHeader
 import org.aalbertini.ham.core.ui.resources.UiStrings
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Sticky header for Parameters Section
@@ -36,7 +38,7 @@ fun ParametersSectionHeader(
     modifier: Modifier = Modifier
 ) {
     GenericSectionHeader(
-        title = UiStrings.SECTION_PARAMETERS,
+        title = stringResource(Strings.parametersSectionTitle),
         icon = UiStrings.SECTION_PARAMETERS_ICON,
         expanded = expanded,
         modifier = modifier
@@ -45,15 +47,15 @@ fun ParametersSectionHeader(
             GenericActionButton(
                 onClick = onNewClick,
                 icon = {
-                    Icon(Icons.Filled.Add, contentDescription = UiStrings.ACTION_NEW_MOVIE)
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(Strings.actionNewMovie))
                 },
-                contentDescription = UiStrings.ACTION_NEW_MOVIE,
-                tooltipText = UiStrings.ACTION_NEW_MOVIE
+                contentDescription = stringResource(Strings.actionNewMovie),
+                tooltipText = stringResource(Strings.actionNewMovie)
             )
         }
         if (commercialScoreValid && availableScreeningsValid && !isSavedWithoutChanges) {
             IconButton(onClick = onSaveClick) {
-                Icon(Icons.Filled.Save, contentDescription = UiStrings.ACTION_SAVE_MOVIE)
+                Icon(Icons.Filled.Save, contentDescription = stringResource(Strings.actionSaveMovie))
             }
         }
     }
@@ -74,7 +76,7 @@ fun ResultsSectionHeader(
     modifier: Modifier = Modifier
 ) {
     GenericSectionHeader(
-        title = UiStrings.SECTION_RESULTS,
+        title = stringResource(Strings.resultsSectionTitle),
         icon = UiStrings.SECTION_RESULTS_ICON,
         expanded = expanded,
         modifier = modifier
@@ -85,11 +87,11 @@ fun ResultsSectionHeader(
                 icon = {
                     Icon(
                         Icons.Filled.ContentCopy,
-                        contentDescription = UiStrings.ACTION_COPY_RESULTS
+                        contentDescription = stringResource(Strings.actionCopyResults)
                     )
                 },
-                contentDescription = UiStrings.ACTION_COPY_RESULTS,
-                tooltipText = UiStrings.ACTION_COPY_RESULTS
+                contentDescription = stringResource(Strings.actionCopyResults),
+                tooltipText = stringResource(Strings.actionCopyResults)
             )
         }
         GenericActionButton(
@@ -97,11 +99,11 @@ fun ResultsSectionHeader(
             icon = {
                 AnimatedIcon(
                     imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = if (expanded) UiStrings.CONTENT_DESC_COLLAPSE else UiStrings.CONTENT_DESC_EXPAND
+                    contentDescription = if (expanded) stringResource(Strings.contentDescriptionCollapse) else stringResource(Strings.contentDescriptionExpand)
                 )
             },
-            contentDescription = if (expanded) UiStrings.CONTENT_DESC_COLLAPSE else UiStrings.CONTENT_DESC_EXPAND,
-            tooltipText = if (expanded) UiStrings.ACTION_COLLAPSE else UiStrings.ACTION_EXPAND
+            contentDescription = if (expanded) stringResource(Strings.contentDescriptionCollapse) else stringResource(Strings.contentDescriptionExpand),
+            tooltipText = if (expanded) stringResource(Strings.actionCollapse) else stringResource(Strings.actionExpand)
         )
     }
 }
@@ -121,7 +123,7 @@ fun SavedMoviesSectionHeader(
     modifier: Modifier = Modifier
 ) {
     GenericSectionHeader(
-        title = UiStrings.savedMoviesCount(movieCount),
+        title = stringResource(Strings.savedMoviesCount, movieCount),
         icon = UiStrings.SAVED_MOVIES_COUNT_ICON,
         expanded = expanded,
         modifier = modifier
@@ -132,12 +134,12 @@ fun SavedMoviesSectionHeader(
                 icon = {
                     Icon(
                         Icons.Filled.DeleteSweep,
-                        contentDescription = UiStrings.CONTENT_DESC_CLEAR_ALL,
+                        contentDescription = stringResource(Strings.contentDescriptionClearAll),
                         tint = MaterialTheme.colorScheme.error
                     )
                 },
-                contentDescription = UiStrings.CONTENT_DESC_CLEAR_ALL,
-                tooltipText = UiStrings.actionClearAll(movieCount)
+                contentDescription = stringResource(Strings.contentDescriptionClearAll),
+                tooltipText = stringResource(Strings.action_clear_all_with_count, movieCount)
             )
         }
         GenericActionButton(
@@ -145,11 +147,11 @@ fun SavedMoviesSectionHeader(
             icon = {
                 AnimatedIcon(
                     imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = if (expanded) UiStrings.CONTENT_DESC_COLLAPSE else UiStrings.CONTENT_DESC_EXPAND
+                    contentDescription = if (expanded) stringResource(Strings.contentDescriptionCollapse) else stringResource(Strings.contentDescriptionExpand)
                 )
             },
-            contentDescription = if (expanded) UiStrings.CONTENT_DESC_COLLAPSE else UiStrings.CONTENT_DESC_EXPAND,
-            tooltipText = if (expanded) UiStrings.ACTION_COLLAPSE else UiStrings.ACTION_EXPAND
+            contentDescription = if (expanded) stringResource(Strings.contentDescriptionCollapse) else stringResource(Strings.contentDescriptionExpand),
+            tooltipText = if (expanded) stringResource(Strings.actionCollapse) else stringResource(Strings.actionExpand)
         )
     }
 }

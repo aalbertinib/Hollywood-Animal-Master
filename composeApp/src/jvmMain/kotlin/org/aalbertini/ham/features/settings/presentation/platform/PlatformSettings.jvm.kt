@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.aalbertini.ham.core.ui.resources.Strings
 
 /**
  * JVM (Desktop) platform settings implementation.
@@ -18,8 +19,8 @@ actual fun getPlatformSettings(
     onResetWindowSize?.let { resetAction ->
         settings.add(
             PlatformSettingItem(
-                title = "Reset Window Size",
-                description = "Restore default window dimensions",
+                titleRes = Strings.resetWindowSize,
+                descriptionRes = Strings.restoreDefaultWindowDimensions,
                 icon = Icons.Default.Refresh,
                 action = resetAction
             )

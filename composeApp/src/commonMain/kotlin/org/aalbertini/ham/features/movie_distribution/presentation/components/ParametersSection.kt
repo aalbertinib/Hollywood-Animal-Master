@@ -43,6 +43,8 @@ import org.aalbertini.ham.core.ui.resources.UiStrings
 import org.aalbertini.ham.core.ui.components.TextIcon
 import org.aalbertini.ham.core.ui.components.animateContentSizeFast
 import org.aalbertini.ham.core.ui.components.ErrorMessageAnimatedVisibility
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -193,9 +195,9 @@ fun ParametersSection(
                         val filteredValue = newValue.replace("\n", "").replace("\r", "")
                         onTitleChange(filteredValue)
                     },
-                    label = { TextIcon(text = UiStrings.LABEL_MOVIE_NAME, icon = UiStrings.LABEL_MOVIE_NAME_ICON) },
+                    label = { TextIcon(text = stringResource(Strings.movieNameLabel), icon = UiStrings.LABEL_MOVIE_NAME_ICON) },
                     singleLine = true,
-                    placeholder = { Text(UiStrings.PLACEHOLDER_UNSAVED) },
+                    placeholder = { Text(stringResource(Strings.unsavedText)) },
                     keyboardOptions = KeyboardOptions(
                         imeAction = ImeAction.Done
                     ),
@@ -210,13 +212,13 @@ fun ParametersSection(
                         {
                             TooltipBox(
                                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                tooltip = { PlainTooltip { Text(UiStrings.ACTION_REVERT_TO_ORIGINAL) } },
+                                tooltip = { PlainTooltip { Text(stringResource(Strings.actionRevertToOriginal)) } },
                                 state = rememberTooltipState()
                             ) {
                                 IconButton(onClick = onRevertTitle) {
                                     Icon(
                                         Icons.AutoMirrored.Filled.Undo,
-                                        contentDescription = UiStrings.ACTION_REVERT_TO_ORIGINAL,
+                                        contentDescription = stringResource(Strings.actionRevertToOriginal),
                                         tint = MaterialTheme.colorScheme.secondary
                                     )
                                 }
@@ -236,7 +238,7 @@ fun ParametersSection(
                     OutlinedTextField(
                         value = displayCommercialScore,
                         onValueChange = onCommercialScoreChange,
-                        label = { TextIcon(text = UiStrings.LABEL_COMMERCIAL_SCORE, icon = UiStrings.LABEL_COMMERCIAL_SCORE_ICON) },
+                        label = { TextIcon(text = stringResource(Strings.labelCommercialScore), icon = UiStrings.LABEL_COMMERCIAL_SCORE_ICON) },
                         singleLine = false,
                         maxLines = 2,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
@@ -246,7 +248,13 @@ fun ParametersSection(
                             val showError = !commercialScoreIsFocused && commercialScoreInput.isNotEmpty() && (commercialScoreInput.toDoubleOrNull()
                                 ?.let { it < MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN || it > MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX } ?: true)
                             ErrorMessageAnimatedVisibility(visible = showError) {
-                                Text(UiStrings.errorCommercialScore())
+                                Text(
+                                    stringResource(
+                                        Strings.errorCommercialScoreRange,
+                                        MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN.toString(),
+                                        MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX.toInt().toString()
+                                    )
+                                )
                             }
                         },
                         interactionSource = commercialScoreInteractionSource,
@@ -257,13 +265,13 @@ fun ParametersSection(
                             {
                                 TooltipBox(
                                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                    tooltip = { PlainTooltip { Text(UiStrings.ACTION_REVERT_TO_ORIGINAL) } },
+                                    tooltip = { PlainTooltip { Text(stringResource(Strings.actionRevertToOriginal)) } },
                                     state = rememberTooltipState()
                                 ) {
                                     IconButton(onClick = onRevertCommercialScore) {
                                         Icon(
                                             Icons.AutoMirrored.Filled.Undo,
-                                            contentDescription = UiStrings.ACTION_REVERT_TO_ORIGINAL,
+                                            contentDescription = stringResource(Strings.actionRevertToOriginal),
                                             tint = MaterialTheme.colorScheme.secondary
                                         )
                                     }
@@ -284,7 +292,7 @@ fun ParametersSection(
                     OutlinedTextField(
                         value = displayAvailableScreenings,
                         onValueChange = onAvailableScreeningsChange,
-                        label = { TextIcon(text = UiStrings.LABEL_SCREENINGS, icon = UiStrings.LABEL_SCREENINGS_ICON) },
+                        label = { TextIcon(text = stringResource(Strings.labelScreenings), icon = UiStrings.LABEL_SCREENINGS_ICON) },
                         singleLine = false,
                         maxLines = 2,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -294,7 +302,13 @@ fun ParametersSection(
                             val showError = !availableScreeningsIsFocused && availableScreeningsInput.isNotEmpty() && (availableScreeningsInput.toDoubleOrNull()
                                 ?.let { it < MovieDistributionConstants.Validation.SCREENINGS_MIN || it > MovieDistributionConstants.Validation.SCREENINGS_MAX } ?: true)
                             ErrorMessageAnimatedVisibility(visible = showError) {
-                                Text(UiStrings.errorNumberOfScreenings())
+                                Text(
+                                    stringResource(
+                                        Strings.errorNumberOfScreeningsRange,
+                                        MovieDistributionConstants.Validation.SCREENINGS_MIN.toInt().toString(),
+                                        UiStrings.formatNumber(MovieDistributionConstants.Validation.SCREENINGS_MAX.toInt())
+                                    )
+                                )
                             }
                         },
                         interactionSource = availableScreeningsInteractionSource,
@@ -305,13 +319,13 @@ fun ParametersSection(
                             {
                                 TooltipBox(
                                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                    tooltip = { PlainTooltip { Text(UiStrings.ACTION_REVERT_TO_ORIGINAL) } },
+                                    tooltip = { PlainTooltip { Text(stringResource(Strings.actionRevertToOriginal)) } },
                                     state = rememberTooltipState()
                                 ) {
                                     IconButton(onClick = onRevertAvailableScreenings) {
                                         Icon(
                                             Icons.AutoMirrored.Filled.Undo,
-                                            contentDescription = UiStrings.ACTION_REVERT_TO_ORIGINAL,
+                                            contentDescription = stringResource(Strings.actionRevertToOriginal),
                                             tint = MaterialTheme.colorScheme.secondary
                                         )
                                     }

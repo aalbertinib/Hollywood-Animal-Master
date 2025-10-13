@@ -32,6 +32,8 @@ import org.aalbertini.ham.core.ui.resources.UiStrings
 import org.aalbertini.ham.core.ui.components.TextIcon
 import org.aalbertini.ham.core.ui.components.animateContentSizeFast
 import org.aalbertini.ham.core.ui.components.ErrorMessageAnimatedVisibility
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Generic validated input field with optional revert functionality.
@@ -140,13 +142,13 @@ fun ValidatedInputField(
                 {
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                        tooltip = { PlainTooltip { Text(UiStrings.ACTION_REVERT_TO_ORIGINAL) } },
+                        tooltip = { PlainTooltip { Text(stringResource(Strings.actionRevertToOriginal)) } },
                         state = rememberTooltipState()
                     ) {
                         IconButton(onClick = { onRevert?.invoke() }) {
                             Icon(
                                 Icons.AutoMirrored.Filled.Undo,
-                                contentDescription = UiStrings.ACTION_REVERT_TO_ORIGINAL,
+                                contentDescription = stringResource(Strings.actionRevertToOriginal),
                                 tint = MaterialTheme.colorScheme.secondary
                             )
                         }

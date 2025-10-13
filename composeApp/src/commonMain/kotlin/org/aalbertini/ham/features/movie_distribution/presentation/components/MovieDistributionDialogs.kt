@@ -50,6 +50,11 @@ import org.aalbertini.ham.core.ui.resources.UiConstants
 import org.aalbertini.ham.core.ui.components.TextIcon
 import org.aalbertini.ham.core.ui.components.AppEmojiIcons
 import org.aalbertini.ham.core.ui.components.animateContentSizeFast
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.pluralStringResource
+import hollywoodanimalmaster.composeapp.generated.resources.Res
+import hollywoodanimalmaster.composeapp.generated.resources.message_clear_all
 
 @Composable
 fun SaveDialog(
@@ -78,10 +83,10 @@ fun SaveDialog(
                     modifier = Modifier.size(32.dp)
                 )
             },
-            title = { Text(UiStrings.DIALOG_TITLE_OVERWRITE_MOVIE) },
+            title = { Text(stringResource(Strings.dialogTitleOverwriteMovie)) },
             text = {
                 Text(
-                    text = UiStrings.messageOverwriteMovie(title),
+                    text = stringResource(Strings.messageOverwriteMovie, title),
                     softWrap = true
                 )
             },
@@ -101,7 +106,7 @@ fun SaveDialog(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(UiStrings.BUTTON_OVERWRITE)
+                    Text(stringResource(Strings.overwrite))
                 }
             },
             dismissButton = {
@@ -112,7 +117,7 @@ fun SaveDialog(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(UiStrings.BUTTON_CANCEL)
+                    Text(stringResource(Strings.cancel))
                 }
             }
         )
@@ -139,21 +144,21 @@ fun SaveDialog(
                         modifier = Modifier.size(28.dp)
                     )
                     Text(
-                        text = if (isUpdate) UiStrings.DIALOG_TITLE_UPDATE_MOVIE else UiStrings.DIALOG_TITLE_SAVE_MOVIE,
+                        text = if (isUpdate) stringResource(Strings.dialogTitleUpdateMovie) else stringResource(Strings.dialogTitleSaveMovie),
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text(UiStrings.LABEL_TITLE) },
+                    label = { Text(stringResource(Strings.movieNameLabel)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     isError = titleExists,
                     supportingText = if (titleExists) {
                         {
                             Text(
-                                UiStrings.ERROR_TITLE_EXISTS,
+                                stringResource(Strings.errorTitleExists),
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
@@ -171,7 +176,7 @@ fun SaveDialog(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(UiStrings.BUTTON_CANCEL)
+                        Text(stringResource(Strings.cancel))
                     }
                     Button(
                         onClick = {
@@ -189,7 +194,7 @@ fun SaveDialog(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(if (isUpdate) UiStrings.BUTTON_UPDATE else UiStrings.BUTTON_SAVE)
+                        Text(if (isUpdate) stringResource(Strings.update) else stringResource(Strings.saveButton))
                     }
                 }
             }
@@ -283,7 +288,7 @@ fun EditDialog(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = UiStrings.DIALOG_TITLE_EDIT_MOVIE,
+                        text = stringResource(Strings.dialogTitleEditMovie),
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
@@ -291,7 +296,7 @@ fun EditDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text(UiStrings.LABEL_MOVIE_NAME) },
+                    label = { Text(stringResource(Strings.movieNameLabel)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -316,7 +321,7 @@ fun EditDialog(
                         }
                         commercialScoreInput = finalValue
                     },
-                    label = { Text(UiStrings.LABEL_COMMERCIAL_SCORE) },
+                    label = { Text(stringResource(Strings.labelCommercialScore)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     modifier = Modifier.fillMaxWidth(),
@@ -326,7 +331,11 @@ fun EditDialog(
                         val showError = !commercialScoreIsFocused && commercialScoreInput.isNotEmpty() && !commercialScoreValid
                         if (showError) {
                             Text(
-                                UiStrings.errorCommercialScore(),
+                                stringResource(
+                                    Strings.errorCommercialScoreRange,
+                                    MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN.toString(),
+                                    MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX.toInt().toString()
+                                ),
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
@@ -352,7 +361,7 @@ fun EditDialog(
                         }
                         screeningsInput = finalValue
                     },
-                    label = { Text(UiStrings.LABEL_SCREENINGS) },
+                    label = { Text(stringResource(Strings.labelScreenings)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.fillMaxWidth(),
@@ -362,7 +371,11 @@ fun EditDialog(
                         val showError = !screeningsIsFocused && screeningsInput.isNotEmpty() && !screeningsValid
                         if (showError) {
                             Text(
-                                UiStrings.errorNumberOfScreenings(),
+                                stringResource(
+                                    Strings.errorNumberOfScreeningsRange,
+                                    MovieDistributionConstants.Validation.SCREENINGS_MIN.toInt().toString(),
+                                    UiStrings.formatNumber(MovieDistributionConstants.Validation.SCREENINGS_MAX.toInt())
+                                ),
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
@@ -381,7 +394,7 @@ fun EditDialog(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(UiStrings.BUTTON_CANCEL)
+                        Text(stringResource(Strings.cancel))
                     }
                     Button(
                         onClick = {
@@ -399,7 +412,7 @@ fun EditDialog(
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(UiStrings.BUTTON_UPDATE)
+                        Text(stringResource(Strings.update))
                     }
                 }
             }
@@ -425,19 +438,19 @@ fun ClearAllConfirmationDialog(
         },
         title = {
             Text(
-                text = UiStrings.DIALOG_TITLE_CLEAR_ALL,
+                text = stringResource(Strings.dialogTitleClearAll),
                 style = MaterialTheme.typography.titleLarge
             )
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements)) {
                 Text(
-                    text = UiStrings.messageClearAll(movieResultCount),
+                    text = pluralStringResource(Res.plurals.message_clear_all, movieResultCount, movieResultCount),
                     style = MaterialTheme.typography.bodyMedium,
                     softWrap = true
                 )
                 Text(
-                    text = UiStrings.WARNING_CANNOT_UNDO,
+                    text = stringResource(Strings.warningCannotUndo),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error,
                     softWrap = true
@@ -457,7 +470,7 @@ fun ClearAllConfirmationDialog(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(UiStrings.BUTTON_CLEAR_ALL)
+                Text(stringResource(Strings.clearAllButton))
             }
         },
         dismissButton = {
@@ -468,7 +481,7 @@ fun ClearAllConfirmationDialog(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(UiStrings.BUTTON_CANCEL)
+                Text(stringResource(Strings.cancel))
             }
         }
     )
@@ -497,7 +510,7 @@ fun ParameterComparisonDialog(
         },
         title = {
             TextIcon(
-                text = "Parameter Conflict",
+                text = stringResource(Strings.parameterConflict),
                 icon = AppEmojiIcons.WARNING,
                 style = MaterialTheme.typography.titleLarge
             )
@@ -507,7 +520,7 @@ fun ParameterComparisonDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = "A movie with the title \"$movieTitle\" already exists with different parameters.",
+                    text = stringResource(Strings.messageTitleExistsWithDiffParams, movieTitle),
                     style = MaterialTheme.typography.bodyMedium,
                     softWrap = true
                 )
@@ -516,19 +529,19 @@ fun ParameterComparisonDialog(
 
                 // Existing parameters
                 TextIcon(
-                    text = "Saved Parameters:",
+                    text = stringResource(Strings.savedParametersTitle),
                     icon = AppEmojiIcons.FLOPPY_DISK,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
                 )
                 TextIcon(
-                    text = "Commercial Score: $existingCommercialScore",
+                    text = stringResource(Strings.commercial_score_with_value, existingCommercialScore.toString()),
                     icon = AppEmojiIcons.STAR,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 TextIcon(
-                    text = "Number of Screenings: ${UiStrings.formatNumber(existingScreenings.toLong())}",
+                    text = stringResource(Strings.number_of_screenings_with_value, UiStrings.formatNumber(existingScreenings.toLong())),
                     icon = AppEmojiIcons.FILM_FRAMES,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -537,19 +550,19 @@ fun ParameterComparisonDialog(
 
                 // New parameters
                 TextIcon(
-                    text = "Current Parameters:",
+                    text = stringResource(Strings.currentParametersTitle),
                     icon = AppEmojiIcons.PENCIL,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.secondary
                 )
                 TextIcon(
-                    text = "Commercial Score: $newCommercialScore",
+                    text = stringResource(Strings.commercial_score_with_value, newCommercialScore.toString()),
                     icon = AppEmojiIcons.STAR,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 TextIcon(
-                    text = "Number of Screenings: ${UiStrings.formatNumber(newScreenings.toLong())}",
+                    text = stringResource(Strings.number_of_screenings_with_value, UiStrings.formatNumber(newScreenings.toLong())),
                     icon = AppEmojiIcons.FILM_FRAMES,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -557,7 +570,7 @@ fun ParameterComparisonDialog(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = "Choose whether to keep the saved parameters or overwrite with current values.",
+                    text = stringResource(Strings.chooseKeepOrOverwrite),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     softWrap = true
@@ -575,7 +588,7 @@ fun ParameterComparisonDialog(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Keep Saved")
+                    Text(stringResource(Strings.keep_saved))
                 }
                 Button(onClick = onOverwrite) {
                     Icon(
@@ -584,7 +597,7 @@ fun ParameterComparisonDialog(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text("Overwrite")
+                    Text(stringResource(Strings.overwrite))
                 }
             }
         },
@@ -596,7 +609,7 @@ fun ParameterComparisonDialog(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(UiStrings.BUTTON_CANCEL)
+                Text(stringResource(Strings.cancel))
             }
         }
     )

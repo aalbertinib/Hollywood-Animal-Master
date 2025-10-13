@@ -2,6 +2,7 @@ package org.aalbertini.ham.features.settings.presentation.platform
 
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
+import org.jetbrains.compose.resources.StringResource
 
 /**
  * Represents a platform-specific setting item
@@ -12,8 +13,8 @@ import androidx.compose.ui.unit.Dp
  * @param action The action to perform when the setting is clicked
  */
 data class PlatformSettingItem(
-    val title: String,
-    val description: String,
+    val titleRes: StringResource,
+    val descriptionRes: StringResource,
     val icon: ImageVector,
     val action: () -> Unit
 )

@@ -63,6 +63,8 @@ import org.aalbertini.ham.features.movie_distribution.presentation.state.MovieDi
 import org.aalbertini.ham.features.movie_distribution.presentation.state.NotificationType
 import org.aalbertini.ham.core.ui.theme.AnimatedBackground
 import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.MovieDistributionViewModel
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -110,7 +112,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                 CenterAlignedTopAppBar(
                     title = {
                         TextIcon(
-                            text = UiStrings.SCREEN_TITLE,
+                            text = stringResource(Strings.screenTitle),
                             icon = UiStrings.SCREEN_TITLE_ICON,
                             style = if (windowSizeClass == WindowSizeClass.EXPANDED) {
                                 MaterialTheme.typography.titleLarge
@@ -129,7 +131,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                             tooltip = {
                                 PlainTooltip {
-                                    Text("Settings")
+                                    Text(stringResource(Strings.settingsTitle))
                                 }
                             },
                             state = rememberTooltipState()
@@ -137,7 +139,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                             IconButton(onClick = { showSettingsDialog = true }) {
                                 AnimatedIcon(
                                     imageVector = Icons.Default.Settings,
-                                    contentDescription = "Settings"
+                                    contentDescription = stringResource(Strings.settingsTitle)
                                 )
                             }
                         }
@@ -148,7 +150,10 @@ fun MovieWeeklyDistributionCalculatorScreen(
                                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                                 tooltip = {
                                     PlainTooltip {
-                                        Text(if (alwaysOnTop) UiStrings.ACTION_DISABLE_ALWAYS_ON_TOP else UiStrings.ACTION_ENABLE_ALWAYS_ON_TOP)
+                                        Text(
+                                            if (alwaysOnTop) stringResource(Strings.actionDisableAlwaysOnTop)
+                                            else stringResource(Strings.actionEnableAlwaysOnTop)
+                                        )
                                     }
                                 },
                                 state = rememberTooltipState()
@@ -156,7 +161,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                                 IconButton(onClick = { onChange(!alwaysOnTop) }) {
                                     AnimatedIcon(
                                         imageVector = if (alwaysOnTop) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                                        contentDescription = if (alwaysOnTop) UiStrings.CONTENT_DESC_PINNED else UiStrings.CONTENT_DESC_UNPINNED
+                                        contentDescription = if (alwaysOnTop) stringResource(Strings.contentDescriptionPinned) else stringResource(Strings.contentDescriptionUnpinned)
                                     )
                                 }
                             }
@@ -166,7 +171,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                             tooltip = {
                                 PlainTooltip {
-                                    Text(if (isDarkMode) UiStrings.ACTION_SWITCH_TO_LIGHT else UiStrings.ACTION_SWITCH_TO_DARK)
+                                    Text(if (isDarkMode) stringResource(Strings.actionSwitchToLight) else stringResource(Strings.actionSwitchToDark))
                                 }
                             },
                             state = rememberTooltipState(),
@@ -182,7 +187,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                             IconButton(onClick = { onThemeToggle(themeButtonPosition) }) {
                                 AnimatedIcon(
                                     imageVector = if (isDarkMode) Icons.Filled.LightMode else Icons.Filled.DarkMode,
-                                    contentDescription = if (isDarkMode) UiStrings.CONTENT_DESC_LIGHT_MODE else UiStrings.CONTENT_DESC_DARK_MODE
+                                    contentDescription = if (isDarkMode) stringResource(Strings.contentDescriptionLightMode) else stringResource(Strings.contentDescriptionDarkMode)
                                 )
                             }
                         }
@@ -264,17 +269,27 @@ fun MovieWeeklyDistributionCalculatorScreen(
                     )
                 },
                 resultsHeader = {
+                    val resultsTitleText = stringResource(Strings.resultsTitle)
+                    val copyText = buildString {
+                        append(resultsTitleText)
+                        append("\n")
+                        uiState.resultsWithRounded.forEachIndexed { idx, v ->
+                            append(
+                                stringResource(
+                                    Strings.weekResultsLine,
+                                    idx + 1,
+                                    v.toString()
+                                )
+                            )
+                            append("\n")
+                        }
+                    }.trimEnd()
+
                     ResultsSectionHeader(
                         hasResults = uiState.resultsWithRounded.isNotEmpty(),
                         expanded = uiState.expandResults,
                         onCopyClick = {
-                            val text = buildString {
-                                append("Results\n")
-                                uiState.resultsWithRounded.forEachIndexed { idx, v ->
-                                    append("Week ${idx + 1}: $v\n")
-                                }
-                            }
-                            clipboard.setText(AnnotatedString(text.trimEnd()))
+                            clipboard.setText(AnnotatedString(copyText))
                             viewModel.onEvent(MovieDistributionUiEvent.CopyResults(uiState.resultsWithRounded))
                         },
                         onToggleExpand = { viewModel.onEvent(MovieDistributionUiEvent.ToggleResultsExpand) }

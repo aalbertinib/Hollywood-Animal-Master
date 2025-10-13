@@ -58,6 +58,8 @@ import org.aalbertini.ham.core.ui.resources.UiStrings
 import org.aalbertini.ham.core.ui.components.TextIcon
 import org.aalbertini.ham.core.ui.components.SectionAnimatedVisibility
 import org.aalbertini.ham.core.ui.components.animateContentSizeFast
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,7 +98,12 @@ fun ResultsSection(
                     )) {
                         if (list.isEmpty()) {
                             Text(
-                                text = UiStrings.messageEnterValidParameters(),
+                                text = stringResource(
+                                    Strings.messageEnterValidParameters,
+                                    MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN.toString(),
+                                    MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX.toInt().toString(),
+                                    MovieDistributionConstants.Validation.SCREENINGS_MIN.toInt().toString()
+                                ),
                                 style = MaterialTheme.typography.bodyMedium,
                                 softWrap = true
                             )
@@ -247,7 +254,7 @@ private fun WeekResultRow(
                 shape = RoundedCornerShape(6.dp),
             ) {
                 TextIcon(
-                    text = UiStrings.weekNumber(weekNumber),
+                    text = stringResource(Strings.weekNumber, weekNumber),
                     icon = UiStrings.WEEK_NUMBER_ICON,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
@@ -272,7 +279,7 @@ private fun WeekResultRow(
                         modifier = Modifier.padding(horizontal = 6.dp)
                     ) {
                         TextIcon(
-                            text = UiStrings.MOVIE_RESULTS_SCREENINGS,
+                            text = stringResource(Strings.movieResultsScreenings),
                             icon = UiStrings.MOVIE_RESULTS_SCREENINGS_ICON,
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.bodyMedium,
@@ -321,7 +328,7 @@ private fun WeekResultRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = UiStrings.MOVIE_RESULTS_YOUR_SCREENINGS_OVERRIDE,
+                    text = stringResource(Strings.movieResultsYourScreeningsOverride),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(0.25f)
@@ -372,15 +379,18 @@ private fun WeekResultRow(
                             }
                         },
                     label = if (hasOverride && !isValidated) {
-                        { Text("Pending validation", style = MaterialTheme.typography.labelSmall) }
+                        { Text(stringResource(Strings.pendingValidation), style = MaterialTheme.typography.labelSmall) }
                     } else if (hasOverride && isValidated) {
-                        { Text("Override", style = MaterialTheme.typography.labelSmall) }
+                        { Text(stringResource(Strings.overrideLabel), style = MaterialTheme.typography.labelSmall) }
                     } else {
                         null
                     },
                     placeholder = {
                         Text(
-                            text = "Default: ${UiStrings.formatNumber(availableScreeningsValue.toLong())}",
+                            text = stringResource(
+                                Strings.defaultWithValue,
+                                UiStrings.formatNumber(availableScreeningsValue.toLong())
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                         )
@@ -428,7 +438,7 @@ private fun WeekResultRow(
                             // Clear button - shown when there's any override
                             TooltipBox(
                                 positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                tooltip = { PlainTooltip { Text("Clear override") } },
+                                tooltip = { PlainTooltip { Text(stringResource(Strings.clearOverride)) } },
                                 state = rememberTooltipState()
                             ) {
                                 IconButton(
@@ -441,7 +451,7 @@ private fun WeekResultRow(
                                 ) {
                                     Icon(
                                         Icons.Filled.Clear,
-                                        contentDescription = "Clear override",
+                                        contentDescription = stringResource(Strings.clearOverride),
                                         tint = MaterialTheme.colorScheme.secondary
                                     )
                                 }
@@ -461,13 +471,12 @@ private fun WeekResultRow(
                         {
                             Text(
                                 text = if (availableScreeningsValue > 0.0) {
-                                    "Must be between 0 and ${
-                                        UiStrings.formatNumber(
-                                            availableScreeningsValue.toLong()
-                                        )
-                                    }"
+                                    stringResource(
+                                        Strings.validationBetweenZeroAnd,
+                                        UiStrings.formatNumber(availableScreeningsValue.toLong())
+                                    )
                                 } else {
-                                    "Enter available screenings first"
+                                    stringResource(Strings.enterAvailableScreeningsFirst)
                                 },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.error

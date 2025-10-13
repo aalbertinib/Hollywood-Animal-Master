@@ -21,6 +21,8 @@ import org.aalbertini.ham.core.ui.components.GenericActionButton
 import org.aalbertini.ham.core.ui.components.TextIcon
 import org.aalbertini.ham.core.ui.resources.UiStrings
 import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Saved Movie Results Section using generic components.
@@ -45,9 +47,8 @@ fun SavedMovieResultsSection(
     ) {
         if (movieResults.isEmpty()) {
             TextIcon(
-                text = UiStrings.INFO_NO_SAVED_MOVIES,
+                text = stringResource(Strings.infoNoSavedMovies),
                 icon = UiStrings.INFO_NO_SAVED_MOVIES_ICON,
-                style = MaterialTheme.typography.bodyMedium,
                 softWrap = true
             )
         } else {
@@ -62,33 +63,33 @@ fun SavedMovieResultsSection(
                                 icon = {
                                     Icon(
                                         Icons.Filled.ContentCopy,
-                                        contentDescription = UiStrings.ACTION_LOAD_MOVIE
+                                        contentDescription = stringResource(Strings.actionLoadMovie)
                                     )
                                 },
-                                contentDescription = UiStrings.ACTION_LOAD_MOVIE,
-                                tooltipText = UiStrings.ACTION_LOAD_MOVIE
+                                contentDescription = stringResource(Strings.actionLoadMovie),
+                                tooltipText = stringResource(Strings.actionLoadMovie)
                             )
                             GenericActionButton(
                                 onClick = { onEditClick(movieResult) },
                                 icon = {
                                     Icon(
                                         Icons.Filled.Edit,
-                                        contentDescription = UiStrings.ACTION_EDIT_MOVIE
+                                        contentDescription = stringResource(Strings.actionEditMovie)
                                     )
                                 },
-                                contentDescription = UiStrings.ACTION_EDIT_MOVIE,
-                                tooltipText = UiStrings.ACTION_EDIT_MOVIE
+                                contentDescription = stringResource(Strings.actionEditMovie),
+                                tooltipText = stringResource(Strings.actionEditMovie)
                             )
                             GenericActionButton(
                                 onClick = { onDeleteClick(movieResult) },
                                 icon = {
                                     Icon(
                                         Icons.Filled.Delete,
-                                        contentDescription = UiStrings.ACTION_DELETE_MOVIE
+                                        contentDescription = stringResource(Strings.actionDeleteMovie)
                                     )
                                 },
-                                contentDescription = UiStrings.ACTION_DELETE_MOVIE,
-                                tooltipText = UiStrings.ACTION_DELETE_MOVIE
+                                contentDescription = stringResource(Strings.actionDeleteMovie),
+                                tooltipText = stringResource(Strings.actionDeleteMovie)
                             )
                         }
                     ) {
@@ -98,15 +99,19 @@ fun SavedMovieResultsSection(
                             softWrap = true
                         )
                         TextIcon(
-                            text = UiStrings.movieResultCommercialScore(movieResult.commercialScore),
+                            text = stringResource(
+                                Strings.commercial_score_with_value,
+                                movieResult.commercialScore.toString()
+                            ),
                             icon = UiStrings.MOVIE_RESULT_COMMERCIAL_SCORE_ICON,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             softWrap = true
                         )
                         TextIcon(
-                            text = UiStrings.movieResultNumberOfScreening(
-                                movieResult.numberOfScreenings
+                            text = stringResource(
+                                Strings.number_of_screenings_with_value,
+                                UiStrings.formatNumber(movieResult.numberOfScreenings.toInt())
                             ),
                             icon = UiStrings.MOVIE_RESULT_SCREENINGS_ICON,
                             style = MaterialTheme.typography.bodySmall,

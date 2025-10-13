@@ -49,6 +49,8 @@ import org.aalbertini.ham.core.ui.resources.Dimensions
 import org.aalbertini.ham.core.ui.resources.UiConstants
 import org.aalbertini.ham.features.settings.presentation.platform.getPlatformSettings
 import org.aalbertini.ham.features.settings.presentation.platform.getSettingsDialogPadding
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Settings dialog for app configuration.
@@ -186,7 +188,7 @@ fun SettingsDialog(
                                         modifier = Modifier.padding(end = Dimensions.Spacing.medium)
                                     )
                                     Text(
-                                        text = "Settings",
+                                        text = stringResource(Strings.settingsTitle),
                                         style = MaterialTheme.typography.headlineMedium,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -194,7 +196,7 @@ fun SettingsDialog(
                                 IconButton(onClick = onDismiss) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "Close"
+                                        contentDescription = stringResource(Strings.contentDescriptionClose)
                                     )
                                 }
                             }
@@ -210,7 +212,7 @@ fun SettingsDialog(
                         ) {
                             // Dark Mode Toggle Section
                             Text(
-                                text = "Appearance",
+                                text = stringResource(Strings.appearanceTitle),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -240,12 +242,12 @@ fun SettingsDialog(
                                     Spacer(modifier = Modifier.width(Dimensions.Spacing.medium))
                                     Column {
                                         Text(
-                                            text = if (darkModeEnabled) "Dark Mode" else "Light Mode",
+                                            text = if (darkModeEnabled) stringResource(Strings.darkModeLabel) else stringResource(Strings.lightModeLabel),
                                             style = MaterialTheme.typography.bodyLarge,
                                             fontWeight = FontWeight.Medium
                                         )
                                         Text(
-                                            text = if (darkModeEnabled) "Switch to light theme" else "Switch to dark theme",
+                                            text = if (darkModeEnabled) stringResource(Strings.switchToLightTheme) else stringResource(Strings.switchToDarkTheme),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
@@ -254,7 +256,7 @@ fun SettingsDialog(
                                 if (darkModeEnabled) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
-                                        contentDescription = "Enabled",
+                                        contentDescription = stringResource(Strings.enabled),
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
@@ -264,7 +266,7 @@ fun SettingsDialog(
 
                             // Theme Selection Section
                             Text(
-                                text = "Theme Presets",
+                                text = stringResource(Strings.themePresetsTitle),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -273,7 +275,7 @@ fun SettingsDialog(
                             Spacer(modifier = Modifier.height(Dimensions.Spacing.medium))
 
                             Text(
-                                text = "Choose a color theme for your app",
+                                text = stringResource(Strings.chooseColorTheme),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -309,7 +311,7 @@ fun SettingsDialog(
                                 Spacer(modifier = Modifier.height(Dimensions.Spacing.extraLarge))
 
                                 Text(
-                                    text = "Platform Settings",
+                                    text = stringResource(Strings.platformSettingsTitle),
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.primary
@@ -318,7 +320,7 @@ fun SettingsDialog(
                                 Spacer(modifier = Modifier.height(Dimensions.Spacing.medium))
 
                                 Text(
-                                    text = "Settings specific to your current platform",
+                                    text = stringResource(Strings.platformSettingsDescription),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -360,14 +362,14 @@ fun SettingsDialog(
                                                     )
                                                     Column {
                                                         Text(
-                                                            text = setting.title,
+                                                            text = stringResource(setting.titleRes),
                                                             style = MaterialTheme.typography.titleMedium,
                                                             fontWeight = FontWeight.Bold,
                                                             color = MaterialTheme.colorScheme.onPrimaryContainer
                                                         )
                                                         Spacer(modifier = Modifier.height(4.dp))
                                                         Text(
-                                                            text = setting.description,
+                                                            text = stringResource(setting.descriptionRes),
                                                             style = MaterialTheme.typography.bodyMedium,
                                                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
                                                                 alpha = 0.8f
