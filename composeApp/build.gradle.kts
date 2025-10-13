@@ -1,4 +1,3 @@
-
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -212,19 +211,38 @@ compose.desktop {
                     javaToolchains.launcherFor {
                         languageVersion.set(JavaLanguageVersion.of(21))
                     }.get().metadata.installationPath.asFile.absolutePath
-                }.getOrElse {
-                    System.getenv("JAVA_HOME")
-                }
+            }.getOrElse {
+                System.getenv("JAVA_HOME")
             }
+        }
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.aalbertini.ham"
+            packageName = "HollywoodAnimalMaster"
             packageVersion = appVersion
+
+            // Installer icons per platform (guarded to avoid failures if not generated yet)
+            windows {
+                val ico = project.file("src/jvmMain/resources/app-icon.ico")
+                if (ico.exists()) {
+                    iconFile.set(ico)
+                }
+            }
+            linux {
+                val png = project.file("src/jvmMain/resources/app-icon.png")
+                if (png.exists()) {
+                    iconFile.set(png)
+                }
+            }
+            macOS {
+                val icns = project.file("src/jvmMain/resources/app-icon.icns")
+                if (icns.exists()) {
+                    iconFile.set(icns)
+                }
+            }
         }
     }
 }
-
 // Custom tasks to print output paths after building
 // Note: outputDirectory uses @Internal instead of @InputDirectory to avoid
 // Gradle validation failures when directory doesn't exist yet (e.g., in CI)
