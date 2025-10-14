@@ -39,31 +39,31 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
-import org.aalbertini.ham.features.settings.domain.model.ThemePreset
-import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionConstants
 import org.aalbertini.ham.core.ui.components.AnimatedIcon
-import org.aalbertini.ham.features.movie_distribution.presentation.components.ClearAllConfirmationDialog
-import org.aalbertini.ham.features.movie_distribution.presentation.components.EditDialog
-import org.aalbertini.ham.features.movie_distribution.presentation.components.ParameterComparisonDialog
-import org.aalbertini.ham.features.movie_distribution.presentation.components.ParametersSection
-import org.aalbertini.ham.features.movie_distribution.presentation.components.ParametersSectionHeader
-import org.aalbertini.ham.features.movie_distribution.presentation.components.ResultsSection
 import org.aalbertini.ham.core.ui.components.TextIcon
-import org.aalbertini.ham.features.movie_distribution.presentation.components.ResultsSectionHeader
-import org.aalbertini.ham.features.movie_distribution.presentation.components.SavedMovieResultsSection
-import org.aalbertini.ham.features.movie_distribution.presentation.components.SavedMoviesSectionHeader
-import org.aalbertini.ham.features.settings.presentation.components.SettingsDialog
-import org.aalbertini.ham.core.ui.resources.UiConstants
-import org.aalbertini.ham.core.ui.resources.UiStrings
 import org.aalbertini.ham.core.ui.layout.AdaptiveMovieDistributionLayout
 import org.aalbertini.ham.core.ui.layout.WindowSizeClass
 import org.aalbertini.ham.core.ui.layout.rememberWindowSizeClass
+import org.aalbertini.ham.core.ui.resources.Strings
+import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.core.ui.resources.UiIcons
+import org.aalbertini.ham.core.ui.theme.AnimatedBackground
+import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionConstants
+import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
+import org.aalbertini.ham.features.movie_distribution.presentation.components.dialog.ClearAllConfirmationDialog
+import org.aalbertini.ham.features.movie_distribution.presentation.components.dialog.EditDialog
+import org.aalbertini.ham.features.movie_distribution.presentation.components.dialog.ParameterComparisonDialog
+import org.aalbertini.ham.features.movie_distribution.presentation.components.section.ParametersSection
+import org.aalbertini.ham.features.movie_distribution.presentation.components.section.ParametersSectionHeader
+import org.aalbertini.ham.features.movie_distribution.presentation.components.section.ResultsSectionHeader
+import org.aalbertini.ham.features.movie_distribution.presentation.components.section.SavedMovieResultsSection
+import org.aalbertini.ham.features.movie_distribution.presentation.components.section.SavedMoviesSectionHeader
+import org.aalbertini.ham.features.movie_distribution.presentation.components.section.results.ResultsSection
 import org.aalbertini.ham.features.movie_distribution.presentation.state.MovieDistributionUiEvent
 import org.aalbertini.ham.features.movie_distribution.presentation.state.NotificationType
-import org.aalbertini.ham.core.ui.theme.AnimatedBackground
 import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.MovieDistributionViewModel
-import org.aalbertini.ham.core.ui.resources.Strings
+import org.aalbertini.ham.features.settings.domain.model.ThemePreset
+import org.aalbertini.ham.features.settings.presentation.components.SettingsDialog
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -113,7 +113,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                     title = {
                         TextIcon(
                             text = stringResource(Strings.screenTitle),
-                            icon = UiStrings.SCREEN_TITLE_ICON,
+                            icon = UiIcons.SCREEN_TITLE,
                             style = if (windowSizeClass == WindowSizeClass.EXPANDED) {
                                 MaterialTheme.typography.titleLarge
                             } else {
@@ -301,9 +301,13 @@ fun MovieWeeklyDistributionCalculatorScreen(
                         expanded = uiState.expandResults,
                         availableScreeningsValue = uiState.availableScreeningsInput.toDoubleOrNull() ?: 0.0,
                         availableScreeningsOverrideInputs = uiState.availableScreeningsOverrideInputs,
+                        weekMultiplierOverrideInputs = uiState.weekMultiplierOverrideInputs,
                         currentMovieResultId = uiState.currentMovieResultId,
                         onAvailableScreeningsOverrideChange = { weekIndex, value ->
                             viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableScreeningsOverride(weekIndex, value))
+                        },
+                        onWeekMultiplierOverrideChange = { weekIndex, value ->
+                            viewModel.onEvent(MovieDistributionUiEvent.UpdateWeekMultiplierOverride(weekIndex, value))
                         }
                     )
                 },

@@ -44,6 +44,12 @@ kotlin {
     
     js {
         browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                    useFirefox()
+                }
+            }
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
                 devServer = devServer?.copy(
@@ -57,6 +63,12 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                    useFirefox()
+                }
+            }
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
                 devServer =

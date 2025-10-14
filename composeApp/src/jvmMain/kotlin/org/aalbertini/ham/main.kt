@@ -14,9 +14,9 @@ import hollywoodanimalmaster.composeapp.generated.resources.Res
 import hollywoodanimalmaster.composeapp.generated.resources.app_icon
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
-import org.aalbertini.ham.preferences.DesktopWindowSettings
-import org.aalbertini.ham.core.ui.resources.UiConstants
 import org.aalbertini.ham.core.ui.resources.Strings
+import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.preferences.DesktopWindowSettings
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 

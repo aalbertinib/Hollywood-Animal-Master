@@ -66,7 +66,7 @@ object UiConstants {
     object Animation {
         const val sectionExpandCollapseDurationMs = 150
         const val errorMessageDurationMs = 150
-        const val contentSizeDurationMs = 200
+        const val contentSizeDurationMs = 100
         const val headerCornerRadiusDurationMs = 200
         const val headerCornerRadiusDelayMs = 150  // Delay for collapse animation
     }

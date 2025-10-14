@@ -57,6 +57,10 @@
     <string name="scenes_count">Scenes: %d</string>
     <string name="movie_results_screenings">Other Screenings to buy</string>
     <string name="movie_results_your_screenings_override">Your Screenings override</string>
+    <string name="movie_results_week_multiplier">Week Multiplier</string>
+    <string name="movie_results_week_multiplier_override">Week Multiplier Override</string>
+    <string name="default_multiplier">Default: %1$s</string>
+    <string name="validation_multiplier_range">Must be between 0.0 and 10.0</string>
     <string name="pending_validation">Pending validation</string>
     <string name="override_label">Override</string>
     <string name="default_with_value">Default: %1$s</string>
@@ -64,6 +68,8 @@
     <string name="validation_between_zero_and">Must be between 0 and %1$s</string>
     <string name="enter_available_screenings_first">Enter available screenings first</string>
     <string name="week_number">Week %1$d</string>
+    <!-- Week group separator label -->
+    <string name="week_group_label">Month %1$d</string>
     <string name="week_results_line">Week %1$d: %2$s</string>
     <string name="message_enter_valid_parameters">Enter valid Commercial score (%1$s–%2$s) and your number of screenings (&gt;= %3$s) to see results.</string>
     
@@ -103,6 +109,7 @@
     <string name="loading">Loading…</string>
     <string name="retry">Retry</string>
     <string name="unsaved">Unsaved</string>
+    <string name="up_to_date">Up to date</string>
     <string name="update">Update</string>
     <string name="overwrite">Overwrite</string>
     <string name="update_button">Update</string>

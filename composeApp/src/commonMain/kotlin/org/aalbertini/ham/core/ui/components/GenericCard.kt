@@ -15,7 +15,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
@@ -27,18 +26,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.core.ui.theme.CustomShapes
 
 /**
  * Generic section content card wrapper.
- * 
+ *
  * Provides consistent styling for section content areas:
  * - Border and corner radius
  * - Background colors
  * - Padding
  * - Optional expand/collapse animation
- * 
+ *
  * Thread-safe and null-safe by design.
- * 
+ *
  * @param modifier Optional modifier
  * @param backgroundColor Background color
  * @param borderColor Border color
@@ -53,7 +53,7 @@ fun GenericSectionCard(
     backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
     borderWidth: Dp = UiConstants.Card.borderWidth,
-    shape: Shape = RoundedCornerShape(UiConstants.Card.cornerRadiusLarge),
+    shape: Shape = CustomShapes.SectionContentShape,
     expanded: Boolean = true,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -72,38 +72,32 @@ fun GenericSectionCard(
                 }
             )
             .animateContentSizeFast(),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         shape = shape
     ) {
         SectionAnimatedVisibility(visible = expanded) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                shape = shape
-            ) {
-                Column(
-                    modifier = Modifier.padding(
-                        horizontal = UiConstants.SectionHeader.horizontalPadding,
-                        vertical = UiConstants.SectionHeader.verticalPadding
-                    ),
-                    content = content
-                )
-            }
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = UiConstants.SectionHeader.horizontalPadding,
+                    vertical = UiConstants.SectionHeader.verticalPadding
+                ),
+                content = content
+            )
         }
     }
 }
 
 /**
  * Generic list item card.
- * 
+ *
  * Provides consistent styling for list items with:
  * - Leading content (e.g., icon, avatar)
  * - Title and subtitle
  * - Trailing actions
- * 
+ *
  * Follows Material Design list item patterns.
  * Thread-safe and null-safe.
- * 
+ *
  * @param modifier Optional modifier
  * @param backgroundColor Background color
  * @param borderColor Border color
@@ -116,8 +110,8 @@ fun GenericSectionCard(
 @Composable
 fun GenericListItemCard(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+    borderColor: Color = Color.Transparent,
     borderWidth: Dp = UiConstants.Card.borderWidth,
     shape: Shape = RoundedCornerShape(UiConstants.Card.cornerRadiusSmall),
     leadingContent: (@Composable () -> Unit)? = null,
@@ -143,30 +137,30 @@ fun GenericListItemCard(
             horizontalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements)
         ) {
             leadingContent?.invoke()
-            
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements / 2),
                 content = content
             )
-            
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements / 2),
-                verticalAlignment = Alignment.CenterVertically,
-                content = trailingActions
-            )
         }
+        Row(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(UiConstants.Spacing.betweenElements / 2),
+            verticalAlignment = Alignment.CenterVertically,
+            content = trailingActions
+        )
     }
 }
 
 /**
  * Generic action button wrapper with tooltip.
- * 
+ *
  * Provides consistent behavior for action buttons:
  * - Tooltip support
  * - Icon button styling
  * - Null-safe tooltip handling
- * 
+ *
  * @param onClick Click handler
  * @param icon Icon to display
  * @param contentDescription Accessibility description

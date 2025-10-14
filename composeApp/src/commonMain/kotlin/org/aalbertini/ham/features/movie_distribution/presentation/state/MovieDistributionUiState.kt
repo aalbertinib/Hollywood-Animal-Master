@@ -10,6 +10,8 @@ data class MovieDistributionUiState(
     val availableScreeningsInput: String = "",
     val availableScreeningsOverrides: Map<Int, Double> = emptyMap(), // Per-week availableScreenings overrides (week index -> availableScreenings value)
     val availableScreeningsOverrideInputs: Map<Int, String> = emptyMap(), // Per-week availableScreenings input strings for UI
+    val weekMultiplierOverrides: Map<Int, Double> = emptyMap(), // Per-week multiplier overrides (week index -> multiplier value)
+    val weekMultiplierOverrideInputs: Map<Int, String> = emptyMap(), // Per-week multiplier input strings for UI
     val currentMovieResultId: String? = null,
     val currentMovieResultTitle: String? = null,
     val editableTitle: String = "",

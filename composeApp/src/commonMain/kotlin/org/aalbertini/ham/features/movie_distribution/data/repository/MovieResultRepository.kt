@@ -1,10 +1,9 @@
 package org.aalbertini.ham.features.movie_distribution.data.repository
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.aalbertini.ham.core.data.storage.StorageProvider
 import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
 import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResultsList
-import org.aalbertini.ham.core.data.storage.StorageProvider
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -44,7 +43,8 @@ class MovieResultRepository(
         title: String, 
         commercialScore: Double, 
         numberOfScreenings: Double,
-        availableScreeningsOverrides: Map<Int, Double> = emptyMap()
+        availableScreeningsOverrides: Map<Int, Double> = emptyMap(),
+        weekMultiplierOverrides: Map<Int, Double> = emptyMap()
     ): MovieResult {
         val movieResults = loadMovieResults().toMutableList()
         val currentTime = Clock.System.now().toEpochMilliseconds()
@@ -54,6 +54,7 @@ class MovieResultRepository(
             commercialScore = commercialScore,
             numberOfScreenings = numberOfScreenings,
             availableScreeningsOverrides = availableScreeningsOverrides,
+            weekMultiplierOverrides = weekMultiplierOverrides,
             createdAt = currentTime,
             updatedAt = currentTime
         )
@@ -78,7 +79,8 @@ class MovieResultRepository(
         title: String,
         commercialScore: Double,
         numberOfScreenings: Double,
-        availableScreeningsOverrides: Map<Int, Double> = emptyMap()
+        availableScreeningsOverrides: Map<Int, Double> = emptyMap(),
+        weekMultiplierOverrides: Map<Int, Double> = emptyMap()
     ): Boolean {
         val movieResults = loadMovieResults().toMutableList()
         val index = movieResults.indexOfFirst { it.id == id }
@@ -88,6 +90,7 @@ class MovieResultRepository(
                 commercialScore = commercialScore,
                 numberOfScreenings = numberOfScreenings,
                 availableScreeningsOverrides = availableScreeningsOverrides,
+                weekMultiplierOverrides = weekMultiplierOverrides,
                 updatedAt = Clock.System.now().toEpochMilliseconds()
             )
             movieResults[index] = updated

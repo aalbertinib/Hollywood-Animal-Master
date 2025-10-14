@@ -19,6 +19,23 @@ object MovieDistributionConstants {
         
         /** Base multiplier applied to all calculations */
         const val BASE = 1000
+        
+        /**
+         * Default week multipliers for all 8 weeks.
+         * Week 1: 2.0 (WEEK_ONE)
+         * Week 2: 1.0 (WEEK_TWO)
+         * Week 3-8: Each week is 80% of previous (0.8, 0.64, 0.512, 0.4096, 0.32768, 0.262144)
+         */
+        val DEFAULT_WEEK_MULTIPLIERS = listOf(
+            WEEK_ONE.toDouble(),     // Week 1: 2.0
+            WEEK_TWO.toDouble(),     // Week 2: 1.0
+            0.8,                      // Week 3: 1.0 * 0.8
+            0.64,                     // Week 4: 0.8 * 0.8
+            0.512,                    // Week 5: 0.64 * 0.8
+            0.4096,                   // Week 6: 0.512 * 0.8
+            0.32768,                  // Week 7: 0.4096 * 0.8
+            0.262144                  // Week 8: 0.32768 * 0.8
+        )
     }
     
     /**

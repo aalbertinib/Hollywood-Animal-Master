@@ -9,16 +9,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.aalbertini.ham.core.util.input.filterIntegerInput
+import org.aalbertini.ham.core.util.input.filterNumericInput
+import org.aalbertini.ham.features.movie_distribution.data.repository.MovieResultRepository
 import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionCalculator
 import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionConstants
-import org.aalbertini.ham.features.movie_distribution.data.repository.MovieResultRepository
 import org.aalbertini.ham.features.movie_distribution.presentation.state.MovieDistributionUiEvent
 import org.aalbertini.ham.features.movie_distribution.presentation.state.MovieDistributionUiState
 import org.aalbertini.ham.features.movie_distribution.presentation.state.NotificationMessage
 import org.aalbertini.ham.features.movie_distribution.presentation.state.NotificationType
 import org.aalbertini.ham.features.movie_distribution.presentation.state.ParameterConflict
-import org.aalbertini.ham.core.util.input.filterIntegerInput
-import org.aalbertini.ham.core.util.input.filterNumericInput
 
 /**
  * ViewModel for Calculator screen
@@ -42,6 +42,8 @@ class MovieDistributionViewModel(
             is MovieDistributionUiEvent.UpdateAvailableScreeningsInput -> updateAvailableScreeningsInput(event.value)
             is MovieDistributionUiEvent.UpdateAvailableScreeningsOverride -> updateAvailableScreeningsOverride(event.weekIndex, event.value)
             is MovieDistributionUiEvent.ClearAvailableScreeningsOverride -> clearAvailableScreeningsOverride(event.weekIndex)
+            is MovieDistributionUiEvent.UpdateWeekMultiplierOverride -> updateWeekMultiplierOverride(event.weekIndex, event.value)
+            is MovieDistributionUiEvent.ClearWeekMultiplierOverride -> clearWeekMultiplierOverride(event.weekIndex)
             is MovieDistributionUiEvent.UpdateEditableTitle -> updateEditableTitle(event.title)
             is MovieDistributionUiEvent.RevertTitle -> revertTitle()
             is MovieDistributionUiEvent.RevertCommercialScore -> revertCommercialScore()
@@ -207,6 +209,108 @@ class MovieDistributionViewModel(
         }
     }
 
+    private fun updateWeekMultiplierOverride(weekIndex: Int, value: String) {
+        val state = _uiState.value
+        
+        // Update input string immediately (no filtering here - done in UI)
+        val newInputs = state.weekMultiplierOverrideInputs.toMutableMap()
+        if (value.isEmpty()) {
+            newInputs.remove(weekIndex)
+        } else {
+            newInputs[weekIndex] = value
+        }
+        
+        // Validate and update override value for calculation
+        val newOverrides = state.weekMultiplierOverrides.toMutableMap()
+        val overrideValue = value.toDoubleOrNull()
+        
+        // Multipliers should be positive and reasonable (0.0 to 10.0)
+        if (overrideValue != null && overrideValue >= 0.0 && overrideValue <= 10.0) {
+            newOverrides[weekIndex] = overrideValue
+        } else if (value.isEmpty()) {
+            newOverrides.remove(weekIndex)
+        } else {
+            // Invalid value - remove from overrides but keep in inputs for UI display
+            newOverrides.remove(weekIndex)
+        }
+        
+        // Update state and recalculate only if overrides changed
+        val overridesChanged = state.weekMultiplierOverrides != newOverrides
+        
+        _uiState.update { 
+            it.copy(
+                weekMultiplierOverrideInputs = newInputs,
+                weekMultiplierOverrides = newOverrides
+            ) 
+        }
+        
+        // Only recalculate if valid overrides changed (not on every keystroke)
+        if (overridesChanged) {
+            calculateResults()
+            
+            // Auto-save if there's a current movie loaded
+            if (state.currentMovieResultId != null) {
+                viewModelScope.launch {
+                    try {
+                        val commercialScore = state.commercialScoreInput.toDoubleOrNull()
+                        val availableScreeningsValue = state.availableScreeningsInput.toDoubleOrNull()
+                        val title = state.currentMovieResultTitle
+                        
+                        if (commercialScore != null && availableScreeningsValue != null && title != null) {
+                            repository.updateMovieResult(
+                                state.currentMovieResultId,
+                                title,
+                                commercialScore,
+                                availableScreeningsValue,
+                                state.availableScreeningsOverrides,
+                                newOverrides
+                            )
+                        }
+                    } catch (e: Exception) {
+                        // Silent fail for auto-save
+                    }
+                }
+            }
+        }
+    }
+
+    private fun clearWeekMultiplierOverride(weekIndex: Int) {
+        val state = _uiState.value
+        val newOverrides = state.weekMultiplierOverrides - weekIndex
+        
+        _uiState.update { 
+            it.copy(
+                weekMultiplierOverrideInputs = it.weekMultiplierOverrideInputs - weekIndex,
+                weekMultiplierOverrides = newOverrides
+            ) 
+        }
+        calculateResults()
+        
+        // Auto-save if there's a current movie loaded
+        if (state.currentMovieResultId != null) {
+            viewModelScope.launch {
+                try {
+                    val commercialScore = state.commercialScoreInput.toDoubleOrNull()
+                    val availableScreenings = state.availableScreeningsInput.toDoubleOrNull()
+                    val title = state.currentMovieResultTitle
+                    
+                    if (commercialScore != null && availableScreenings != null && title != null) {
+                        repository.updateMovieResult(
+                            state.currentMovieResultId,
+                            title,
+                            commercialScore,
+                            availableScreenings,
+                            state.availableScreeningsOverrides,
+                            newOverrides
+                        )
+                    }
+                } catch (e: Exception) {
+                    // Silent fail for auto-save
+                }
+            }
+        }
+    }
+
     private fun updateEditableTitle(title: String) {
         _uiState.update { it.copy(editableTitle = title) }
     }
@@ -237,8 +341,13 @@ class MovieDistributionViewModel(
                      availableScreenings <= MovieDistributionConstants.Validation.SCREENINGS_MAX
 
         val results = if (commercialScoreValid && availableScreeningsValid) {
-            val rawResults = if (state.availableScreeningsOverrides.isNotEmpty()) {
-                MovieDistributionCalculator.calculateWeeklyResultsWithOverrides(commercialScore, availableScreenings, state.availableScreeningsOverrides)
+            val rawResults = if (state.availableScreeningsOverrides.isNotEmpty() || state.weekMultiplierOverrides.isNotEmpty()) {
+                MovieDistributionCalculator.calculateWeeklyResultsWithOverrides(
+                    commercialScore, 
+                    availableScreenings, 
+                    state.availableScreeningsOverrides,
+                    state.weekMultiplierOverrides
+                )
             } else {
                 MovieDistributionCalculator.calculateWeeklyResults(commercialScore, availableScreenings)
             }
@@ -266,7 +375,7 @@ class MovieDistributionViewModel(
 
                 if (state.currentMovieResultId != null && !titleChanged) {
                     // Update existing movie (same title)
-                    repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
+                    repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableScreenings, state.availableScreeningsOverrides, state.weekMultiplierOverrides)
                     _uiState.update {
                         it.copy(
                             currentMovieResultTitle = title,
@@ -280,7 +389,7 @@ class MovieDistributionViewModel(
                     }
                 } else {
                     // Create new movie (no existing movie or title changed - "Save As" behavior)
-                    val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
+                    val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides, state.weekMultiplierOverrides)
                     _uiState.update {
                         it.copy(
                             currentMovieResultId = newMovieResult.id,
@@ -313,7 +422,8 @@ class MovieDistributionViewModel(
         // First, clear any pending override inputs to prevent them from being saved
         _uiState.update {
             it.copy(
-                availableScreeningsOverrideInputs = emptyMap()
+                availableScreeningsOverrideInputs = emptyMap(),
+                weekMultiplierOverrideInputs = emptyMap()
             )
         }
         
@@ -321,7 +431,7 @@ class MovieDistributionViewModel(
             val movieResult = repository.getMovieResultById(movieResultId)
             if (movieResult != null) {
                 // Convert availableScreeningsOverrides to input strings
-                val overrideInputs = movieResult.availableScreeningsOverrides.mapValues { entry ->
+                val screeningsOverrideInputs = movieResult.availableScreeningsOverrides.mapValues { entry ->
                     val value = entry.value
                     // Normalize: remove trailing zeros for whole numbers
                     if (value == value.toLong().toDouble()) {
@@ -331,12 +441,19 @@ class MovieDistributionViewModel(
                     }
                 }
                 
+                // Convert weekMultiplierOverrides to input strings
+                val multiplierOverrideInputs = movieResult.weekMultiplierOverrides.mapValues { entry ->
+                    entry.value.toString()
+                }
+                
                 _uiState.update {
                     it.copy(
                         commercialScoreInput = movieResult.commercialScore.toString(),
                         availableScreeningsInput = movieResult.numberOfScreenings.toString(),
                         availableScreeningsOverrides = movieResult.availableScreeningsOverrides,
-                        availableScreeningsOverrideInputs = overrideInputs,
+                        availableScreeningsOverrideInputs = screeningsOverrideInputs,
+                        weekMultiplierOverrides = movieResult.weekMultiplierOverrides,
+                        weekMultiplierOverrideInputs = multiplierOverrideInputs,
                         currentMovieResultId = movieResult.id,
                         currentMovieResultTitle = movieResult.title,
                         editableTitle = movieResult.title,
@@ -359,7 +476,7 @@ class MovieDistributionViewModel(
         viewModelScope.launch {
             try {
                 val state = _uiState.value
-                repository.updateMovieResult(id, title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
+                repository.updateMovieResult(id, title, commercialScore, availableScreenings, state.availableScreeningsOverrides, state.weekMultiplierOverrides)
                 loadSavedMovieResults()
                 _uiState.update {
                     it.copy(
@@ -453,6 +570,8 @@ class MovieDistributionViewModel(
                 availableScreeningsInput = defaultAvailableScreenings,
                 availableScreeningsOverrides = emptyMap(),
                 availableScreeningsOverrideInputs = emptyMap(),
+                weekMultiplierOverrides = emptyMap(),
+                weekMultiplierOverrideInputs = emptyMap(),
                 currentMovieResultId = null,
                 currentMovieResultTitle = null,
                 editableTitle = "",
@@ -552,7 +671,7 @@ class MovieDistributionViewModel(
                     
                     if (titleChanged) {
                         // Title changed - create new movie
-                        val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
+                        val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides, state.weekMultiplierOverrides)
                         _uiState.update {
                             it.copy(
                                 currentMovieResultId = newMovieResult.id,
@@ -567,7 +686,7 @@ class MovieDistributionViewModel(
                         }
                     } else {
                         // Same title - update existing movie
-                        repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
+                        repository.updateMovieResult(state.currentMovieResultId, title, commercialScore, availableScreenings, state.availableScreeningsOverrides, state.weekMultiplierOverrides)
                         _uiState.update {
                             it.copy(
                                 currentMovieResultTitle = title,
@@ -621,7 +740,7 @@ class MovieDistributionViewModel(
                 }
 
                 // No conflict, create new movie
-                val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides)
+                val newMovieResult = repository.saveMovieResult(title, commercialScore, availableScreenings, state.availableScreeningsOverrides, state.weekMultiplierOverrides)
                 _uiState.update {
                     it.copy(
                         currentMovieResultId = newMovieResult.id,
@@ -664,7 +783,8 @@ class MovieDistributionViewModel(
                     conflict.existingMovie.title,
                     conflict.newCommercialScore,
                     conflict.newScreenings,
-                    state.availableScreeningsOverrides
+                    state.availableScreeningsOverrides,
+                    state.weekMultiplierOverrides
                 )
 
                 // If we were editing a different movie, delete it (we're effectively replacing it)
@@ -711,12 +831,14 @@ class MovieDistributionViewModel(
             it.copy(
                 availableScreeningsOverrideInputs = emptyMap(),
                 availableScreeningsOverrides = emptyMap(),
+                weekMultiplierOverrideInputs = emptyMap(),
+                weekMultiplierOverrides = emptyMap(),
                 currentMovieResultId = null
             )
         }
 
         // Convert availableScreeningsOverrides to input strings (normalize to integers)
-        val overrideInputs = conflict.existingMovie.availableScreeningsOverrides.mapValues { entry ->
+        val screeningsOverrideInputs = conflict.existingMovie.availableScreeningsOverrides.mapValues { entry ->
             val value = entry.value
             // Normalize: remove trailing zeros for whole numbers
             if (value == value.toLong().toDouble()) {
@@ -725,13 +847,20 @@ class MovieDistributionViewModel(
                 value.toString()
             }
         }
+        
+        // Convert weekMultiplierOverrides to input strings
+        val multiplierOverrideInputs = conflict.existingMovie.weekMultiplierOverrides.mapValues { entry ->
+            entry.value.toString()
+        }
 
         _uiState.update {
             it.copy(
                 commercialScoreInput = conflict.existingMovie.commercialScore.toString(),
                 availableScreeningsInput = conflict.existingMovie.numberOfScreenings.toString(),
                 availableScreeningsOverrides = conflict.existingMovie.availableScreeningsOverrides,
-                availableScreeningsOverrideInputs = overrideInputs,
+                availableScreeningsOverrideInputs = screeningsOverrideInputs,
+                weekMultiplierOverrides = conflict.existingMovie.weekMultiplierOverrides,
+                weekMultiplierOverrideInputs = multiplierOverrideInputs,
                 currentMovieResultId = conflict.existingMovie.id,
                 currentMovieResultTitle = conflict.existingMovie.title,
                 editableTitle = conflict.existingMovie.title,

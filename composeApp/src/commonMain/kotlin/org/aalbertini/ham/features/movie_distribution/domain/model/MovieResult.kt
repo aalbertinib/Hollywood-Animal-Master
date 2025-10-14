@@ -15,6 +15,7 @@ data class MovieResult(
     val commercialScore: Double, // commercialScore
     val numberOfScreenings: Double, // availableScreenings
     val availableScreeningsOverrides: Map<Int, Double> = emptyMap(), // Per-week availableScreenings overrides (week index -> availableScreenings value)
+    val weekMultiplierOverrides: Map<Int, Double> = emptyMap(), // Per-week multiplier overrides (week index -> multiplier value)
     val createdAt: Long = Clock.System.now().toEpochMilliseconds(),
     val updatedAt: Long = Clock.System.now().toEpochMilliseconds()
 )

@@ -4,8 +4,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 import org.aalbertini.ham.core.data.storage.StorageProvider
+import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 
 /**
  * Manages app settings preferences (theme, etc.).

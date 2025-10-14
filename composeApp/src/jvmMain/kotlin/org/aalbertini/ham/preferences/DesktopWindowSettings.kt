@@ -3,7 +3,6 @@ package org.aalbertini.ham.preferences
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.aalbertini.ham.core.data.storage.StorageProvider
 import java.util.concurrent.atomic.AtomicReference

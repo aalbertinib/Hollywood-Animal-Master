@@ -8,6 +8,8 @@ sealed class MovieDistributionUiEvent {
     data class UpdateAvailableScreeningsInput(val value: String) : MovieDistributionUiEvent()
     data class UpdateAvailableScreeningsOverride(val weekIndex: Int, val value: String) : MovieDistributionUiEvent()
     data class ClearAvailableScreeningsOverride(val weekIndex: Int) : MovieDistributionUiEvent()
+    data class UpdateWeekMultiplierOverride(val weekIndex: Int, val value: String) : MovieDistributionUiEvent()
+    data class ClearWeekMultiplierOverride(val weekIndex: Int) : MovieDistributionUiEvent()
     data class UpdateEditableTitle(val title: String) : MovieDistributionUiEvent()
     data object RevertTitle : MovieDistributionUiEvent()
     data object RevertCommercialScore : MovieDistributionUiEvent()

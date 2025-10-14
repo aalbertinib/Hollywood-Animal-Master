@@ -38,29 +38,46 @@ object MovieDistributionCalculator {
     }
 
     /**
-     * Computes weekly results with per-week availableScreenings overrides
-     * - availableScreeningsOverrides: Map of week index (0-based) to availableScreenings override value
-     * - If no override is set for a week, uses the default availableScreenings
+     * Computes weekly results with per-week availableScreenings and multiplier overrides.
+     * 
+     * Supports two types of overrides:
+     * - availableScreeningsOverrides: Override the available screenings for specific weeks
+     * - weekMultiplierOverrides: Override the week multiplier for specific weeks
+     * 
+     * Behavior:
+     * - Weeks 1-2: Apply formula (commercialScore * multiplier * BASE) - availableScreenings
+     * - Weeks 3-8 without overrides: Use result reduction chain from week 2 (multiply by 0.8)
+     * - Weeks 3-8 with screenings override: Apply formula with reduced revenue multiplier
+     * - Weeks with multiplier override: Apply formula directly with custom multiplier
+     * 
+     * This maintains backward compatibility while adding week multiplier customization.
      */
-    fun calculateWeeklyResultsWithOverrides(commercialScore: Double, availableScreenings: Double, availableScreeningsOverrides: Map<Int, Double>): List<Double> {
+    fun calculateWeeklyResultsWithOverrides(
+        commercialScore: Double,
+        availableScreenings: Double,
+        availableScreeningsOverrides: Map<Int, Double> = emptyMap(),
+        weekMultiplierOverrides: Map<Int, Double> = emptyMap()
+    ): List<Double> {
         val baseRevenue = commercialScore * MovieDistributionConstants.Multipliers.BASE
         
-        // Calculate week 1 with potential override
+        // Calculate week 1 with potential overrides
+        val week1Multiplier = weekMultiplierOverrides[0] ?: MovieDistributionConstants.Multipliers.WEEK_ONE.toDouble()
         val availableScreeningsWeek1 = availableScreeningsOverrides[0] ?: availableScreenings
-        val week1 = ((baseRevenue * MovieDistributionConstants.Multipliers.WEEK_ONE) - availableScreeningsWeek1).coerceAtLeast(0.0)
+        val week1 = ((baseRevenue * week1Multiplier) - availableScreeningsWeek1).coerceAtLeast(0.0)
         
-        // Calculate week 2 with potential override
+        // Calculate week 2 with potential overrides
+        val week2Multiplier = weekMultiplierOverrides[1] ?: MovieDistributionConstants.Multipliers.WEEK_TWO.toDouble()
         val availableScreeningsWeek2 = availableScreeningsOverrides[1] ?: availableScreenings
-        val week2 = ((baseRevenue * MovieDistributionConstants.Multipliers.WEEK_TWO) - availableScreeningsWeek2).coerceAtLeast(0.0)
+        val week2 = ((baseRevenue * week2Multiplier) - availableScreeningsWeek2).coerceAtLeast(0.0)
 
         val results = MutableList(MovieDistributionConstants.WeeklyCalculation.NUMBER_OF_WEEKS) { 0.0 }
         results[0] = week1
         results[1] = week2
 
-        // Calculate weeks 3-8 with independent override support
-        // Reduction chain continues from week 2, independent of any overrides
+        // Calculate weeks 3-8 with override support
+        // Maintains reduction chain from week 2 for backward compatibility
         var normalReduction = week2
-        var revenueMultiplier = MovieDistributionConstants.Multipliers.WEEK_TWO.toDouble()
+        var revenueMultiplier = week2Multiplier
         val remainingWeeks = MovieDistributionConstants.WeeklyCalculation.NUMBER_OF_WEEKS - 
                             MovieDistributionConstants.WeeklyCalculation.REDUCTION_START_INDEX
         
@@ -71,15 +88,23 @@ object MovieDistributionCalculator {
             normalReduction *= MovieDistributionConstants.WeeklyCalculation.WEEKLY_REDUCTION_RATE
             revenueMultiplier *= MovieDistributionConstants.WeeklyCalculation.WEEKLY_REDUCTION_RATE
             
-            // Check if this specific week has a screenings override
+            // Check if this week has any overrides
+            val hasMultiplierOverride = weekMultiplierOverrides.containsKey(weekIndex)
             val overrideScreenings = availableScreeningsOverrides[weekIndex]
             
-            if (overrideScreenings != null) {
-                // Apply reduction to revenue before subtracting override screenings
-                results[weekIndex] = ((baseRevenue * revenueMultiplier) - overrideScreenings).coerceAtLeast(0.0)
-            } else {
-                // Use the normal reduction value (unaffected by any overrides)
-                results[weekIndex] = normalReduction
+            results[weekIndex] = when {
+                // If week multiplier is overridden, use it directly with formula
+                hasMultiplierOverride -> {
+                    val customMultiplier = weekMultiplierOverrides[weekIndex] ?: revenueMultiplier
+                    val weekScreenings = overrideScreenings ?: availableScreenings
+                    ((baseRevenue * customMultiplier) - weekScreenings).coerceAtLeast(0.0)
+                }
+                // If only screenings are overridden, apply formula with reduced revenue multiplier
+                overrideScreenings != null -> {
+                    ((baseRevenue * revenueMultiplier) - overrideScreenings).coerceAtLeast(0.0)
+                }
+                // No overrides: use the normal reduction value (maintains backward compatibility)
+                else -> normalReduction
             }
         }
         

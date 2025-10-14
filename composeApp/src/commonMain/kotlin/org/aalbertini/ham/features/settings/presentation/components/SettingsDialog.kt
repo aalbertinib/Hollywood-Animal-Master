@@ -44,12 +44,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 import org.aalbertini.ham.core.ui.resources.Dimensions
+import org.aalbertini.ham.core.ui.resources.Strings
 import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 import org.aalbertini.ham.features.settings.presentation.platform.getPlatformSettings
 import org.aalbertini.ham.features.settings.presentation.platform.getSettingsDialogPadding
-import org.aalbertini.ham.core.ui.resources.Strings
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -97,7 +97,6 @@ fun SettingsDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             dismissOnBackPress = true,
-            dismissOnClickOutside = !isMobile,  // Mobile: can't dismiss by clicking outside (fullscreen)
             usePlatformDefaultWidth = false  // Custom width control
         )
     ) {
