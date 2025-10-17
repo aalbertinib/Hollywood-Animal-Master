@@ -1,5 +1,8 @@
 package org.aalbertini.ham.features.settings.presentation.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -31,6 +34,7 @@ import androidx.compose.ui.window.DialogProperties
 import org.aalbertini.ham.core.ui.resources.Dimensions
 import org.aalbertini.ham.core.ui.resources.Strings
 import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.core.util.platform.getPlatform
 import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 import org.aalbertini.ham.features.settings.presentation.platform.getPlatformSettings
 import org.aalbertini.ham.features.settings.presentation.platform.getSettingsDialogPadding
@@ -75,12 +79,14 @@ fun SettingsDialog(
     var darkModeEnabled by remember(isDarkMode) { mutableStateOf(isDarkMode) }
     var themesExpanded by remember { mutableStateOf(true) }
     val scrollState = rememberScrollState()
+    val platform = remember { getPlatform() }
+    val isMobile = platform.isMobile
     val platformDialogPadding = getSettingsDialogPadding()
-    val isMobile = platformDialogPadding == 0.dp
 
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
+            dismissOnClickOutside = !isMobile,
             dismissOnBackPress = true,
             usePlatformDefaultWidth = false
         )
@@ -127,11 +133,31 @@ fun SettingsDialog(
             }
 
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .then(
+                        if (!isMobile) {
+                            // Add clickable background for desktop to handle dismissOnClickOutside
+                            Modifier
+                                .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f))
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = onDismiss
+                                )
+                        } else {
+                            Modifier
+                        }
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Card(
                     modifier = Modifier
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {} // Prevent clicks from propagating to background
+                        )
                         .fillMaxSize()
                         .then(
                             if (!isMobile && !isWindowTooSmall) Modifier.width(dialogWidth)
