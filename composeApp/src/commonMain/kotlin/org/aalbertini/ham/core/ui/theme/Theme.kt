@@ -40,7 +40,7 @@ import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 @Composable
 fun HAMTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    themePreset: ThemePreset = ThemePreset.MIDNIGHT_PURPLE,
+    themePreset: ThemePreset = ThemePreset.D01_PURPLE,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) {

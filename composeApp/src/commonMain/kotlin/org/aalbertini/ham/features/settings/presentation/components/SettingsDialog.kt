@@ -1,12 +1,8 @@
 package org.aalbertini.ham.features.settings.presentation.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,20 +12,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -39,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -89,6 +73,7 @@ fun SettingsDialog(
         mutableStateOf(currentThemePreset)
     }
     var darkModeEnabled by remember(isDarkMode) { mutableStateOf(isDarkMode) }
+    var themesExpanded by remember { mutableStateOf(true) }
     val scrollState = rememberScrollState()
     val platformDialogPadding = getSettingsDialogPadding()
     val isMobile = platformDialogPadding == 0.dp
@@ -97,7 +82,7 @@ fun SettingsDialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             dismissOnBackPress = true,
-            usePlatformDefaultWidth = false  // Custom width control
+            usePlatformDefaultWidth = false
         )
     ) {
         BoxWithConstraints(
@@ -134,9 +119,8 @@ fun SettingsDialog(
             ) {
                 derivedStateOf {
                     if (isMobile || isWindowTooSmall) {
-                        maxWidth  // Mobile or small window: fullscreen width
+                        maxWidth
                     } else {
-                        // Desktop: half of window width, but at least the default dialog width
                         maxOf(UiConstants.Dialog.defaultDialogWidth, maxWidth / 2)
                     }
                 }
@@ -163,43 +147,10 @@ fun SettingsDialog(
                     elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        // Header (fixed)
-                        Surface(
-                            modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.surface,
-                            shadowElevation = 2.dp
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(Dimensions.Padding.extraLarge),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = Icons.Default.Palette,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.padding(end = Dimensions.Spacing.medium)
-                                    )
-                                    Text(
-                                        text = stringResource(Strings.settingsTitle),
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                                IconButton(onClick = onDismiss) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = stringResource(Strings.contentDescriptionClose)
-                                    )
-                                }
-                            }
-                        }
+                        // Header
+                        SettingsDialogHeader(onDismiss = onDismiss)
 
                         // Scrollable content
                         Column(
@@ -219,84 +170,26 @@ fun SettingsDialog(
 
                             Spacer(modifier = Modifier.height(Dimensions.Spacing.medium))
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(Dimensions.cornerRadiusMedium))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable {
-                                        darkModeEnabled = !darkModeEnabled
-                                        onDarkModeChange(darkModeEnabled)
-                                    }
-                                    .padding(Dimensions.Padding.large),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        imageVector = if (darkModeEnabled) Icons.Default.DarkMode else Icons.Default.LightMode,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.width(Dimensions.Spacing.medium))
-                                    Column {
-                                        Text(
-                                            text = if (darkModeEnabled) stringResource(Strings.darkModeLabel) else stringResource(Strings.lightModeLabel),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                        Text(
-                                            text = if (darkModeEnabled) stringResource(Strings.switchToLightTheme) else stringResource(Strings.switchToDarkTheme),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
+                            DarkModeToggle(
+                                isDarkMode = darkModeEnabled,
+                                onToggle = {
+                                    darkModeEnabled = !darkModeEnabled
+                                    onDarkModeChange(darkModeEnabled)
                                 }
-                                if (darkModeEnabled) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = stringResource(Strings.enabled),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
+                            )
 
                             Spacer(modifier = Modifier.height(Dimensions.Spacing.extraLarge))
 
                             // Theme Selection Section
-                            Text(
-                                text = stringResource(Strings.themePresetsTitle),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-
-                            Spacer(modifier = Modifier.height(Dimensions.Spacing.medium))
-
-                            Text(
-                                text = stringResource(Strings.chooseColorTheme),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            Spacer(modifier = Modifier.height(Dimensions.Spacing.medium))
-
-                            // Theme List (using Column instead of LazyColumn for scrollable parent)
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(Dimensions.Spacing.small)
-                            ) {
-                                ThemePreset.entries.toList().forEach { preset ->
-                                    ThemePresetItem(
-                                        preset = preset,
-                                        isSelected = selectedPreset == preset,
-                                        onClick = {
-                                            selectedPreset = preset
-                                            onThemePresetChange(preset)
-                                        }
-                                    )
+                            ThemePresetSection(
+                                selectedPreset = selectedPreset,
+                                isExpanded = themesExpanded,
+                                onToggleExpanded = { themesExpanded = !themesExpanded },
+                                onPresetSelected = { preset ->
+                                    selectedPreset = preset
+                                    onThemePresetChange(preset)
                                 }
-                            }
+                            )
 
                             Spacer(modifier = Modifier.height(Dimensions.Spacing.extraLarge))
 
@@ -305,163 +198,11 @@ fun SettingsDialog(
                                 getPlatformSettings(onResetWindowSize)
                             }
 
-                            if (platformSettings.isNotEmpty()) {
-                                HorizontalDivider()
-                                Spacer(modifier = Modifier.height(Dimensions.Spacing.extraLarge))
-
-                                Text(
-                                    text = stringResource(Strings.platformSettingsTitle),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-
-                                Spacer(modifier = Modifier.height(Dimensions.Spacing.medium))
-
-                                Text(
-                                    text = stringResource(Strings.platformSettingsDescription),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-
-                                Spacer(modifier = Modifier.height(Dimensions.Spacing.medium))
-
-                                // Display each platform-specific setting
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(Dimensions.Spacing.medium)
-                                ) {
-                                    platformSettings.forEach { setting ->
-                                        Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable(onClick = setting.action),
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer
-                                            ),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                                            shape = RoundedCornerShape(Dimensions.cornerRadiusMedium)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(Dimensions.Padding.large),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.weight(1f)
-                                                ) {
-                                                    Icon(
-                                                        imageVector = setting.icon,
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                        modifier = Modifier.padding(end = Dimensions.Spacing.medium)
-                                                    )
-                                                    Column {
-                                                        Text(
-                                                            text = stringResource(setting.titleRes),
-                                                            style = MaterialTheme.typography.titleMedium,
-                                                            fontWeight = FontWeight.Bold,
-                                                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                                                        )
-                                                        Spacer(modifier = Modifier.height(4.dp))
-                                                        Text(
-                                                            text = stringResource(setting.descriptionRes),
-                                                            style = MaterialTheme.typography.bodyMedium,
-                                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                                alpha = 0.8f
-                                                            )
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                Spacer(modifier = Modifier.height(Dimensions.Spacing.large))
-                            }
+                            PlatformSettingsSection(platformSettings = platformSettings)
                         }
-
-//                // Footer (fixed)
-//                HorizontalDivider()
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .padding(Dimensions.Padding.large),
-//                    horizontalArrangement = Arrangement.End
-//                ) {
-//                    TextButton(onClick = onDismiss) {
-//                        Text(
-//                            text = "Done",
-//                            style = MaterialTheme.typography.labelLarge
-//                        )
-//                    }
-//                }
-                    }  // Column
-                }  // Card
-            }  // Box
-        }  // BoxWithConstraints
-    }  // Dialog
-}
-
-/**
- * Individual theme preset item in the list
- */
-@Composable
-private fun ThemePresetItem(
-    preset: ThemePreset,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(Dimensions.cornerRadiusMedium))
-            .clickable(onClick = onClick),
-        color = if (isSelected) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        },
-        tonalElevation = if (isSelected) 2.dp else 0.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.Padding.large),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = preset.displayName,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
                     }
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = preset.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    }
-                )
+                }
             }
-
-            RadioButton(
-                selected = isSelected,
-                onClick = onClick
-            )
         }
     }
 }

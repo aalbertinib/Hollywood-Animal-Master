@@ -71,7 +71,7 @@ import org.jetbrains.compose.resources.stringResource
 fun MovieWeeklyDistributionCalculatorScreen(
     isDarkMode: Boolean = true,
     themeToggleOffset: Offset? = null,
-    currentThemePreset: ThemePreset = ThemePreset.HOLLYWOOD_CLASSIC,
+    currentThemePreset: ThemePreset = ThemePreset.D01_PURPLE,
     onThemeToggle: (Offset) -> Unit = {},
     onThemePresetChange: (ThemePreset) -> Unit = {},
     alwaysOnTop: Boolean = false,

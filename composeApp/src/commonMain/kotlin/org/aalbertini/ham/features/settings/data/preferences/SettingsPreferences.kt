@@ -39,11 +39,11 @@ class SettingsPreferences(
     
     /**
      * Loads the saved theme preset
-     * @return The saved theme preset, defaults to MIDNIGHT_PURPLE
+     * @return The saved theme preset, defaults to D01_PURPLE
      */
     private fun loadThemePreset(): ThemePreset {
         val saved = storage.loadData(KEY_THEME_PRESET)
-        return ThemePreset.fromString(saved) ?: ThemePreset.MIDNIGHT_PURPLE
+        return ThemePreset.fromString(saved) ?: ThemePreset.D01_PURPLE
     }
     
     /**
@@ -78,7 +78,7 @@ class SettingsPreferences(
     fun clearAllSettings() {
         storage.saveData(KEY_THEME_PRESET, "")
         storage.saveData(KEY_IS_DARK_MODE, "")
-        _themePreset.update { ThemePreset.MIDNIGHT_PURPLE }
+        _themePreset.update { ThemePreset.D01_PURPLE }
         _isDarkMode.update { true }
     }
 }
