@@ -1,13 +1,8 @@
 package org.aalbertini.ham.features.movie_distribution.presentation.components.section.results
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,7 +21,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
@@ -37,7 +31,6 @@ import org.aalbertini.ham.core.ui.components.section.ModernSectionWithHeader
 import org.aalbertini.ham.core.ui.resources.Strings
 import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionConstants
 import org.jetbrains.compose.resources.stringResource
-import kotlin.math.min
 
 /**
  * Modern results section with week cards and override inputs.
@@ -178,35 +171,33 @@ private fun ModernResultsGrid(
                 }
                 
                 // Weeks in this month
-                FlowRow(
+                ResultsFlowGrid(
+                    items = monthWeeks,
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    maxItemsInEachRow = 2
-                ) {
-                    monthWeeks.forEachIndexed { weekInMonth, screenings ->
-                        val weekIndex = monthIndex * 4 + weekInMonth
-                        // Get default multiplier for this week
-                        val defaultMultiplier = MovieDistributionConstants.Multipliers.DEFAULT_WEEK_MULTIPLIERS.getOrNull(weekIndex) ?: 0.0
-                        key(weekIndex) {
-                            ModernWeekResultCard(
-                                weekNumber = weekIndex + 1,
-                                screenings = screenings,
-                                availableScreeningsValue = availableScreeningsValue,
-                                availableScreeningsOverride = availableScreeningsOverrideInputs[weekIndex] ?: "",
-                                weekMultiplierOverride = weekMultiplierOverrideInputs[weekIndex] ?: "",
-                                weekMultiplierDefaultValue = defaultMultiplier,
-                                onAvailableScreeningsOverrideChange = { value ->
-                                    onAvailableScreeningsOverrideChange(weekIndex, value)
-                                },
-                                onWeekMultiplierOverrideChange = { value ->
-                                    onWeekMultiplierOverrideChange(weekIndex, value)
-                                },
-                                focusManager = focusManager,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
+                    horizontalSpacing = 12.dp,
+                    verticalSpacing = 12.dp,
+                    maxItemsInRow = 2,
+                    keyFactory = { weekInMonth, _ -> monthIndex * 4 + weekInMonth }
+                ) { weekInMonth, screenings ->
+                    val weekIndex = monthIndex * 4 + weekInMonth
+                    // Get default multiplier for this week
+                    val defaultMultiplier = MovieDistributionConstants.Multipliers.DEFAULT_WEEK_MULTIPLIERS.getOrNull(weekIndex) ?: 0.0
+                    ModernWeekResultCard(
+                        weekNumber = weekIndex + 1,
+                        screenings = screenings,
+                        availableScreeningsValue = availableScreeningsValue,
+                        availableScreeningsOverride = availableScreeningsOverrideInputs[weekIndex] ?: "",
+                        weekMultiplierOverride = weekMultiplierOverrideInputs[weekIndex] ?: "",
+                        weekMultiplierDefaultValue = defaultMultiplier,
+                        onAvailableScreeningsOverrideChange = { value ->
+                            onAvailableScreeningsOverrideChange(weekIndex, value)
+                        },
+                        onWeekMultiplierOverrideChange = { value ->
+                            onWeekMultiplierOverrideChange(weekIndex, value)
+                        },
+                        focusManager = focusManager,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
