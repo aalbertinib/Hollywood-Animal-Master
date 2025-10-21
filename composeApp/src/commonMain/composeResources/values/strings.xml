@@ -58,7 +58,7 @@
     <string name="movie_results_screenings">Other Screenings to buy</string>
     <string name="movie_results_your_screenings_override">Your Screenings override</string>
     <string name="movie_results_week_multiplier">Week Multiplier</string>
-    <string name="movie_results_week_multiplier_override">Week screenings percentage</string>
+    <string name="movie_results_week_multiplier_override">Screenings percentage decrease per week</string>
     <string name="default_multiplier">Default: %1$s</string>
     <string name="validation_multiplier_range">Must be between 0.0 and 10.0</string>
     <string name="pending_validation">Pending validation</string>

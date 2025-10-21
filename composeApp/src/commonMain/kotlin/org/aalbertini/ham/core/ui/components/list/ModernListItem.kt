@@ -71,7 +71,7 @@ fun ModernListItem(
                         Modifier
                     }
                 )
-                .padding(vertical = 12.dp, horizontal = 16.dp),
+                .padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -125,6 +125,7 @@ fun ModernListItem(
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.align(Alignment.End),
                     content = trailingContent
                 )
             }
@@ -133,7 +134,7 @@ fun ModernListItem(
         // Divider
         if (showDivider) {
             HorizontalDivider(
-                modifier = Modifier.padding(start = if (icon != null) 68.dp else 16.dp),
+                modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
         }

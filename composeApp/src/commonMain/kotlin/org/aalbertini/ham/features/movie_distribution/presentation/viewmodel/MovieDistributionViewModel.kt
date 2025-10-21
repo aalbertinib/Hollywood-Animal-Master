@@ -2,10 +2,8 @@ package org.aalbertini.ham.features.movie_distribution.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -27,7 +25,7 @@ import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.sav
  * Coordinator ViewModel that manages communication between section ViewModels
  * Follows CLEAN architecture by coordinating presentation layer components
  */
-class MovieDistributionCoordinator : ViewModel() {
+class MovieDistributionViewModel : ViewModel() {
 
     // Initialize repository and use cases
     private val dataSource = MovieResultDataSource()
