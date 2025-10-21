@@ -54,16 +54,16 @@ import org.aalbertini.ham.features.movie_distribution.presentation.components.di
 import org.aalbertini.ham.features.movie_distribution.presentation.components.dialog.EditDialog
 import org.aalbertini.ham.features.movie_distribution.presentation.components.dialog.ParameterComparisonDialog
 import org.aalbertini.ham.features.movie_distribution.presentation.components.section.ParametersSection
-import org.aalbertini.ham.features.movie_distribution.presentation.components.section.ParametersSectionHeader
-import org.aalbertini.ham.features.movie_distribution.presentation.components.section.ResultsSectionHeader
 import org.aalbertini.ham.features.movie_distribution.presentation.components.section.SavedMovieResultsSection
-import org.aalbertini.ham.features.movie_distribution.presentation.components.section.SavedMoviesSectionHeader
 import org.aalbertini.ham.features.movie_distribution.presentation.components.section.results.ResultsSection
-import org.aalbertini.ham.features.movie_distribution.presentation.state.MovieDistributionUiEvent
 import org.aalbertini.ham.features.movie_distribution.presentation.state.NotificationType
-import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.MovieDistributionViewModel
+import org.aalbertini.ham.features.movie_distribution.presentation.state.parameters.ParametersUiEvent
+import org.aalbertini.ham.features.movie_distribution.presentation.state.results.ResultsUiEvent
+import org.aalbertini.ham.features.movie_distribution.presentation.state.saved_movies.SavedMoviesUiEvent
+import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.MovieDistributionCoordinator
 import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 import org.aalbertini.ham.features.settings.presentation.components.SettingsDialog
+import org.aalbertini.ham.features.settings.domain.model.ThemeColorSchemes
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,9 +77,9 @@ fun MovieWeeklyDistributionCalculatorScreen(
     alwaysOnTop: Boolean = false,
     onAlwaysOnTopChange: ((Boolean) -> Unit)? = null,
     onResetWindowSize: (() -> Unit)? = null,
-    viewModel: MovieDistributionViewModel = viewModel { MovieDistributionViewModel() }
+    coordinator: MovieDistributionCoordinator = viewModel { MovieDistributionCoordinator() }
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by coordinator.uiState.collectAsStateWithLifecycle()
     @Suppress("DEPRECATION")
     val clipboard = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -90,20 +90,26 @@ fun MovieWeeklyDistributionCalculatorScreen(
     var showSettingsDialog by remember { mutableStateOf(false) }
     var themeButtonPosition by remember { mutableStateOf(Offset.Zero) }
     
+    // Track last notification type for Snackbar styling
+    var lastNotificationType by remember { mutableStateOf<NotificationType?>(null) }
+    
     // Show notifications
     LaunchedEffect(uiState.notification) {
         uiState.notification?.let { notification ->
+            lastNotificationType = notification.type
             snackbarHostState.showSnackbar(notification.message)
-            viewModel.onEvent(MovieDistributionUiEvent.DismissNotification)
+            coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DismissNotification)
         }
     }
     
-    // Animated background outside Scaffold
+    // Animated background outside Scaffold with explicit preset colors to avoid inversion during switch
+    val lightScheme = remember(currentThemePreset) { ThemeColorSchemes.getLightColorScheme(currentThemePreset) }
+    val darkScheme = remember(currentThemePreset) { ThemeColorSchemes.getDarkColorScheme(currentThemePreset) }
     Box(modifier = Modifier.fillMaxSize()) {
         AnimatedBackground(
             targetState = isDarkMode,
-            lightColor = Color(0xFFFFFBFE),
-            darkColor = Color(0xFF1C1B1F),
+            lightColor = lightScheme.surface,
+            darkColor = darkScheme.surface,
             revealFrom = themeToggleOffset
         )
         Scaffold(
@@ -115,15 +121,18 @@ fun MovieWeeklyDistributionCalculatorScreen(
                             text = stringResource(Strings.screenTitle),
                             icon = UiIcons.SCREEN_TITLE,
                             style = if (windowSizeClass == WindowSizeClass.EXPANDED) {
-                                MaterialTheme.typography.titleLarge
+                                MaterialTheme.typography.headlineSmall
                             } else {
-                                MaterialTheme.typography.titleMedium
+                                MaterialTheme.typography.titleLarge
                             },
                             textAlign = TextAlign.Center
                         )
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent
+                        containerColor = Color.Transparent,
+                        scrolledContainerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     actions = {
                         // Settings button
@@ -167,6 +176,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                             }
                         }
                         
+                        // Theme toggle with position tracking for circular reveal animation
                         TooltipBox(
                             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
                             tooltip = {
@@ -176,6 +186,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
                             },
                             state = rememberTooltipState(),
                             modifier = Modifier.onGloballyPositioned { coordinates ->
+                                // Track button position for circular reveal animation origin
                                 val position = coordinates.positionInWindow()
                                 val size = coordinates.size
                                 themeButtonPosition = Offset(
@@ -184,7 +195,11 @@ fun MovieWeeklyDistributionCalculatorScreen(
                                 )
                             }
                         ) {
-                            IconButton(onClick = { onThemeToggle(themeButtonPosition) }) {
+                            // Use a stable lambda that reads current position
+                            val handleThemeToggle = remember<() -> Unit> {
+                                { onThemeToggle(themeButtonPosition) }
+                            }
+                            IconButton(onClick = handleThemeToggle) {
                                 AnimatedIcon(
                                     imageVector = if (isDarkMode) Icons.Filled.LightMode else Icons.Filled.DarkMode,
                                     contentDescription = if (isDarkMode) stringResource(Strings.contentDescriptionLightMode) else stringResource(Strings.contentDescriptionDarkMode)
@@ -198,15 +213,16 @@ fun MovieWeeklyDistributionCalculatorScreen(
                 SnackbarHost(snackbarHostState) { data ->
                     Snackbar(
                         snackbarData = data,
-                        containerColor = when (uiState.notification?.type) {
-                            NotificationType.SUCCESS -> MaterialTheme.colorScheme.primaryContainer
+                        shape = MaterialTheme.shapes.medium,
+                        containerColor = when (lastNotificationType) {
+                            NotificationType.SUCCESS -> MaterialTheme.colorScheme.tertiaryContainer
                             NotificationType.ERROR -> MaterialTheme.colorScheme.errorContainer
-                            else -> MaterialTheme.colorScheme.surfaceVariant
+                            else -> MaterialTheme.colorScheme.surfaceContainerHighest
                         },
-                        contentColor = when (uiState.notification?.type) {
-                            NotificationType.SUCCESS -> MaterialTheme.colorScheme.onPrimaryContainer
+                        contentColor = when (lastNotificationType) {
+                            NotificationType.SUCCESS -> MaterialTheme.colorScheme.onTertiaryContainer
                             NotificationType.ERROR -> MaterialTheme.colorScheme.onErrorContainer
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                            else -> MaterialTheme.colorScheme.onSurface
                         }
                     )
                 }
@@ -229,28 +245,26 @@ fun MovieWeeklyDistributionCalculatorScreen(
                 availableScreenings >= MovieDistributionConstants.Validation.SCREENINGS_MIN && 
                 availableScreenings <= MovieDistributionConstants.Validation.SCREENINGS_MAX
             val hasCurrentMovieResult = uiState.currentMovieResultTitle != null
-            val hasUnsavedChanges = hasCurrentMovieResult && (
-                uiState.editableTitle != uiState.originalTitle ||
-                uiState.commercialScoreInput != uiState.originalCommercialScore ||
-                uiState.availableScreeningsInput != uiState.originalAvailableScreenings
-            )
+            val hasUnsavedChanges = hasCurrentMovieResult && uiState.hasUnsavedChanges()
             val isSavedWithoutChanges = hasCurrentMovieResult && commercialScoreValid && availableScreeningsValid && !hasUnsavedChanges
+            
+            // Check if there's a saved movie with the same title as the editable title
+            val titleExistsInSavedMovies = uiState.savedMovieResults.any { it.title.equals(uiState.editableTitle, ignoreCase = true) }
+            val showNewButton = hasCurrentMovieResult || (uiState.editableTitle.isNotBlank() && !titleExistsInSavedMovies)
+            
+            // Save button should show when:
+            // 1. Existing movie with unsaved changes, OR
+            // 2. New movie with valid data and title
+            val showSaveButton = commercialScoreValid && availableScreeningsValid && (
+                (hasCurrentMovieResult && !isSavedWithoutChanges) ||
+                (!hasCurrentMovieResult && uiState.editableTitle.isNotBlank())
+            )
             
             // Adaptive layout based on window size
             AdaptiveMovieDistributionLayout(
                 windowSizeClass = windowSizeClass,
                 modifier = contentModifier,
-                parametersHeader = {
-                    ParametersSectionHeader(
-                        hasCurrentMovieResult = hasCurrentMovieResult,
-                        commercialScoreValid = commercialScoreValid,
-                        availableScreeningsValid = availableScreeningsValid,
-                        isSavedWithoutChanges = isSavedWithoutChanges,
-                        expanded = true, // Parameters section is always expanded
-                        onSaveClick = { viewModel.onEvent(MovieDistributionUiEvent.AutoSaveMovieResult) },
-                        onNewClick = { viewModel.onEvent(MovieDistributionUiEvent.NewMovieResult) }
-                    )
-                },
+                parametersHeader = { /* Empty - header is now inside card */ },
                 parametersContent = {
                     ParametersSection(
                         commercialScoreInput = uiState.commercialScoreInput,
@@ -260,15 +274,24 @@ fun MovieWeeklyDistributionCalculatorScreen(
                         originalTitle = uiState.originalTitle,
                         originalCommercialScore = uiState.originalCommercialScore,
                         originalAvailableScreenings = uiState.originalAvailableScreenings,
-                        onTitleChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateEditableTitle(it)) },
-                        onCommercialScoreChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateCommercialScoreInput(it)) },
-                        onAvailableScreeningsChange = { viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableScreeningsInput(it)) },
-                        onRevertTitle = { viewModel.onEvent(MovieDistributionUiEvent.RevertTitle) },
-                        onRevertCommercialScore = { viewModel.onEvent(MovieDistributionUiEvent.RevertCommercialScore) },
-                        onRevertAvailableScreenings = { viewModel.onEvent(MovieDistributionUiEvent.RevertAvailableScreenings) }
+                        hasCurrentMovieResult = hasCurrentMovieResult,
+                        commercialScoreValid = commercialScoreValid,
+                        availableScreeningsValid = availableScreeningsValid,
+                        isSavedWithoutChanges = isSavedWithoutChanges,
+                        showSaveButton = showSaveButton,
+                        showNewButton = showNewButton,
+                        onTitleChange = { coordinator.parametersViewModel.onEvent(ParametersUiEvent.UpdateEditableTitle(it)) },
+                        onCommercialScoreChange = { coordinator.parametersViewModel.onEvent(ParametersUiEvent.UpdateCommercialScoreInput(it)) },
+                        onAvailableScreeningsChange = { coordinator.parametersViewModel.onEvent(ParametersUiEvent.UpdateAvailableScreeningsInput(it)) },
+                        onRevertTitle = { coordinator.parametersViewModel.onEvent(ParametersUiEvent.RevertTitle) },
+                        onRevertCommercialScore = { coordinator.parametersViewModel.onEvent(ParametersUiEvent.RevertCommercialScore) },
+                        onRevertAvailableScreenings = { coordinator.parametersViewModel.onEvent(ParametersUiEvent.RevertAvailableScreenings) },
+                        onSaveClick = { coordinator.autoSaveCurrentMovie() },
+                        onNewClick = { coordinator.parametersViewModel.onEvent(ParametersUiEvent.NewMovieResult) }
                     )
                 },
-                resultsHeader = {
+                resultsHeader = { /* Empty - header is now inside card */ },
+                resultsContent = {
                     val resultsTitleText = stringResource(Strings.resultsTitle)
                     val copyText = buildString {
                         append(resultsTitleText)
@@ -284,54 +307,45 @@ fun MovieWeeklyDistributionCalculatorScreen(
                             append("\n")
                         }
                     }.trimEnd()
-
-                    ResultsSectionHeader(
-                        hasResults = uiState.resultsWithRounded.isNotEmpty(),
-                        expanded = uiState.expandResults,
-                        onCopyClick = {
-                            clipboard.setText(AnnotatedString(copyText))
-                            viewModel.onEvent(MovieDistributionUiEvent.CopyResults(uiState.resultsWithRounded))
-                        },
-                        onToggleExpand = { viewModel.onEvent(MovieDistributionUiEvent.ToggleResultsExpand) }
-                    )
-                },
-                resultsContent = {
+                    
                     ResultsSection(
                         results = uiState.resultsWithRounded,
                         expanded = uiState.expandResults,
+                        hasResults = uiState.resultsWithRounded.isNotEmpty(),
                         availableScreeningsValue = uiState.availableScreeningsInput.toDoubleOrNull() ?: 0.0,
                         availableScreeningsOverrideInputs = uiState.availableScreeningsOverrideInputs,
                         weekMultiplierOverrideInputs = uiState.weekMultiplierOverrideInputs,
                         currentMovieResultId = uiState.currentMovieResultId,
                         onAvailableScreeningsOverrideChange = { weekIndex, value ->
-                            viewModel.onEvent(MovieDistributionUiEvent.UpdateAvailableScreeningsOverride(weekIndex, value))
+                            coordinator.resultsViewModel.onEvent(ResultsUiEvent.UpdateAvailableScreeningsOverride(weekIndex, value))
                         },
                         onWeekMultiplierOverrideChange = { weekIndex, value ->
-                            viewModel.onEvent(MovieDistributionUiEvent.UpdateWeekMultiplierOverride(weekIndex, value))
-                        }
+                            coordinator.resultsViewModel.onEvent(ResultsUiEvent.UpdateWeekMultiplierOverride(weekIndex, value))
+                        },
+                        onCopyClick = {
+                            clipboard.setText(AnnotatedString(copyText))
+                            coordinator.resultsViewModel.onEvent(ResultsUiEvent.CopyResults(uiState.resultsWithRounded))
+                        },
+                        onToggleExpand = { coordinator.resultsViewModel.onEvent(ResultsUiEvent.ToggleResultsExpand) }
                     )
                 },
-                savedHeader = {
-                    SavedMoviesSectionHeader(
-                        movieCount = uiState.savedMovieResults.size,
-                        expanded = uiState.expandSaved,
-                        onClearAllClick = { showClearAllDialog = true },
-                        onToggleExpand = { viewModel.onEvent(MovieDistributionUiEvent.ToggleSavedExpand) }
-                    )
-                },
+                savedHeader = { /* Empty - header is now inside card */ },
                 savedContent = {
                     SavedMovieResultsSection(
                         movieResults = uiState.savedMovieResults,
                         expanded = uiState.expandSaved,
+                        movieCount = uiState.savedMovieResults.size,
                         onLoadClick = { movieResult ->
-                            viewModel.onEvent(MovieDistributionUiEvent.LoadMovieResult(movieResult.id))
+                            coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.LoadMovieResult(movieResult.id))
                         },
                         onEditClick = { movieResult ->
                             showEditDialog = movieResult
                         },
                         onDeleteClick = { movieResult ->
-                            viewModel.onEvent(MovieDistributionUiEvent.DeleteMovieResult(movieResult.id))
-                        }
+                            coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DeleteMovieResult(movieResult.id))
+                        },
+                        onClearAllClick = { showClearAllDialog = true },
+                        onToggleExpand = { coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.ToggleSavedExpand) }
                     )
                 }
             )
@@ -347,9 +361,9 @@ fun MovieWeeklyDistributionCalculatorScreen(
             existingScreenings = conflict.existingMovie.numberOfScreenings,
             newCommercialScore = conflict.newCommercialScore,
             newScreenings = conflict.newScreenings,
-            onDismiss = { viewModel.onEvent(MovieDistributionUiEvent.DismissParameterConflict) },
-            onKeepExisting = { viewModel.onEvent(MovieDistributionUiEvent.KeepExistingMovie) },
-            onOverwrite = { viewModel.onEvent(MovieDistributionUiEvent.OverwriteConflictingMovie) }
+            onDismiss = { coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DismissParameterConflict) },
+            onKeepExisting = { coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.KeepExistingMovie) },
+            onOverwrite = { coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.OverwriteConflictingMovie) }
         )
     }
     
@@ -358,7 +372,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
             movieResult = movieResult,
             onDismiss = { showEditDialog = null },
             onUpdate = { title, commercialScore, availableScreenings ->
-                viewModel.onEvent(MovieDistributionUiEvent.UpdateMovieResult(movieResult.id, title, commercialScore, availableScreenings))
+                coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.UpdateMovieResult(movieResult.id, title, commercialScore, availableScreenings))
                 showEditDialog = null
             }
         )
@@ -369,7 +383,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
             movieResultCount = uiState.savedMovieResults.size,
             onDismiss = { showClearAllDialog = false },
             onConfirm = {
-                viewModel.onEvent(MovieDistributionUiEvent.ClearAllMovieResults)
+                coordinator.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.ClearAllMovieResults)
                 showClearAllDialog = false
             }
         )

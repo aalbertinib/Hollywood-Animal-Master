@@ -76,9 +76,11 @@ object Dimensions {
     val screenPaddingHorizontal: Dp = spacing4
     val screenPaddingVertical: Dp = spacing6
     
-    // Card Padding
-    val cardPadding: Dp = spacing4
+    // Card Padding (Modern Dashboard Style)
+    val cardPadding: Dp = spacing5  // 20dp for more breathing room
+    val cardPaddingCompact: Dp = spacing4  // 16dp for compact cards
     val cardElevation: Dp = 2.dp
+    val cardElevationHover: Dp = 4.dp
     
     // Button Dimensions
     val buttonHeight: Dp = 48.dp

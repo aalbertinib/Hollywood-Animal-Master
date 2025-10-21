@@ -10,9 +10,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
@@ -33,8 +38,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import org.aalbertini.ham.core.ui.components.ErrorMessageAnimatedVisibility
-import org.aalbertini.ham.core.ui.components.GenericSectionCard
 import org.aalbertini.ham.core.ui.components.TextIcon
+import org.aalbertini.ham.core.ui.components.section.ModernSectionWithHeader
 import org.aalbertini.ham.core.ui.resources.Strings
 import org.aalbertini.ham.core.ui.resources.UiConstants
 import org.aalbertini.ham.core.ui.resources.UiIcons
@@ -52,12 +57,20 @@ fun ParametersSection(
     originalTitle: String?,
     originalCommercialScore: String?,
     originalAvailableScreenings: String?,
+    hasCurrentMovieResult: Boolean,
+    commercialScoreValid: Boolean,
+    availableScreeningsValid: Boolean,
+    isSavedWithoutChanges: Boolean,
+    showSaveButton: Boolean,
+    showNewButton: Boolean,
     onTitleChange: (String) -> Unit,
     onCommercialScoreChange: (String) -> Unit,
     onAvailableScreeningsChange: (String) -> Unit,
     onRevertTitle: () -> Unit,
     onRevertCommercialScore: () -> Unit,
     onRevertAvailableScreenings: () -> Unit,
+    onSaveClick: () -> Unit,
+    onNewClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val commercialScore = remember(commercialScoreInput) { commercialScoreInput.toDoubleOrNull() }
@@ -153,9 +166,81 @@ fun ParametersSection(
         }
     }
 
-    GenericSectionCard(
+    ModernSectionWithHeader(
+        title = stringResource(Strings.parametersSectionTitle),
+        subtitle = if (hasCurrentMovieResult) {
+            if (isSavedWithoutChanges) "Saved"
+            else "Unsaved changes"
+        } else null,
         modifier = modifier,
-        expanded = true
+        headerActions = {
+            // Success icon (when saved and up-to-date)
+            if (isSavedWithoutChanges) {
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = { PlainTooltip { Text("All changes saved") } },
+                    state = rememberTooltipState()
+                ) {
+                    FilledTonalIconButton(
+                        onClick = { /* No action - just visual indicator */ },
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            Icons.Filled.CheckCircle,
+                            contentDescription = "Saved",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+            
+            // Save button (when there are unsaved changes or creating new movie)
+            if (showSaveButton) {
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = { PlainTooltip { Text(stringResource(Strings.actionSaveMovie)) } },
+                    state = rememberTooltipState()
+                ) {
+                    FilledTonalIconButton(
+                        onClick = onSaveClick,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    ) {
+                        Icon(
+                            Icons.Filled.Save,
+                            contentDescription = stringResource(Strings.actionSaveMovie)
+                        )
+                    }
+                }
+            }
+            
+            // New button
+            if (showNewButton) {
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = { PlainTooltip { Text(stringResource(Strings.actionNewMovie)) } },
+                    state = rememberTooltipState()
+                ) {
+                    FilledTonalIconButton(
+                        onClick = onNewClick,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    ) {
+                        Icon(
+                            Icons.Filled.Add,
+                            contentDescription = stringResource(Strings.actionNewMovie)
+                        )
+                    }
+                }
+            }
+        }
     ) {
         // Editable title with revert button inside field
         OutlinedTextField(

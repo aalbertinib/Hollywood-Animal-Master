@@ -18,7 +18,7 @@ fun LabeledValidatedNumericField(
     topLabel: String,
     value: String,
     onValueChange: (String) -> Unit,
-    inputLabel: String,
+    inputLabel: String = "",
     placeholder: String,
     hasOverride: Boolean,
     isValidated: Boolean,

@@ -21,7 +21,6 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.unit.dp
 import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionConstants
 import org.aalbertini.ham.features.movie_distribution.domain.formatting.formatNumberThousands
-import kotlin.math.abs
 
 /**
  * Individual week result card component with state management and override inputs.
@@ -75,6 +74,15 @@ internal fun WeekResultCard(
     val defaultMultiplier = remember(weekIndex) {
         MovieDistributionConstants.Multipliers.DEFAULT_WEEK_MULTIPLIERS.getOrElse(weekIndex) { 1.0 }
     }
+    
+    // Get previous week's default multiplier for percentage calculation
+    val previousWeekDefaultMultiplier = remember(weekIndex) {
+        if (weekIndex > 0) {
+            MovieDistributionConstants.Multipliers.DEFAULT_WEEK_MULTIPLIERS.getOrElse(weekIndex - 1) { 1.0 }
+        } else {
+            1.0 // Week 1 has no previous week
+        }
+    }
 
     // Track if screenings input is validated
     val screeningsValidated by remember {
@@ -85,7 +93,7 @@ internal fun WeekResultCard(
             } else {
                 val localNum = localScreeningsInput.toDoubleOrNull()
                 val vmNum = vmValue.toDoubleOrNull()
-                localNum != null && vmNum != null && abs(localNum - vmNum) < 0.0001
+                localNum != null && vmNum != null && kotlin.math.abs(localNum - vmNum) < 0.0001
             }
         }
     }
@@ -96,9 +104,9 @@ internal fun WeekResultCard(
             if (localMultiplierInput.isEmpty() && vmValue.isEmpty()) {
                 true
             } else {
-                val localNum = localMultiplierInput.toDoubleOrNull()
-                val vmNum = vmValue.toDoubleOrNull()
-                localNum != null && vmNum != null && abs(localNum - vmNum) < 0.0001
+                val localNum = localMultiplierInput.toIntOrNull()
+                val vmNum = vmValue.toIntOrNull()
+                localNum != null && vmNum != null && localNum == vmNum
             }
         }
     }
@@ -255,6 +263,7 @@ internal fun WeekResultCard(
                 displayValue = multiplierDisplayValue,
                 localOverrideInput = localMultiplierInput,
                 defaultMultiplier = defaultMultiplier,
+                previousWeekDefaultMultiplier = previousWeekDefaultMultiplier,
                 hasOverride = hasMultiplierOverride,
                 isValidated = multiplierValidated,
                 isInputValid = multiplierInputValid,

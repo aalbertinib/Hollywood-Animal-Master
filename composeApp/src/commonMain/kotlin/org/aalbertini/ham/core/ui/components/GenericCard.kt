@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import org.aalbertini.ham.core.ui.resources.UiConstants
 import org.aalbertini.ham.core.ui.theme.CustomShapes
 
@@ -50,8 +51,8 @@ import org.aalbertini.ham.core.ui.theme.CustomShapes
 @Composable
 fun GenericSectionCard(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    borderColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    borderColor: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
     borderWidth: Dp = UiConstants.Card.borderWidth,
     shape: Shape = CustomShapes.SectionContentShape,
     expanded: Boolean = true,
@@ -72,7 +73,10 @@ fun GenericSectionCard(
                 }
             )
             .animateContentSizeFast(),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp
+        ),
         shape = shape
     ) {
         SectionAnimatedVisibility(visible = expanded) {
@@ -110,10 +114,10 @@ fun GenericSectionCard(
 @Composable
 fun GenericListItemCard(
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
     borderColor: Color = Color.Transparent,
     borderWidth: Dp = UiConstants.Card.borderWidth,
-    shape: Shape = RoundedCornerShape(UiConstants.Card.cornerRadiusSmall),
+    shape: Shape = CustomShapes.ListItemShape,
     leadingContent: (@Composable () -> Unit)? = null,
     trailingActions: @Composable RowScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit
@@ -127,6 +131,11 @@ fun GenericListItemCard(
                 shape = shape
             ),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 1.dp,
+            pressedElevation = 2.dp,
+            hoveredElevation = 2.dp
+        ),
         shape = shape
     ) {
         Row(

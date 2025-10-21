@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.aalbertini.ham.core.ui.components.TextIcon
 import org.aalbertini.ham.core.ui.resources.Strings
@@ -40,7 +41,8 @@ internal fun WeekCardHeader(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(vertical = 10.dp, horizontal = 14.dp)
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp, horizontal = 14.dp)
         )
     }
 }

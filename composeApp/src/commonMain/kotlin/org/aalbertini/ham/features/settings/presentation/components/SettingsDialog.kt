@@ -34,6 +34,7 @@ import androidx.compose.ui.window.DialogProperties
 import org.aalbertini.ham.core.ui.resources.Dimensions
 import org.aalbertini.ham.core.ui.resources.Strings
 import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.core.ui.theme.CustomShapes
 import org.aalbertini.ham.core.util.platform.getPlatform
 import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 import org.aalbertini.ham.features.settings.presentation.platform.getPlatformSettings
@@ -164,13 +165,14 @@ fun SettingsDialog(
                             else Modifier
                         )
                         .padding(dialogPadding),
-                    shape = RoundedCornerShape(
-                        if (dialogPadding > 0.dp) Dimensions.cornerRadiusXLarge else Dimensions.cornerRadiusSmall
-                    ),
+                    shape = if (dialogPadding > 0.dp) CustomShapes.DialogShape else RoundedCornerShape(8.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                     ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 6.dp,
+                        pressedElevation = 8.dp
+                    )
                 ) {
                     Column(
                         modifier = Modifier.fillMaxSize()

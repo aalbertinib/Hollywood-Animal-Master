@@ -6,24 +6,22 @@ import androidx.compose.ui.text.input.KeyboardType
 import org.aalbertini.ham.core.ui.components.input.LabeledValidatedNumericField
 import org.aalbertini.ham.core.ui.resources.Strings
 import org.jetbrains.compose.resources.stringResource
-import org.aalbertini.ham.core.util.format.toFixed
-import org.aalbertini.ham.core.util.input.isNumeric
-import org.aalbertini.ham.core.util.input.sanitizeNumeric
 
 /**
  * Week multiplier override input component.
  * 
  * Features:
- * - Numeric input with validation (0.0 to 10.0 range)
+ * - Reduction percentage input (0% to 100% range, positive values only)
  * - Real-time error feedback
  * - Clear button for removing overrides
  * - Visual indicators for validation states
- * - Shows default multiplier value as placeholder
+ * - Shows default as reduction % from previous week (e.g., 20% means result is 80% of previous)
  * 
  * @param weekIndex Week index (0-indexed, used for callbacks)
  * @param displayValue Formatted display value
- * @param localOverrideInput Raw local input value
+ * @param localOverrideInput Raw local input value (reduction percentage as positive integer)
  * @param defaultMultiplier Default multiplier for this week
+ * @param previousWeekDefaultMultiplier Default multiplier for previous week (used to calculate reduction %)
  * @param hasOverride Whether there's an active override
  * @param isValidated Whether override is synced with ViewModel
  * @param isInputValid Whether current input is valid
@@ -40,6 +38,7 @@ internal fun WeekMultiplierInput(
     displayValue: String,
     localOverrideInput: String,
     defaultMultiplier: Double,
+    previousWeekDefaultMultiplier: Double,
     hasOverride: Boolean,
     isValidated: Boolean,
     isInputValid: Boolean,
@@ -56,25 +55,29 @@ internal fun WeekMultiplierInput(
         stringResource(Strings.validationMultiplierRange)
     } else null
     
+    // Convert default multiplier to reduction percentage from previous week
+    // e.g., if previous=1.0 and current=0.8, then reduction = (1 - (0.8/1.0))*100 = 20%
+    val defaultReductionPercentage = if (previousWeekDefaultMultiplier > 0.0) {
+        ((1.0 - (defaultMultiplier / previousWeekDefaultMultiplier)) * 100).toInt()
+    } else {
+        0
+    }
+    val placeholderText = "$defaultReductionPercentage%"
+    
     LabeledValidatedNumericField(
         topLabel = stringResource(Strings.movieResultsWeekMultiplierOverride),
         value = displayValue,
         onValueChange = { newValue ->
-            val cleanValue = sanitizeNumeric(newValue)
-            if (cleanValue.isEmpty() || isNumeric(cleanValue)) {
-                onLocalInputChange(cleanValue)
-            }
+            // Allow only positive integers (no negative values, only reductions)
+            val filtered = newValue.filter { it.isDigit() }
+            onLocalInputChange(filtered)
         },
-        inputLabel = stringResource(Strings.movieResultsWeekMultiplierOverride),
-        placeholder = stringResource(
-            Strings.defaultMultiplier,
-            defaultMultiplier.toFixed(2)
-        ),
+        placeholder = placeholderText,
         hasOverride = hasOverride,
         isValidated = isValidated,
         isError = isError,
         errorMessage = errorMessage,
-        keyboardType = KeyboardType.Decimal,
+        keyboardType = KeyboardType.Number,
         onFocusChanged = onFocusChanged,
         onValidateInput = onValidateInput,
         onClearOverride = onClearOverride,

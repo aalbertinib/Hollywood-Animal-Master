@@ -50,7 +50,6 @@ internal fun WeekResultValue(
                 text = stringResource(Strings.movieResultsScreenings),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
             )
             
             Surface(
@@ -61,7 +60,7 @@ internal fun WeekResultValue(
                     MaterialTheme.colorScheme.tertiaryContainer
                 },
                 tonalElevation = 1.dp,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
             ) {
                 Text(
                     text = resultValue.formatNumberThousands(),

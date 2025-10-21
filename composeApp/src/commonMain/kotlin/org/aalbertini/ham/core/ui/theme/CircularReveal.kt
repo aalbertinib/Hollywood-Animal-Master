@@ -32,7 +32,10 @@ private data class CircularRevealAnimationItem<T>(
 )
 
 /**
- * Custom shape that creates a circular clip with an animated progress
+ * Custom shape that creates a circular clip with an animated progress.
+ * 
+ * Thread-safe and immutable - all properties are val and passed via constructor.
+ * The shape is recreated on each animation frame with new progress value.
  */
 private class CircularRevealShape(
     private val progress: Float,
@@ -83,7 +86,9 @@ private class CircularRevealShape(
 }
 
 /**
- * Modifier extension to apply circular reveal animation
+ * Modifier extension to apply circular reveal animation.
+ * 
+ * Creates a new CircularRevealShape on each call with the current progress.
  */
 fun Modifier.circularReveal(
     progress: Float,
@@ -91,7 +96,13 @@ fun Modifier.circularReveal(
 ) = clip(CircularRevealShape(progress, offset))
 
 /**
- * Composable that animates content transitions with a circular reveal effect
+ * Composable that animates content transitions with a circular reveal effect.
+ * 
+ * Optimized for performance:
+ * - Uses remember for stable state management
+ * - Minimizes recompositions by using key() for list items
+ * - Efficient state change detection
+ * - Cleans up intermediate items after animation completes
  * 
  * @param targetState The target state to transition to
  * @param modifier Modifier to apply to the container
@@ -107,10 +118,12 @@ fun <T> CircularReveal(
     revealFrom: Offset? = null,
     content: @Composable (T) -> Unit
 ) {
+    // Stable state holders to prevent unnecessary recompositions
     val items = remember { mutableStateListOf<CircularRevealAnimationItem<T>>() }
     val transitionState = remember { MutableTransitionState(targetState) }
     val targetChanged = (targetState != transitionState.targetState)
     
+    // Update target state only when changed
     transitionState.targetState = targetState
     val transition = rememberTransition(transitionState, label = "circularRevealTransition")
 

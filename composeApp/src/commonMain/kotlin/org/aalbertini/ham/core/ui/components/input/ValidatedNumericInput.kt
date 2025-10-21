@@ -96,7 +96,7 @@ fun ValidatedNumericInput(
         } else if (hasOverride && isValidated) {
             { Text(stringResource(Strings.overrideLabel), style = MaterialTheme.typography.labelSmall) }
         } else {
-            { Text(label, style = MaterialTheme.typography.labelSmall) }
+            null
         },
         shape = RoundedCornerShape(8.dp),
         placeholder = {
@@ -127,7 +127,7 @@ fun ValidatedNumericInput(
             onDone = { onValidateInput() }
         ),
         singleLine = true,
-        trailingIcon = if (hasOverride && onClearOverride != null) {
+        trailingIcon = if (value.isNotEmpty() && onClearOverride != null) {
             {
                 TooltipBox(
                     positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),

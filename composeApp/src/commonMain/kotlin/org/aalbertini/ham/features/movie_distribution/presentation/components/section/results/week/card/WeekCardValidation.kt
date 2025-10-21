@@ -15,7 +15,8 @@ internal object WeekCardValidation {
 
     fun isValidMultiplierInput(input: String): Boolean {
         if (input.isEmpty()) return true
-        val num = input.toDoubleOrNull() ?: return false
-        return num >= 0.0 && num <= 10.0
+        // Validate reduction percentage input (0 to 100)
+        val num = input.toIntOrNull() ?: return false
+        return num >= 0 && num <= 100
     }
 }

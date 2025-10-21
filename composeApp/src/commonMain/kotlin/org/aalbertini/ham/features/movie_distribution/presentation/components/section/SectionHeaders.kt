@@ -16,15 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import org.aalbertini.ham.core.ui.components.AnimatedIcon
 import org.aalbertini.ham.core.ui.components.GenericActionButton
-import org.aalbertini.ham.core.ui.components.GenericSectionHeader
+import org.aalbertini.ham.core.ui.components.section.ModernSectionHeader
 import org.aalbertini.ham.core.ui.resources.Strings
-import org.aalbertini.ham.core.ui.resources.UiIcons
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Sticky header for Parameters Section
+ * Modern header for Parameters Section
  * 
- * Refactored to use GenericSectionHeader for consistency and reusability.
+ * Uses ModernSectionHeader for clean dashboard design.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,12 +37,10 @@ fun ParametersSectionHeader(
     onNewClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    GenericSectionHeader(
+    ModernSectionHeader(
         title = stringResource(Strings.parametersSectionTitle),
-        icon = UiIcons.SECTION_PARAMETERS,
-        expanded = expanded,
-        modifier = modifier
-    ) {
+        modifier = modifier,
+        actions = {
         if (hasCurrentMovieResult) {
             GenericActionButton(
                 onClick = onNewClick,
@@ -76,13 +73,14 @@ fun ParametersSectionHeader(
                 }
             }
         }
-    }
+        }
+    )
 }
 
 /**
- * Sticky header for Results Section
+ * Modern header for Results Section
  * 
- * Refactored to use GenericSectionHeader for consistency and reusability.
+ * Uses ModernSectionHeader for clean dashboard design.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -93,12 +91,10 @@ fun ResultsSectionHeader(
     onToggleExpand: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    GenericSectionHeader(
+    ModernSectionHeader(
         title = stringResource(Strings.resultsSectionTitle),
-        icon = UiIcons.SECTION_RESULTS,
-        expanded = expanded,
-        modifier = modifier
-    ) {
+        modifier = modifier,
+        actions = {
         if (hasResults) {
             GenericActionButton(
                 onClick = onCopyClick,
@@ -123,13 +119,14 @@ fun ResultsSectionHeader(
             contentDescription = if (expanded) stringResource(Strings.contentDescriptionCollapse) else stringResource(Strings.contentDescriptionExpand),
             tooltipText = if (expanded) stringResource(Strings.actionCollapse) else stringResource(Strings.actionExpand)
         )
-    }
+        }
+    )
 }
 
 /**
- * Sticky header for Saved Movies Section
+ * Modern header for Saved Movies Section
  * 
- * Refactored to use GenericSectionHeader for consistency and reusability.
+ * Uses ModernSectionHeader for clean dashboard design.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -140,12 +137,11 @@ fun SavedMoviesSectionHeader(
     onToggleExpand: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    GenericSectionHeader(
-        title = stringResource(Strings.savedMoviesCount, movieCount),
-        icon = UiIcons.SAVED_MOVIES_COUNT,
-        expanded = expanded,
-        modifier = modifier
-    ) {
+    ModernSectionHeader(
+        title = stringResource(Strings.savedDistributionsTitle),
+        subtitle = "($movieCount)",
+        modifier = modifier,
+        actions = {
         if (movieCount > 0) {
             GenericActionButton(
                 onClick = onClearAllClick,
@@ -171,5 +167,6 @@ fun SavedMoviesSectionHeader(
             contentDescription = if (expanded) stringResource(Strings.contentDescriptionCollapse) else stringResource(Strings.contentDescriptionExpand),
             tooltipText = if (expanded) stringResource(Strings.actionCollapse) else stringResource(Strings.actionExpand)
         )
-    }
+        }
+    )
 }

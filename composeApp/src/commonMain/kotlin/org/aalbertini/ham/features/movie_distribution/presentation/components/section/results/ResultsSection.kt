@@ -4,66 +4,144 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
-import org.aalbertini.ham.core.ui.components.GenericSectionCard
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import org.aalbertini.ham.core.ui.components.section.ModernSectionWithHeader
 import org.aalbertini.ham.core.ui.resources.Strings
 import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionConstants
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.min
 
 /**
- * Main results section component that displays weekly distribution results.
+ * Modern results section with week cards and override inputs.
+ * Header is inside the card.
  * 
  * Features:
- * - Animated visibility and content transitions
- * - Empty state message when no results available
- * - Responsive grid layout for results
+ * - Clean card-based layout with header inside
+ * - Responsive grid using FlowRow
+ * - Week cards with override inputs
+ * - Available screenings override per week
+ * - Week multiplier override per week
+ * - Animated content transitions
+ * - Empty state message
+ * - Copy and expand/collapse actions
  * 
  * @param results List of calculated weekly screenings
  * @param expanded Whether the section is expanded
+ * @param hasResults Whether there are results to display
  * @param availableScreeningsValue Total available screenings
  * @param availableScreeningsOverrideInputs Map of week-specific screenings overrides
  * @param weekMultiplierOverrideInputs Map of week-specific multiplier overrides
  * @param currentMovieResultId Current movie ID for state tracking
  * @param onAvailableScreeningsOverrideChange Callback for screenings override changes
  * @param onWeekMultiplierOverrideChange Callback for multiplier override changes
+ * @param onCopyClick Callback when copy button is clicked
+ * @param onToggleExpand Callback when expand/collapse is toggled
  * @param modifier Optional modifier
  */
+@OptIn(ExperimentalLayoutApi::class, androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun ResultsSection(
     results: List<Long>,
     expanded: Boolean,
+    hasResults: Boolean,
     availableScreeningsValue: Double,
     availableScreeningsOverrideInputs: Map<Int, String>,
     weekMultiplierOverrideInputs: Map<Int, String>,
     currentMovieResultId: String?,
     onAvailableScreeningsOverrideChange: (weekIndex: Int, value: String) -> Unit,
     onWeekMultiplierOverrideChange: (weekIndex: Int, value: String) -> Unit,
+    onCopyClick: () -> Unit,
+    onToggleExpand: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val focusManager = LocalFocusManager.current
     
-    GenericSectionCard(
+    ModernSectionWithHeader(
+        title = stringResource(Strings.resultsTitle),
         modifier = modifier,
-        expanded = expanded
+        headerActions = {
+            // Copy button
+            if (hasResults) {
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = { PlainTooltip { Text(stringResource(Strings.actionCopyResults)) } },
+                    state = rememberTooltipState()
+                ) {
+                    FilledTonalIconButton(
+                        onClick = onCopyClick,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    ) {
+                        Icon(
+                            Icons.Filled.ContentCopy,
+                            contentDescription = stringResource(Strings.actionCopyResults)
+                        )
+                    }
+                }
+            }
+            
+            // Expand/collapse button
+            if (hasResults) {
+                TooltipBox(
+                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                    tooltip = { PlainTooltip { Text(if (expanded) stringResource(Strings.actionCollapse) else stringResource(Strings.actionExpand)) } },
+                    state = rememberTooltipState()
+                ) {
+                    FilledTonalIconButton(
+                        onClick = onToggleExpand,
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    ) {
+                        Icon(
+                            if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+                            contentDescription = if (expanded) stringResource(Strings.actionCollapse) else stringResource(Strings.actionExpand)
+                        )
+                    }
+                }
+            }
+        }
     ) {
-        AnimatedContent(
-            targetState = results,
-            label = "results",
-            transitionSpec = { fadeIn() togetherWith fadeOut() }
-        ) { list ->
-            if (list.isEmpty()) {
+        if (expanded) {
+            if (results.isEmpty()) {
                 EmptyResultsMessage()
             } else {
-                ResultsGridContent(
-                    results = list,
+                ModernResultsGrid(
+                    results = results,
                     availableScreeningsValue = availableScreeningsValue,
                     availableScreeningsOverrideInputs = availableScreeningsOverrideInputs,
                     weekMultiplierOverrideInputs = weekMultiplierOverrideInputs,
-                    currentMovieResultId = currentMovieResultId,
                     onAvailableScreeningsOverrideChange = onAvailableScreeningsOverrideChange,
                     onWeekMultiplierOverrideChange = onWeekMultiplierOverrideChange,
                     focusManager = focusManager
@@ -73,17 +151,113 @@ fun ResultsSection(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ModernResultsGrid(
+    results: List<Long>,
+    availableScreeningsValue: Double,
+    availableScreeningsOverrideInputs: Map<Int, String>,
+    weekMultiplierOverrideInputs: Map<Int, String>,
+    onAvailableScreeningsOverrideChange: (Int, String) -> Unit,
+    onWeekMultiplierOverrideChange: (Int, String) -> Unit,
+    focusManager: androidx.compose.ui.focus.FocusManager
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        // Group results by month (4 weeks)
+        results.chunked(4).forEachIndexed { monthIndex, monthWeeks ->
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Month header
+                if (monthIndex > 0) {
+                    MonthSeparator(monthNumber = monthIndex + 1)
+                }
+                
+                // Weeks in this month
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    maxItemsInEachRow = 2
+                ) {
+                    monthWeeks.forEachIndexed { weekInMonth, screenings ->
+                        val weekIndex = monthIndex * 4 + weekInMonth
+                        // Get default multiplier for this week
+                        val defaultMultiplier = MovieDistributionConstants.Multipliers.DEFAULT_WEEK_MULTIPLIERS.getOrNull(weekIndex) ?: 0.0
+                        key(weekIndex) {
+                            ModernWeekResultCard(
+                                weekNumber = weekIndex + 1,
+                                screenings = screenings,
+                                availableScreeningsValue = availableScreeningsValue,
+                                availableScreeningsOverride = availableScreeningsOverrideInputs[weekIndex] ?: "",
+                                weekMultiplierOverride = weekMultiplierOverrideInputs[weekIndex] ?: "",
+                                weekMultiplierDefaultValue = defaultMultiplier,
+                                onAvailableScreeningsOverrideChange = { value ->
+                                    onAvailableScreeningsOverrideChange(weekIndex, value)
+                                },
+                                onWeekMultiplierOverrideChange = { value ->
+                                    onWeekMultiplierOverrideChange(weekIndex, value)
+                                },
+                                focusManager = focusManager,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthSeparator(monthNumber: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+        
+        Text(
+            text = "Month $monthNumber",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.SemiBold
+        )
+        
+        HorizontalDivider(
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+    }
+}
+
 @Composable
 private fun EmptyResultsMessage() {
-    Text(
-        text = stringResource(
-            Strings.messageEnterValidParameters,
-            MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN.toString(),
-            MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX.toInt().toString(),
-            MovieDistributionConstants.Validation.SCREENINGS_MIN.toInt().toString()
-        ),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        softWrap = true
-    )
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(
+                Strings.messageEnterValidParameters,
+                MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MIN.toString(),
+                MovieDistributionConstants.Validation.COMMERCIAL_SCORE_MAX.toInt().toString(),
+                MovieDistributionConstants.Validation.SCREENINGS_MIN.toInt().toString()
+            ),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }

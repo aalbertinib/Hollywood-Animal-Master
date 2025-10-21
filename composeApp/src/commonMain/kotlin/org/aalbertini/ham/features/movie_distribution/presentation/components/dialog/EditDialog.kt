@@ -33,6 +33,7 @@ import org.aalbertini.ham.core.ui.components.animateContentSizeFast
 import org.aalbertini.ham.core.ui.components.button.DialogActionButtons
 import org.aalbertini.ham.core.ui.resources.Strings
 import org.aalbertini.ham.core.ui.resources.UiConstants
+import org.aalbertini.ham.core.ui.theme.CustomShapes
 import org.aalbertini.ham.core.util.input.filterIntegerInput
 import org.aalbertini.ham.core.util.input.filterNumericInput
 import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieDistributionConstants
@@ -189,7 +190,14 @@ private fun EditDialogContent(
         Card(
             modifier = Modifier.fillMaxWidth()
                 .padding(UiConstants.Padding.contentStandard),
-            elevation = CardDefaults.cardElevation(defaultElevation = UiConstants.Card.elevationDialog)
+            shape = CustomShapes.DialogShape,
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 6.dp,
+                pressedElevation = 8.dp
+            )
         ) {
             Column(
                 modifier = Modifier

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import org.aalbertini.ham.core.ui.resources.UiConstants
 
 /**
@@ -42,7 +43,7 @@ fun GenericSectionHeader(
     expanded: Boolean = true,
     modifier: Modifier = Modifier,
     titleStyle: TextStyle = MaterialTheme.typography.titleMedium,
-    backgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
     tonalElevation: Dp = UiConstants.SectionHeader.tonalElevation,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -53,8 +54,8 @@ fun GenericSectionHeader(
         color = backgroundColor,
         tonalElevation = tonalElevation,
         shape = RoundedCornerShape(
-            topStart = UiConstants.Card.cornerRadiusLarge,
-            topEnd = UiConstants.Card.cornerRadiusLarge,
+            topStart = 16.dp,
+            topEnd = 16.dp,
             bottomStart = bottomStartRadius,
             bottomEnd = bottomEndRadius
         )

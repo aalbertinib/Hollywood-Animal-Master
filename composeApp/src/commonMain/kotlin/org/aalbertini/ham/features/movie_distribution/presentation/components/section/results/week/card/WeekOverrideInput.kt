@@ -72,11 +72,7 @@ internal fun WeekOverrideInput(
                 onLocalInputChange(cleanValue)
             }
         },
-        inputLabel = stringResource(Strings.movieResultsYourScreeningsOverride),
-        placeholder = stringResource(
-            Strings.defaultWithValue,
-            availableScreeningsValue.toLong().formatNumberThousands()
-        ),
+        placeholder = availableScreeningsValue.toLong().formatNumberThousands(),
         hasOverride = hasOverride,
         isValidated = isValidated,
         isError = isError,

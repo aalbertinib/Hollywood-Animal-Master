@@ -1,39 +1,26 @@
 package org.aalbertini.ham.features.movie_distribution.data.repository
 
-import kotlinx.serialization.json.Json
-import org.aalbertini.ham.core.data.storage.StorageProvider
+import org.aalbertini.ham.features.movie_distribution.data.data_source.MovieResultDataSource
 import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
-import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResultsList
 import kotlin.random.Random
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 /**
- * Repository for managing movie results with persistent storage
+ * Repository for managing movie results
+ * Coordinates data operations through the data source
  * Uses kotlin.time.Clock from standard library (Kotlin 2.1.20+)
  */
 @OptIn(ExperimentalTime::class)
 class MovieResultRepository(
-    private val storageProvider: StorageProvider = StorageProvider()
+    private val dataSource: MovieResultDataSource = MovieResultDataSource()
 ) {
-    private val json = Json { 
-        prettyPrint = true
-        ignoreUnknownKeys = true
-    }
-    private val storageKey = "movies"
     
     /**
      * Loads all saved movie results
      */
     fun loadMovieResults(): List<MovieResult> {
-        return try {
-            val data = storageProvider.loadData(storageKey) ?: return emptyList()
-            val movieResultsList = json.decodeFromString<MovieResultsList>(data)
-            movieResultsList.movieResults
-        } catch (e: Exception) {
-            println("Error loading movies: ${e.message}")
-            emptyList()
-        }
+        return dataSource.loadAll()
     }
     
     /**
@@ -46,7 +33,7 @@ class MovieResultRepository(
         availableScreeningsOverrides: Map<Int, Double> = emptyMap(),
         weekMultiplierOverrides: Map<Int, Double> = emptyMap()
     ): MovieResult {
-        val movieResults = loadMovieResults().toMutableList()
+        val movieResults = dataSource.loadAll().toMutableList()
         val currentTime = Clock.System.now().toEpochMilliseconds()
         val newMovieResult = MovieResult(
             id = generateId(),
@@ -59,7 +46,7 @@ class MovieResultRepository(
             updatedAt = currentTime
         )
         movieResults.add(newMovieResult)
-        saveAllMovieResults(movieResults)
+        dataSource.saveAll(movieResults)
         return newMovieResult
     }
     
@@ -82,7 +69,7 @@ class MovieResultRepository(
         availableScreeningsOverrides: Map<Int, Double> = emptyMap(),
         weekMultiplierOverrides: Map<Int, Double> = emptyMap()
     ): Boolean {
-        val movieResults = loadMovieResults().toMutableList()
+        val movieResults = dataSource.loadAll().toMutableList()
         val index = movieResults.indexOfFirst { it.id == id }
         if (index != -1) {
             val updated = movieResults[index].copy(
@@ -94,7 +81,7 @@ class MovieResultRepository(
                 updatedAt = Clock.System.now().toEpochMilliseconds()
             )
             movieResults[index] = updated
-            saveAllMovieResults(movieResults)
+            dataSource.saveAll(movieResults)
             return true
         }
         return false
@@ -104,12 +91,12 @@ class MovieResultRepository(
      * Deletes a movie result
      */
     fun deleteMovieResult(id: String): Boolean {
-        val movieResults = loadMovieResults().toMutableList()
+        val movieResults = dataSource.loadAll().toMutableList()
         val initialSize = movieResults.size
         movieResults.removeAll { it.id == id }
         val removed = movieResults.size < initialSize
         if (removed) {
-            saveAllMovieResults(movieResults)
+            dataSource.saveAll(movieResults)
         }
         return removed
     }
@@ -118,33 +105,20 @@ class MovieResultRepository(
      * Gets a movie result by ID
      */
     fun getMovieResultById(id: String): MovieResult? {
-        return loadMovieResults().firstOrNull { it.id == id }
+        return dataSource.loadAll().firstOrNull { it.id == id }
     }
     
     /**
-     * Gets a movie result by title (case-sensitive)
+     * Gets a movie result by title (case-insensitive)
      */
     fun getMovieResultByTitle(title: String): MovieResult? {
-        return loadMovieResults().firstOrNull { it.title == title }
+        return dataSource.loadAll().firstOrNull { it.title.equals(title, ignoreCase = true) }
     }
     
     /**
      * Clears all saved movie results
      */
     fun clearAllMovieResults() {
-        saveAllMovieResults(emptyList())
-    }
-    
-    /**
-     * Saves all movie results to storage
-     */
-    private fun saveAllMovieResults(movieResults: List<MovieResult>) {
-        try {
-            val movieResultsList = MovieResultsList(movieResults)
-            val data = json.encodeToString(movieResultsList)
-            storageProvider.saveData(storageKey, data)
-        } catch (e: Exception) {
-            println("Error saving movies: ${e.message}")
-        }
+        dataSource.clearAll()
     }
 }
