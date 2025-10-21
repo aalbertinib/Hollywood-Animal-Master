@@ -57,16 +57,13 @@ fun ModernWeekResultCard(
     availableScreeningsValue: Double,
     availableScreeningsOverride: String,
     weekMultiplierOverride: String,
-    weekMultiplierDefaultValue: Double,
+    weekDefaultReductionPercent: Int,
     onAvailableScreeningsOverrideChange: (String) -> Unit,
     onWeekMultiplierOverrideChange: (String) -> Unit,
     focusManager: FocusManager,
     modifier: Modifier = Modifier
 ) {
-    val defaultPercentage = remember(weekMultiplierDefaultValue) {
-        val offset = ((weekMultiplierDefaultValue - 1.0) * 100).toInt()
-        if (offset > 0) "+$offset" else "$offset"
-    }
+    val defaultPercentString = remember(weekDefaultReductionPercent) { weekDefaultReductionPercent.toString() }
 
     Card(
         modifier = modifier,
@@ -140,10 +137,10 @@ fun ModernWeekResultCard(
 
             // Week Multiplier Override (as percentage)
             OutlinedTextField(
-                value = weekMultiplierOverride,
+                value = if (weekMultiplierOverride.isBlank()) defaultPercentString else weekMultiplierOverride,
                 onValueChange = onWeekMultiplierOverrideChange,
                 label = { Text(stringResource(Strings.movieResultsWeekMultiplierOverride)) },
-                placeholder = { Text("$defaultPercentage") },
+                placeholder = { Text(defaultPercentString) },
                 visualTransformation = PercentSuffixTransformation,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),

@@ -19,9 +19,13 @@ import org.aalbertini.ham.core.ui.resources.UiConstants
 import org.aalbertini.ham.preferences.DesktopWindowSettings
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.aalbertini.ham.di.DI
 
 @OptIn(FlowPreview::class)
 fun main() = application {
+
+    // Initialize Dependency Injection
+    DI.init()
 
     // Initialize desktop window settings
     val windowSettings = remember { DesktopWindowSettings() }

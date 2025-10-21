@@ -60,7 +60,11 @@ import org.aalbertini.ham.features.movie_distribution.presentation.state.Notific
 import org.aalbertini.ham.features.movie_distribution.presentation.state.parameters.ParametersUiEvent
 import org.aalbertini.ham.features.movie_distribution.presentation.state.results.ResultsUiEvent
 import org.aalbertini.ham.features.movie_distribution.presentation.state.saved_movies.SavedMoviesUiEvent
-import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.MovieDistributionViewModel
+import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.parameters.ParametersViewModel
+import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.results.ResultsViewModel
+import org.aalbertini.ham.features.movie_distribution.presentation.viewmodel.saved_movies.SavedMoviesViewModel
+import org.aalbertini.ham.features.movie_distribution.presentation.state.MovieDistributionUiState
+import org.koin.compose.viewmodel.koinViewModel
 import org.aalbertini.ham.features.settings.domain.model.ThemeColorSchemes
 import org.aalbertini.ham.features.settings.domain.model.ThemePreset
 import org.aalbertini.ham.features.settings.presentation.components.SettingsDialog
@@ -76,10 +80,40 @@ fun MovieWeeklyDistributionCalculatorScreen(
     onThemePresetChange: (ThemePreset) -> Unit = {},
     alwaysOnTop: Boolean = false,
     onAlwaysOnTopChange: ((Boolean) -> Unit)? = null,
-    onResetWindowSize: (() -> Unit)? = null,
-    viewModel: MovieDistributionViewModel = viewModel { MovieDistributionViewModel() }
+    onResetWindowSize: (() -> Unit)? = null
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Inject independent ViewModels via Koin (no nested ViewModels)
+    val parametersViewModel: ParametersViewModel = koinViewModel()
+    val resultsViewModel: ResultsViewModel = koinViewModel()
+    val savedMoviesViewModel: SavedMoviesViewModel = koinViewModel()
+
+    val parametersState by parametersViewModel.uiState.collectAsStateWithLifecycle()
+    val resultsState by resultsViewModel.uiState.collectAsStateWithLifecycle()
+    val savedState by savedMoviesViewModel.uiState.collectAsStateWithLifecycle()
+
+    // Combine states locally to keep the existing UI contract
+    val uiState = remember(parametersState, resultsState, savedState) {
+        MovieDistributionUiState(
+            commercialScoreInput = parametersState.commercialScoreInput,
+            availableScreeningsInput = parametersState.availableScreeningsInput,
+            availableScreeningsOverrides = resultsState.availableScreeningsOverrides,
+            availableScreeningsOverrideInputs = resultsState.availableScreeningsOverrideInputs,
+            weekMultiplierOverrides = resultsState.weekMultiplierOverrides,
+            weekMultiplierOverrideInputs = resultsState.weekMultiplierOverrideInputs,
+            currentMovieResultId = parametersState.currentMovieResultId,
+            currentMovieResultTitle = parametersState.currentMovieResultTitle,
+            editableTitle = parametersState.editableTitle,
+            originalTitle = parametersState.originalTitle,
+            originalCommercialScore = parametersState.originalCommercialScore,
+            originalAvailableScreenings = parametersState.originalAvailableScreenings,
+            savedMovieResults = savedState.savedMovieResults,
+            expandResults = resultsState.expandResults,
+            expandSaved = savedState.expandSaved,
+            resultsWithRounded = resultsState.resultsWithRounded,
+            notification = savedState.notification,
+            parameterConflict = savedState.parameterConflict
+        )
+    }
     @Suppress("DEPRECATION")
     val clipboard = LocalClipboardManager.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -98,7 +132,34 @@ fun MovieWeeklyDistributionCalculatorScreen(
         uiState.notification?.let { notification ->
             lastNotificationType = notification.type
             snackbarHostState.showSnackbar(notification.message)
-            viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DismissNotification)
+            savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DismissNotification)
+        }
+    }
+
+    // Coordination: Recalculate results when parameters change
+    LaunchedEffect(parametersState.commercialScoreInput, parametersState.availableScreeningsInput) {
+        val cs = parametersState.commercialScoreInput.toDoubleOrNull()
+        val av = parametersState.availableScreeningsInput.toDoubleOrNull()
+        resultsViewModel.calculateResults(cs, av)
+    }
+
+    // Coordination: Hook overrides changed callback and SavedMovies events
+    LaunchedEffect(Unit) {
+        resultsViewModel.onOverridesChanged = {
+            val cs = parametersState.commercialScoreInput.toDoubleOrNull()
+            val av = parametersState.availableScreeningsInput.toDoubleOrNull()
+            resultsViewModel.calculateResults(cs, av)
+        }
+
+        savedMoviesViewModel.onMovieLoaded = { id, title, commercialScore, numberOfScreenings, screeningsOverrides, multiplierOverrides ->
+            parametersViewModel.loadMovieParameters(id, title, commercialScore, numberOfScreenings)
+            resultsViewModel.loadOverrides(screeningsOverrides, multiplierOverrides, id)
+            resultsViewModel.calculateResults(commercialScore, numberOfScreenings)
+        }
+
+        savedMoviesViewModel.onMovieCleared = {
+            parametersViewModel.clearCurrentMovie()
+            resultsViewModel.updateCurrentMovieId(null)
         }
     }
     
@@ -280,14 +341,28 @@ fun MovieWeeklyDistributionCalculatorScreen(
                         isSavedWithoutChanges = isSavedWithoutChanges,
                         showSaveButton = showSaveButton,
                         showNewButton = showNewButton,
-                        onTitleChange = { viewModel.parametersViewModel.onEvent(ParametersUiEvent.UpdateEditableTitle(it)) },
-                        onCommercialScoreChange = { viewModel.parametersViewModel.onEvent(ParametersUiEvent.UpdateCommercialScoreInput(it)) },
-                        onAvailableScreeningsChange = { viewModel.parametersViewModel.onEvent(ParametersUiEvent.UpdateAvailableScreeningsInput(it)) },
-                        onRevertTitle = { viewModel.parametersViewModel.onEvent(ParametersUiEvent.RevertTitle) },
-                        onRevertCommercialScore = { viewModel.parametersViewModel.onEvent(ParametersUiEvent.RevertCommercialScore) },
-                        onRevertAvailableScreenings = { viewModel.parametersViewModel.onEvent(ParametersUiEvent.RevertAvailableScreenings) },
-                        onSaveClick = { viewModel.autoSaveCurrentMovie() },
-                        onNewClick = { viewModel.parametersViewModel.onEvent(ParametersUiEvent.NewMovieResult) }
+                        onTitleChange = { parametersViewModel.onEvent(ParametersUiEvent.UpdateEditableTitle(it)) },
+                        onCommercialScoreChange = { parametersViewModel.onEvent(ParametersUiEvent.UpdateCommercialScoreInput(it)) },
+                        onAvailableScreeningsChange = { parametersViewModel.onEvent(ParametersUiEvent.UpdateAvailableScreeningsInput(it)) },
+                        onRevertTitle = { parametersViewModel.onEvent(ParametersUiEvent.RevertTitle) },
+                        onRevertCommercialScore = { parametersViewModel.onEvent(ParametersUiEvent.RevertCommercialScore) },
+                        onRevertAvailableScreenings = { parametersViewModel.onEvent(ParametersUiEvent.RevertAvailableScreenings) },
+                        onSaveClick = {
+                            val ps = parametersViewModel.uiState.value
+                            val rs = resultsViewModel.uiState.value
+                            val title = ps.editableTitle
+                            val cs = ps.commercialScoreInput.toDoubleOrNull() ?: return@ParametersSection
+                            val av = ps.availableScreeningsInput.toDoubleOrNull() ?: return@ParametersSection
+                            savedMoviesViewModel.autoSaveMovieResult(
+                                title = title,
+                                commercialScore = cs,
+                                availableScreenings = av,
+                                availableScreeningsOverrides = rs.availableScreeningsOverrides,
+                                weekMultiplierOverrides = rs.weekMultiplierOverrides,
+                                currentMovieResultId = ps.currentMovieResultId
+                            )
+                        },
+                        onNewClick = { parametersViewModel.onEvent(ParametersUiEvent.NewMovieResult) }
                     )
                 },
                 resultsHeader = { /* Empty - header is now inside card */ },
@@ -317,16 +392,16 @@ fun MovieWeeklyDistributionCalculatorScreen(
                         weekMultiplierOverrideInputs = uiState.weekMultiplierOverrideInputs,
                         currentMovieResultId = uiState.currentMovieResultId,
                         onAvailableScreeningsOverrideChange = { weekIndex, value ->
-                            viewModel.resultsViewModel.onEvent(ResultsUiEvent.UpdateAvailableScreeningsOverride(weekIndex, value))
+                            resultsViewModel.onEvent(ResultsUiEvent.UpdateAvailableScreeningsOverride(weekIndex, value))
                         },
                         onWeekMultiplierOverrideChange = { weekIndex, value ->
-                            viewModel.resultsViewModel.onEvent(ResultsUiEvent.UpdateWeekMultiplierOverride(weekIndex, value))
+                            resultsViewModel.onEvent(ResultsUiEvent.UpdateWeekMultiplierOverride(weekIndex, value))
                         },
                         onCopyClick = {
                             clipboard.setText(AnnotatedString(copyText))
-                            viewModel.resultsViewModel.onEvent(ResultsUiEvent.CopyResults(uiState.resultsWithRounded))
+                            resultsViewModel.onEvent(ResultsUiEvent.CopyResults(uiState.resultsWithRounded))
                         },
-                        onToggleExpand = { viewModel.resultsViewModel.onEvent(ResultsUiEvent.ToggleResultsExpand) }
+                        onToggleExpand = { resultsViewModel.onEvent(ResultsUiEvent.ToggleResultsExpand) }
                     )
                 },
                 savedHeader = { /* Empty - header is now inside card */ },
@@ -336,16 +411,16 @@ fun MovieWeeklyDistributionCalculatorScreen(
                         expanded = uiState.expandSaved,
                         movieCount = uiState.savedMovieResults.size,
                         onLoadClick = { movieResult ->
-                            viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.LoadMovieResult(movieResult.id))
+                            savedMoviesViewModel.onEvent(SavedMoviesUiEvent.LoadMovieResult(movieResult.id))
                         },
                         onEditClick = { movieResult ->
                             showEditDialog = movieResult
                         },
                         onDeleteClick = { movieResult ->
-                            viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DeleteMovieResult(movieResult.id))
+                            savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DeleteMovieResult(movieResult.id))
                         },
                         onClearAllClick = { showClearAllDialog = true },
-                        onToggleExpand = { viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.ToggleSavedExpand) }
+                        onToggleExpand = { savedMoviesViewModel.onEvent(SavedMoviesUiEvent.ToggleSavedExpand) }
                     )
                 }
             )
@@ -361,9 +436,9 @@ fun MovieWeeklyDistributionCalculatorScreen(
             existingScreenings = conflict.existingMovie.numberOfScreenings,
             newCommercialScore = conflict.newCommercialScore,
             newScreenings = conflict.newScreenings,
-            onDismiss = { viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DismissParameterConflict) },
-            onKeepExisting = { viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.KeepExistingMovie) },
-            onOverwrite = { viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.OverwriteConflictingMovie) }
+            onDismiss = { savedMoviesViewModel.onEvent(SavedMoviesUiEvent.DismissParameterConflict) },
+            onKeepExisting = { savedMoviesViewModel.onEvent(SavedMoviesUiEvent.KeepExistingMovie) },
+            onOverwrite = { savedMoviesViewModel.onEvent(SavedMoviesUiEvent.OverwriteConflictingMovie) }
         )
     }
     
@@ -372,7 +447,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
             movieResult = movieResult,
             onDismiss = { showEditDialog = null },
             onUpdate = { title, commercialScore, availableScreenings ->
-                viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.UpdateMovieResult(movieResult.id, title, commercialScore, availableScreenings))
+                savedMoviesViewModel.onEvent(SavedMoviesUiEvent.UpdateMovieResult(movieResult.id, title, commercialScore, availableScreenings))
                 showEditDialog = null
             }
         )
@@ -383,7 +458,7 @@ fun MovieWeeklyDistributionCalculatorScreen(
             movieResultCount = uiState.savedMovieResults.size,
             onDismiss = { showClearAllDialog = false },
             onConfirm = {
-                viewModel.savedMoviesViewModel.onEvent(SavedMoviesUiEvent.ClearAllMovieResults)
+                savedMoviesViewModel.onEvent(SavedMoviesUiEvent.ClearAllMovieResults)
                 showClearAllDialog = false
             }
         )

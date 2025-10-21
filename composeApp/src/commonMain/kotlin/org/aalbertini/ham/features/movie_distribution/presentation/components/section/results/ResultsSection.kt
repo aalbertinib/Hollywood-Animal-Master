@@ -180,15 +180,21 @@ private fun ModernResultsGrid(
                     keyFactory = { weekInMonth, _ -> monthIndex * 4 + weekInMonth }
                 ) { weekInMonth, screenings ->
                     val weekIndex = monthIndex * 4 + weekInMonth
-                    // Get default multiplier for this week
-                    val defaultMultiplier = MovieDistributionConstants.Multipliers.DEFAULT_WEEK_MULTIPLIERS.getOrNull(weekIndex) ?: 0.0
+                    // Compute default reduction percent relative to previous week's default multiplier
+                    val currentDefault = MovieDistributionConstants.Multipliers.DEFAULT_WEEK_MULTIPLIERS.getOrNull(weekIndex) ?: 1.0
+                    val previousDefault = if (weekIndex > 0) {
+                        MovieDistributionConstants.Multipliers.DEFAULT_WEEK_MULTIPLIERS.getOrElse(weekIndex - 1) { 1.0 }
+                    } else 1.0
+                    val defaultReductionPercent = if (previousDefault > 0.0) {
+                        ((1.0 - (currentDefault / previousDefault)) * 100).toInt().coerceIn(0, 100)
+                    } else 0
                     ModernWeekResultCard(
                         weekNumber = weekIndex + 1,
                         screenings = screenings,
                         availableScreeningsValue = availableScreeningsValue,
                         availableScreeningsOverride = availableScreeningsOverrideInputs[weekIndex] ?: "",
                         weekMultiplierOverride = weekMultiplierOverrideInputs[weekIndex] ?: "",
-                        weekMultiplierDefaultValue = defaultMultiplier,
+                        weekDefaultReductionPercent = defaultReductionPercent,
                         onAvailableScreeningsOverrideChange = { value ->
                             onAvailableScreeningsOverrideChange(weekIndex, value)
                         },
