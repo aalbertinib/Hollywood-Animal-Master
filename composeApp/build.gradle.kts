@@ -99,7 +99,6 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.androidx.material3.windowSizeClass)
             implementation(libs.koin.android)
             implementation(libs.koin.compose)
         }
@@ -119,9 +118,20 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            implementation(libs.materialkolor)
+            implementation(libs.compose.adaptive)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutinesTest)
+        }
+        // Compose UI tests run on the desktop JVM only (no emulator or browser needed).
+        val jvmTest by getting {
+            dependencies {
+                @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+                implementation(compose.uiTest)
+                implementation(compose.desktop.currentOs)
+            }
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)

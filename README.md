@@ -20,9 +20,9 @@
 
 ## 🎯 What is This?
 
-**Hollywood Animals Master** helps players of [**Hollywood Animal**](https://store.steampowered.com/app/2680550/Hollywood_Animal/) calculate the optimal theater screening distribution for their movies.
+**Hollywood Animal Master** helps players of [**Hollywood Animal**](https://store.steampowered.com/app/2680550/Hollywood_Animal/) decide how many screenings to rent each week of a release.
 
-When releasing a movie in Hollywood Animal, you need to decide how many screenings to buy each week. This tool does the complex math instantly, showing you exactly how many screenings to purchase week-by-week based on your movie's Commercial Score and your total screening budget.
+Enter your movie's scores and the screenings your own cinemas provide. The planner shows, week by week, the audience demand and what is left to rent. After each week, type in the attendance the game reports and the rest of the run recalibrates to what your movie actually draws.
 
 ---
 
@@ -53,49 +53,34 @@ When releasing a movie in Hollywood Animal, you need to decide how many screenin
 
 ## 🎨 Features
 
-### 🧮 Smart Calculator
-- ⚡ Instant screening distribution calculations
-- 📊 Week-by-week breakdown display
-- 🔢 Automatic rounding to whole numbers
-- ✅ Input validation with helpful hints
+### 🧮 Release planner
+- Four methods from the community: **Fast decay** (default, 2026 reports), **Steam guide** (the V1 formula), **Two-thirds**, or your own **Custom** curve
+- Own cinemas subtracted every week, with per-week overrides when another film uses them
+- **Calibration**: enter real Screenings and Attendance after each week and the remaining weeks rescale to your audience
+- Week 1 bonus for holiday releases, 4 / 8 / 12-week runs, initial run vs extension split
+- Summary (total to rent, peak, rent after week 4) and an interactive chart
 
-### 💾 Save & Manage
-- Save unlimited movie calculations
-- Quick load for comparisons
-- Edit saved movies anytime
-- Copy results to clipboard
+### 💾 Library
+- Saved movies update automatically as you edit them
+- Search, duplicate, delete with undo
+- Copy any plan to the clipboard
+- Export / import the whole library as text, to move it between devices or keep a backup
+- V1 saves are still read; an unreadable save is set aside instead of being overwritten
 
-### 🎭 Themes
-Choose from **themes**:
-- **Hollywood Classic** - Inspired by game colors with golden accents
-- **Midnight Purple** - Deep purples and lavender
-- **Ocean Breeze** - Cool blues and aqua
-- **Forest Whisper** - Natural greens and earth tones
-- **Sunset Glow** - Warm oranges and coral
-
-Each theme supports both **light and dark mode** with smooth animated transitions!
+### 🎭 Material 3 theming
+- Full Material 3 color schemes generated from six seed palettes (Golden Age, Red Carpet, Technicolor, Neon Marquee, Backlot, Film Noir)
+- Palette styles, contrast levels, light / dark / system
+- Android 12+: wallpaper colors
+- Adaptive layout: bottom bar on phones, navigation rail and two panes on wide screens
 
 ## 📖 How to Use
 
-### Step 1: Enter Your Movie Data
+1. **Plan**: enter the commercial (and optionally artistic) score, your own screenings per week, pick a method.
+2. **Release**: book weeks 1–4 with the "to rent" numbers.
+3. **Recalibrate**: after each week, open the week card and copy *Screenings* and *Attendance* from the in-game distribution results. The next weeks update.
+4. **Extend**: for weeks 5+, use *Setup distribution* in the game. Players report renting after week 4 rarely pays.
 
-1. Open the app
-2. Enter your **Movie Name** (optional, for saving)
-3. Enter **Commercial Score** (found in Hollywood Animal)
-4. Enter **Number of Screenings** (your total distribution budget)
-
-### Step 2: Calculate & View Results
-
-Click **Calculate** to see your week-by-week screening distribution:
-- Week 1: 1,250 screenings
-- Week 2: 980 screenings
-- Week 3: 750 screenings
-- And so on...
-
-### Step 3: Save or Copy (Optional)
-
-- 💾 **Save** - Click save button to store for later comparison
-- 📋 **Copy** - Click copy to paste results into your notes
+See the in-app **Guide** and [docs/V2_AUDIT.md](docs/V2_AUDIT.md) for the sources and patch notes behind each method.
 
 ---
 
@@ -123,10 +108,13 @@ Desktop (Windows, Mac, Linux), Android, iOS, and web browsers.
 Yes! The desktop and mobile apps work offline. Only the web version requires an internet connection.
 
 ### Where is my data stored?
-All your saved movies are stored locally on your device. Nothing is sent to any server.
+All your saved movies are stored locally on your device. Nothing is sent to any server. In the web version they live in the browser's storage, which clearing site data erases: use **Library → Export library** to keep a copy.
 
 ### How do I change themes?
-Click the Settings icon (⚙️) in the top-right corner, then choose your preferred theme and light/dark mode.
+Open **Settings** in the navigation bar (or rail), then pick a palette, style, contrast and light/dark mode.
+
+### Are the numbers official?
+No. Weappy has not published a formula. The methods come from Steam guides and discussions, so use calibration with your real attendance for the best results.
 
 ---
 

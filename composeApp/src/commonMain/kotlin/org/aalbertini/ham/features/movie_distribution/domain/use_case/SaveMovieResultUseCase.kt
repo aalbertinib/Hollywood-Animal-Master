@@ -4,24 +4,10 @@ import org.aalbertini.ham.features.movie_distribution.data.repository.MovieResul
 import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
 
 /**
- * Use case for saving a new movie result
+ * Use case for saving a movie: creates it when its id is blank or unknown, replaces it otherwise
  */
 class SaveMovieResultUseCase(
     private val repository: MovieResultRepository
 ) {
-    operator fun invoke(
-        title: String,
-        commercialScore: Double,
-        numberOfScreenings: Double,
-        availableScreeningsOverrides: Map<Int, Double> = emptyMap(),
-        weekMultiplierOverrides: Map<Int, Double> = emptyMap()
-    ): MovieResult {
-        return repository.saveMovieResult(
-            title = title,
-            commercialScore = commercialScore,
-            numberOfScreenings = numberOfScreenings,
-            availableScreeningsOverrides = availableScreeningsOverrides,
-            weekMultiplierOverrides = weekMultiplierOverrides
-        )
-    }
+    operator fun invoke(movie: MovieResult): MovieResult = repository.saveMovieResult(movie)
 }
