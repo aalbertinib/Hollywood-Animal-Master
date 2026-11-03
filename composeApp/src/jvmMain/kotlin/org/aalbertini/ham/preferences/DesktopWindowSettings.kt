@@ -68,7 +68,8 @@ class DesktopWindowSettings(
      */
     fun loadWindowSize(defaultSize: DpSize): DpSize {
         return try {
-            val jsonString = storage.loadData(SETTINGS_KEY)
+            // Blank after "Reset window size".
+            val jsonString = storage.loadData(SETTINGS_KEY)?.takeIf { it.isNotBlank() }
             if (jsonString != null) {
                 val settingsData = json.decodeFromString<DesktopSettingsData>(jsonString)
                 val size = DpSize(settingsData.windowWidth.dp, settingsData.windowHeight.dp)

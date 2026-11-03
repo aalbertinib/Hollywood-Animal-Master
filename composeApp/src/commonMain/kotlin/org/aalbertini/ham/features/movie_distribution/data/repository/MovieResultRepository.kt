@@ -7,118 +7,99 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 /**
- * Repository for managing movie results
- * Coordinates data operations through the data source
- * Uses kotlin.time.Clock from standard library (Kotlin 2.1.20+)
+ * Repository for managing saved movies.
+ * Saving is an upsert of the whole [MovieResult], so new fields never need new parameters here.
  */
 @OptIn(ExperimentalTime::class)
 class MovieResultRepository(
     private val dataSource: MovieResultDataSource = MovieResultDataSource()
 ) {
-    
+
+    /** All saved movies, most recently updated first. */
+    fun loadMovieResults(): List<MovieResult> =
+        dataSource.loadAll().sortedByDescending { it.updatedAt }
+
     /**
-     * Loads all saved movie results
+     * Inserts [movie] (blank id → new id) or replaces the saved movie with the same id.
+     * @return the stored movie, with its id and timestamps set.
      */
-    fun loadMovieResults(): List<MovieResult> {
-        return dataSource.loadAll()
-    }
-    
-    /**
-     * Saves a new movie result
-     */
-    fun saveMovieResult(
-        title: String, 
-        commercialScore: Double, 
-        numberOfScreenings: Double,
-        availableScreeningsOverrides: Map<Int, Double> = emptyMap(),
-        weekMultiplierOverrides: Map<Int, Double> = emptyMap()
-    ): MovieResult {
+    fun saveMovieResult(movie: MovieResult): MovieResult {
         val movieResults = dataSource.loadAll().toMutableList()
-        val currentTime = Clock.System.now().toEpochMilliseconds()
-        val newMovieResult = MovieResult(
-            id = generateId(),
-            title = title,
-            commercialScore = commercialScore,
-            numberOfScreenings = numberOfScreenings,
-            availableScreeningsOverrides = availableScreeningsOverrides,
-            weekMultiplierOverrides = weekMultiplierOverrides,
-            createdAt = currentTime,
-            updatedAt = currentTime
-        )
-        movieResults.add(newMovieResult)
-        dataSource.saveAll(movieResults)
-        return newMovieResult
-    }
-    
-    /**
-     * Generates a unique ID for movie results
-     * Uses kotlin.time.Clock from standard library for cross-platform timestamp
-     */
-    private fun generateId(): String {
-        return "${Clock.System.now().toEpochMilliseconds()}-${Random.nextInt(10000, 99999)}"
-    }
-    
-    /**
-     * Updates an existing movie result
-     */
-    fun updateMovieResult(
-        id: String,
-        title: String,
-        commercialScore: Double,
-        numberOfScreenings: Double,
-        availableScreeningsOverrides: Map<Int, Double> = emptyMap(),
-        weekMultiplierOverrides: Map<Int, Double> = emptyMap()
-    ): Boolean {
-        val movieResults = dataSource.loadAll().toMutableList()
-        val index = movieResults.indexOfFirst { it.id == id }
-        if (index != -1) {
-            val updated = movieResults[index].copy(
-                title = title,
-                commercialScore = commercialScore,
-                numberOfScreenings = numberOfScreenings,
-                availableScreeningsOverrides = availableScreeningsOverrides,
-                weekMultiplierOverrides = weekMultiplierOverrides,
-                updatedAt = Clock.System.now().toEpochMilliseconds()
-            )
-            movieResults[index] = updated
-            dataSource.saveAll(movieResults)
-            return true
+        val now = Clock.System.now().toEpochMilliseconds()
+        val index = movieResults.indexOfFirst { it.id == movie.id }
+        val stored = if (index == -1) {
+            movie.copy(
+                id = movie.id.ifBlank { generateId(now) },
+                // Keeps the original date when an undo puts a deleted movie back.
+                createdAt = movie.createdAt.takeIf { it > 0 } ?: now,
+                updatedAt = now,
+            ).also { movieResults += it }
+        } else {
+            movie.copy(createdAt = movieResults[index].createdAt, updatedAt = now)
+                .also { movieResults[index] = it }
         }
-        return false
+        dataSource.saveAll(movieResults)
+        return stored
     }
-    
+
+    /** Every saved movie as a JSON document that [importLibrary] reads back. */
+    fun exportLibrary(): String = dataSource.encode(loadMovieResults())
+
+    /**
+     * Merges an exported library into this one. A movie whose id is already here replaces it only
+     * when the imported copy was updated more recently; movies without an id get a new one.
+     * @return what changed, or `null` when [text] is not an exported library.
+     */
+    fun importLibrary(text: String): ImportResult? {
+        val decoded = dataSource.decode(text, requireList = true) ?: return null
+        val movieResults = dataSource.loadAll().toMutableList()
+        val now = Clock.System.now().toEpochMilliseconds()
+        var added = 0
+        var updated = 0
+        var unchanged = 0
+        decoded.movies.forEach { movie ->
+            val index = movieResults.indexOfFirst { it.id == movie.id && movie.id.isNotBlank() }
+            when {
+                index == -1 -> {
+                    movieResults += movie.copy(
+                        id = movie.id.ifBlank { generateId(now) },
+                        createdAt = movie.createdAt.takeIf { it > 0 } ?: now,
+                        updatedAt = movie.updatedAt.takeIf { it > 0 } ?: now,
+                    )
+                    added++
+                }
+                movie.updatedAt > movieResults[index].updatedAt -> {
+                    movieResults[index] = movie
+                    updated++
+                }
+                else -> unchanged++
+            }
+        }
+        if (added + updated > 0) dataSource.saveAll(movieResults)
+        return ImportResult(added = added, updated = updated, unchanged = unchanged, unreadable = decoded.skipped)
+    }
+
     /**
      * Deletes a movie result
      */
     fun deleteMovieResult(id: String): Boolean {
         val movieResults = dataSource.loadAll().toMutableList()
-        val initialSize = movieResults.size
-        movieResults.removeAll { it.id == id }
-        val removed = movieResults.size < initialSize
+        val removed = movieResults.removeAll { it.id == id }
         if (removed) {
             dataSource.saveAll(movieResults)
         }
         return removed
     }
-    
-    /**
-     * Gets a movie result by ID
-     */
-    fun getMovieResultById(id: String): MovieResult? {
-        return dataSource.loadAll().firstOrNull { it.id == id }
-    }
-    
-    /**
-     * Gets a movie result by title (case-insensitive)
-     */
-    fun getMovieResultByTitle(title: String): MovieResult? {
-        return dataSource.loadAll().firstOrNull { it.title.equals(title, ignoreCase = true) }
-    }
-    
+
     /**
      * Clears all saved movie results
      */
     fun clearAllMovieResults() {
         dataSource.clearAll()
     }
+
+    private fun generateId(now: Long): String = "$now-${Random.nextInt(10000, 99999)}"
 }
+
+/** Outcome of [MovieResultRepository.importLibrary]. */
+data class ImportResult(val added: Int, val updated: Int, val unchanged: Int, val unreadable: Int)

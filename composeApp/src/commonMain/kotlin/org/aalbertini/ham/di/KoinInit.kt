@@ -1,20 +1,18 @@
 package org.aalbertini.ham.di
 
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.startKoin
 
 object DI {
-    @Volatile
-    private var started: Boolean = false
-
+    /**
+     * Starts Koin once. Every entry point (Android, desktop, iOS, web) calls this,
+     * so it relies on Koin's own global context instead of JVM-only locking
+     * (`@Volatile` / `synchronized` don't exist on Kotlin/JS and Wasm).
+     */
     fun init() {
-        if (!started) {
-            synchronized(this) {
-                if (!started) {
-                    startKoin {
-                        modules(appModules)
-                    }
-                    started = true
-                }
+        if (GlobalContext.getOrNull() == null) {
+            startKoin {
+                modules(appModules)
             }
         }
     }

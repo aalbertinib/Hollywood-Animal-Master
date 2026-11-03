@@ -21,7 +21,7 @@ import platform.Foundation.writeToFile
  * iOS implementation of StorageProvider using file storage
  * Thread-safe implementation using ReentrantLock
  */
-actual class StorageProvider {
+actual class StorageProvider : KeyValueStore {
     private val fileManager = NSFileManager.defaultManager
     private val lock: ReentrantLock = reentrantLock()
     
@@ -38,7 +38,7 @@ actual class StorageProvider {
         return "${getDocumentsDirectory()}/$key.json"
     }
     
-    actual fun saveData(key: String, data: String) {
+    actual override fun saveData(key: String, data: String) {
         lock.withLock {
             try {
                 val path = getFilePath(key)
@@ -55,7 +55,7 @@ actual class StorageProvider {
         }
     }
     
-    actual fun loadData(key: String): String? {
+    actual override fun loadData(key: String): String? {
         return lock.withLock {
             try {
                 val path = getFilePath(key)
