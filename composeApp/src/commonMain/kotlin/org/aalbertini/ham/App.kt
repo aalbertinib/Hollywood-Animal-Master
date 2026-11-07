@@ -39,6 +39,7 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -47,7 +48,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldLayout
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
@@ -68,9 +69,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.backhandler.BackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationEventHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -156,7 +158,7 @@ private enum class Destination(val label: StringResource, val icon: ImageVector,
  * Root composable shared by every platform.
  * Desktop passes its window callbacks; other platforms leave them null and the section is hidden.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
     alwaysOnTop: Boolean = false,
@@ -184,9 +186,12 @@ fun App(
             selection != null -> LibraryMode.Selecting(selection!!.size)
             else -> LibraryMode.Browse
         }
-        BackHandler(enabled = destination == Destination.LIBRARY && libraryMode != LibraryMode.Browse) {
-            if (comparing != null) comparing = null else selection = null
-        }
+        // System back (Android) leaves the comparison, then the picking step.
+        NavigationEventHandler(
+            state = rememberNavigationEventState(currentInfo = NavigationEventInfo.None),
+            isBackEnabled = destination == Destination.LIBRARY && libraryMode != LibraryMode.Browse,
+            onBackCompleted = { if (comparing != null) comparing = null else selection = null },
+        )
         val snackbar = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         @Suppress("DEPRECATION") // LocalClipboard's ClipEntry has no common text constructor yet.
@@ -223,7 +228,7 @@ fun App(
             }
         }
 
-        val navigationType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo())
+        val navigationType = NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfoV2())
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
         NavigationSuiteScaffoldLayout(
             navigationSuite = {
@@ -478,7 +483,7 @@ private fun AppTopBar(
 @Composable
 private fun ActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
         tooltip = { PlainTooltip { Text(label) } },
         state = rememberTooltipState(),
     ) {

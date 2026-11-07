@@ -15,6 +15,8 @@ import kotlin.test.assertTrue
 
 class DistributionPlannerTest {
 
+    private val lenientJson = Json { ignoreUnknownKeys = true }
+
     private fun movie(
         commercial: Double,
         own: Double = 0.0,
@@ -177,7 +179,7 @@ class DistributionPlannerTest {
             "availableScreeningsOverrides":{"2":1000.0},"weekMultiplierOverrides":{},
             "createdAt":1,"updatedAt":2}]}
         """.trimIndent()
-        val movie = Json { ignoreUnknownKeys = true }.decodeFromString<MovieResultsList>(v1).movieResults.single()
+        val movie = lenientJson.decodeFromString<MovieResultsList>(v1).movieResults.single()
         assertEquals(DistributionMethod.STEAM_GUIDE, movie.method)
         assertEquals(8, movie.runWeeks)
         assertEquals(mapOf(2 to 1000.0), movie.availableScreeningsOverrides)

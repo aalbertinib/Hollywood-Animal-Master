@@ -9,7 +9,7 @@ import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performSemanticsAction
-import androidx.compose.ui.test.runDesktopComposeUiTest
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import org.aalbertini.ham.features.movie_distribution.domain.model.DistributionMethod
 import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
 import org.aalbertini.ham.features.movie_distribution.presentation.screen.CompareScreen
