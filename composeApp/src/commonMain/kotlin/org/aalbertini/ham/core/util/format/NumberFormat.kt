@@ -12,6 +12,13 @@ fun Long.grouped(): String {
 
 fun Int.grouped(): String = toLong().grouped()
 
+/** A difference: `+2,400`, `−1,200` (minus sign, not hyphen), `0`. */
+fun Long.signedGrouped(): String = when {
+    this > 0 -> "+" + grouped()
+    this < 0 -> "−" + (-this).grouped()
+    else -> "0"
+}
+
 /**
  * Plain decimal text with at most [maxDecimals] digits and no trailing zeros:
  * `3200.0` → `3200`, `6.50` → `6.5`. Never uses scientific notation, unlike `Double.toString()`,

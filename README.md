@@ -64,6 +64,7 @@ Enter your movie's scores and the screenings your own cinemas provide. The plann
 - Saved movies update automatically as you edit them
 - Search, duplicate, delete with undo
 - Copy any plan to the clipboard
+- Compare 2 to 4 saved movies side by side: inputs, totals (with the difference from the first one picked) and what to rent each week. Duplicate a movie and change the method to compare methods
 - Export / import the whole library as text, to move it between devices or keep a backup
 - V1 saves are still read; an unreadable save is set aside instead of being overwritten
 

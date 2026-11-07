@@ -88,7 +88,9 @@ Patch notes relevant to distribution (Steam news API):
 | R11 | Desktop | No minimum window size (layout collapses below phone width); "Reset window size" left an empty file that threw on the next launch. | Minimum 360 × 560; a blank settings file means default size. | Build only |
 | F1 | Feature | Web saves live in localStorage (erased with site data) and there was no way to move a library between desktop, phone and browser. | **Library → Export library** copies JSON to the clipboard; **Import library** (also on the empty Library screen) merges it, newest copy of each movie wins. | `MovieResultRepositoryTest`, `PlannerViewModelTest`, `AppUiTest` |
 
-**Tests.** 19 → 59, all on the JVM (`./gradlew :composeApp:jvmTest`):
+| F2 | Feature | No way to see two plans side by side, e.g. the same movie under two methods. | **Library → Compare movies**: pick 2–4 movies (pick order sets the reference), then an overview table (method, scores, own, run, to rent, peak, after week 4, weeks ran, with differences from the reference) and a weekly table with one bar scale shared by all cells. On phones the label column stays and the movie columns scroll sideways together across both tables. Back (and Android back) returns to the picking step. | `MovieComparisonTest`, `CompareScreenUiTest`, `AppUiTest` |
+
+**Tests.** 19 → 70, all on the JVM (`./gradlew :composeApp:jvmTest`):
 
 - Repositories run against an in-memory `KeyValueStore`; `StorageProvider` now implements that interface.
 - `PlannerViewModelTest` drives auto-save timing with `kotlinx-coroutines-test`.

@@ -6,10 +6,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.SemanticsNodeInteractionsProvider
 import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isToggleable
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -18,8 +23,10 @@ import androidx.compose.ui.test.runDesktopComposeUiTest
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
+import org.aalbertini.ham.core.util.format.signedGrouped
 import org.aalbertini.ham.di.appModules
 import org.aalbertini.ham.features.movie_distribution.data.data_source.MovieResultDataSource
+import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieComparison
 import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
 import org.aalbertini.ham.features.settings.data.SettingsRepository
 import org.koin.core.context.startKoin
@@ -119,5 +126,85 @@ class AppUiTest {
 
         onNodeWithText("Imported: 1 new, 0 updated").assertExists()
         onNodeWithText("From my laptop").assertExists()
+    }
+
+    private fun saved(title: String, commercial: Double, updatedAt: Long) = MovieResult(
+        id = title.lowercase(),
+        title = title,
+        commercialScore = commercial,
+        numberOfScreenings = 3200.0,
+        createdAt = updatedAt,
+        updatedAt = updatedAt,
+    )
+
+    @Test
+    fun compare_twoMovies_showsTheDifferenceFromTheFirstPicked() = runDesktopComposeUiTest(width = 1280, height = 1400) {
+        val alpha = saved("Alpha", 5.0, updatedAt = 2)
+        val beta = saved("Beta", 8.0, updatedAt = 1)
+        MovieResultDataSource(store).saveAll(listOf(alpha, beta))
+        setContent { TestApp() }
+
+        onNodeWithText("Library").performClick()
+        onNodeWithContentDescription("Compare movies").performClick()
+        onNodeWithText("Select movies").assertExists()
+        // Pick Beta first: it becomes the reference.
+        onNodeWithText("Beta").performClick()
+        onNodeWithText("Alpha").performClick()
+        onNodeWithText("2 selected").assertExists()
+        onNodeWithText("Compare").performClick()
+
+        // Both tables head their columns with the titles; Beta, picked first, is the reference.
+        onAllNodes(hasText("Beta") and hasText("Reference")).assertCountEquals(2)
+        onAllNodes(hasText("Alpha") and hasText("Reference")).assertCountEquals(0)
+        val expected = MovieComparison(listOf(beta, alpha))
+        onNodeWithText(expected.totalRentDelta(1).signedGrouped()).assertExists()
+        onNodeWithText("Week 8").assertExists()
+
+        // Back returns to the picking step with the same movies, then Cancel leaves it.
+        onNodeWithContentDescription("Back").performClick()
+        onNodeWithText("2 selected").assertExists()
+        onNodeWithContentDescription("Cancel selection").performClick()
+        onNodeWithContentDescription("Compare movies").assertExists()
+    }
+
+    @Test
+    fun compare_stopsAtFourMovies() = runDesktopComposeUiTest(width = 1280, height = 1400) {
+        val names = listOf("Alpha", "Beta", "Gamma", "Delta", "Echo")
+        MovieResultDataSource(store).saveAll(names.mapIndexed { i, name -> saved(name, 5.0, updatedAt = 10L - i) })
+        setContent { TestApp() }
+
+        onNodeWithText("Library").performClick()
+        onNodeWithContentDescription("Compare movies").performClick()
+        names.take(4).forEach { onNodeWithText(it).performClick() }
+        onNodeWithText("4 selected").assertExists()
+        onNode(isToggleable() and hasText("Echo", substring = true)).assertIsNotEnabled()
+        // Unpicking one frees a slot again.
+        onNodeWithText("Alpha").performClick()
+        onNode(isToggleable() and hasText("Echo", substring = true)).assertIsEnabled()
+    }
+
+    @Test
+    fun compare_needsTwoMovies() = runDesktopComposeUiTest(width = 1280, height = 1400) {
+        MovieResultDataSource(store).saveAll(listOf(saved("Alpha", 5.0, 2), saved("Beta", 6.0, 1)))
+        setContent { TestApp() }
+        onNodeWithText("Library").performClick()
+        onNodeWithContentDescription("Compare movies").performClick()
+        onNodeWithText("Alpha").performClick()
+        onNodeWithText("Compare").assertIsNotEnabled()
+    }
+
+    @Test
+    fun compare_movieTitle_opensItInThePlanner() = runDesktopComposeUiTest(width = 1280, height = 1400) {
+        MovieResultDataSource(store).saveAll(listOf(saved("Alpha", 5.0, 2), saved("Beta", 6.0, 1)))
+        setContent { TestApp() }
+        onNodeWithText("Library").performClick()
+        onNodeWithContentDescription("Compare movies").performClick()
+        onNodeWithText("Alpha").performClick()
+        onNodeWithText("Beta").performClick()
+        onNodeWithText("Compare").performClick()
+
+        // Titles head both tables; either opens the movie.
+        onAllNodesWithText("Beta")[0].performClick()
+        titleField().assert(hasText("Beta"))
     }
 }
