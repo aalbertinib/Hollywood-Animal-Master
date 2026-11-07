@@ -1,6 +1,7 @@
 package org.aalbertini.ham
 
 import androidx.compose.runtime.LaunchedEffect
+import java.awt.Dimension
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,18 +15,23 @@ import hollywoodanimalmaster.composeapp.generated.resources.Res
 import hollywoodanimalmaster.composeapp.generated.resources.app_icon
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
+import androidx.compose.ui.unit.dp
+import hollywoodanimalmaster.composeapp.generated.resources.window_title
 import org.aalbertini.ham.preferences.DesktopWindowSettings
-import org.aalbertini.ham.ui.components.UiConstants
-import org.aalbertini.ham.ui.components.UiStrings
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
+import org.aalbertini.ham.di.DI
 
 @OptIn(FlowPreview::class)
 fun main() = application {
+
+    // Initialize Dependency Injection
+    DI.init()
+
     // Initialize desktop window settings
     val windowSettings = remember { DesktopWindowSettings() }
-    
     // Load saved window size or use default
-    val defaultSize = DpSize(UiConstants.Window.desktopWidth, UiConstants.Window.desktopHeight)
+    val defaultSize = DpSize(1280.dp, 860.dp)
     val initialSize = remember { windowSettings.loadWindowSize(defaultSize) }
     
     // Create window state with loaded size
@@ -50,11 +56,13 @@ fun main() = application {
     
     Window(
         onCloseRequest = ::exitApplication,
-        title = UiStrings.SCREEN_TITLE,
+        title = stringResource(Res.string.window_title),
         state = windowState,
         alwaysOnTop = alwaysOnTop,
         icon = painterResource(Res.drawable.app_icon)
     ) {
+        // Below phone width the layout has nothing left to give.
+        LaunchedEffect(Unit) { window.minimumSize = Dimension(360, 560) }
         App(
             alwaysOnTop = alwaysOnTop,
             onAlwaysOnTopChange = { alwaysOnTop = it },

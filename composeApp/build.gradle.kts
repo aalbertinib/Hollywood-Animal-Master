@@ -1,15 +1,12 @@
-
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnRootExtension
-import java.io.FileInputStream
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
@@ -19,9 +16,17 @@ plugins {
 kotlin {
     jvmToolchain(21)
     
-    androidTarget {
+    // AGP 9: a multiplatform module is an Android *library*; the app itself lives in :androidApp.
+    android {
+        namespace = "org.aalbertini.ham.shared"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
+        }
+        // Compose Multiplatform resources (strings, drawables) are packaged as Android resources.
+        androidResources {
+            enable = true
         }
     }
     
@@ -45,6 +50,12 @@ kotlin {
     
     js {
         browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                    useFirefox()
+                }
+            }
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
                 devServer = devServer?.copy(
@@ -58,18 +69,21 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser {
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                    useFirefox()
+                }
+            }
             commonWebpackConfig {
                 outputFileName = "composeApp.js"
                 devServer =
                     (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                         // Suppress Node.js deprecation warnings
                         open = false
-                        static =
-                            (static ?: mutableListOf()).apply {
-                                // Serve sources to debug inside browser
-                                add(project.rootDir.path)
-                                add(project.projectDir.path)
-                            }
+                        // Serve sources to debug inside browser
+                        static(project.rootDir.path)
+                        static(project.projectDir.path)
                     }
                 sourceMaps = true
             }
@@ -85,32 +99,33 @@ kotlin {
         // Kotlin 2.2.20+ automatically provides webMain as parent of jsMain and wasmJsMain
         // via the default hierarchy template. No manual dependsOn() calls needed.
         
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
-            implementation(libs.androidx.material3.windowSizeClass)
-            implementation(libs.koin.android)
-            implementation(libs.koin.compose)
-        }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.animation)
-            implementation(compose.material3)
-            implementation(compose.material3AdaptiveNavigationSuite)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.compose.runtime)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.animation)
+            implementation(libs.compose.material3)
+            implementation(libs.compose.material3.navigationSuite)
+            implementation(libs.compose.material.iconsExtended)
+            implementation(libs.compose.ui)
+            implementation(libs.compose.components.resources)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
+            implementation(libs.materialkolor)
+            implementation(libs.compose.adaptive)
+            implementation(libs.navigationevent.compose)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutinesTest)
+        }
+        // Compose UI tests run on the desktop JVM only (no emulator or browser needed).
+        getByName("jvmTest").dependencies {
+            implementation(libs.compose.ui.test)
+            implementation(compose.desktop.currentOs)
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -127,72 +142,8 @@ kotlin {
 
 // Version management - read from gradle.properties
 val appVersion = project.findProperty("project.version") as String? ?: "1.0.0"
-val versionParts = appVersion.split(".")
-val appVersionCode = versionParts[0].toInt() * 10000 + 
-                     (versionParts.getOrNull(1)?.toInt() ?: 0) * 100 + 
-                     (versionParts.getOrNull(2)?.toInt() ?: 0)
-
-android {
-    namespace = "org.aalbertini.ham"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    // Load keystore properties from file or environment variables
-    val keystorePropertiesFile = rootProject.file("keystore.properties")
-    val keystoreProperties = Properties()
-    
-    val useKeystoreConfig = if (keystorePropertiesFile.exists()) {
-        keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-        true
-    } else {
-        // Try to load from environment variables (for CI/CD)
-        System.getenv("KEYSTORE_FILE")?.let { keystoreProperties["storeFile"] = it }
-        System.getenv("KEYSTORE_PASSWORD")?.let { keystoreProperties["storePassword"] = it }
-        System.getenv("KEY_ALIAS")?.let { keystoreProperties["keyAlias"] = it }
-        System.getenv("KEY_PASSWORD")?.let { keystoreProperties["keyPassword"] = it }
-        
-        keystoreProperties.containsKey("storeFile") && 
-        keystoreProperties.containsKey("storePassword")
-    }
-
-    signingConfigs {
-        if (useKeystoreConfig) {
-            create("release") {
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-            }
-        }
-    }
-
-    defaultConfig {
-        applicationId = "org.aalbertini.ham"
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = appVersionCode
-        versionName = appVersion
-    }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            if (useKeystoreConfig) {
-                signingConfig = signingConfigs.getByName("release")
-            }
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
-dependencies {
-    debugImplementation(compose.uiTooling)
+val appBuildNumber = appVersion.split(".").let { parts ->
+    parts[0].toInt() * 10000 + (parts.getOrNull(1)?.toInt() ?: 0) * 100 + (parts.getOrNull(2)?.toInt() ?: 0)
 }
 
 compose.desktop {
@@ -212,19 +163,38 @@ compose.desktop {
                     javaToolchains.launcherFor {
                         languageVersion.set(JavaLanguageVersion.of(21))
                     }.get().metadata.installationPath.asFile.absolutePath
-                }.getOrElse {
-                    System.getenv("JAVA_HOME")
-                }
+            }.getOrElse {
+                System.getenv("JAVA_HOME")
             }
+        }
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "org.aalbertini.ham"
+            packageName = "HollywoodAnimalMaster"
             packageVersion = appVersion
+
+            // Installer icons per platform (guarded to avoid failures if not generated yet)
+            windows {
+                val ico = project.file("src/jvmMain/resources/app-icon.ico")
+                if (ico.exists()) {
+                    iconFile.set(ico)
+                }
+            }
+            linux {
+                val png = project.file("src/jvmMain/resources/app-icon.png")
+                if (png.exists()) {
+                    iconFile.set(png)
+                }
+            }
+            macOS {
+                val icns = project.file("src/jvmMain/resources/app-icon.icns")
+                if (icns.exists()) {
+                    iconFile.set(icns)
+                }
+            }
         }
     }
 }
-
 // Custom tasks to print output paths after building
 // Note: outputDirectory uses @Internal instead of @InputDirectory to avoid
 // Gradle validation failures when directory doesn't exist yet (e.g., in CI)
@@ -264,12 +234,6 @@ tasks.register<PrintOutputPathsTask>("printPackagePaths") {
     outputDirectory.set(layout.buildDirectory.dir("compose/binaries"))
     taskTitle.set("BUILD OUTPUT LOCATION - DESKTOP")
     fileExtensions.set(listOf("msi", "exe", "dmg", "deb", "rpm", "pkg"))
-}
-
-tasks.register<PrintOutputPathsTask>("printAndroidPaths") {
-    outputDirectory.set(layout.buildDirectory.dir("outputs/apk"))
-    taskTitle.set("BUILD OUTPUT LOCATION - ANDROID")
-    fileExtensions.set(listOf("apk"))
 }
 
 abstract class PrintWebPathsTask : DefaultTask() {
@@ -312,10 +276,6 @@ tasks.matching { it.name.startsWith("package") && it.name != "packageDistributio
     finalizedBy("printPackagePaths")
 }
 
-tasks.matching { it.name.contains("assembleDebug") || it.name.contains("assembleRelease") }.configureEach {
-    finalizedBy("printAndroidPaths")
-}
-
 tasks.matching { it.name.contains("wasmJsBrowserDistribution") }.configureEach {
     finalizedBy("printWebPaths")
 }
@@ -348,8 +308,7 @@ tasks.register("printVersion") {
         println("Project Version Information")
         println("=".repeat(60))
         println("Version: $appVersion")
-        println("Android Version Code: $appVersionCode")
-        println("Android Version Name: $appVersion")
+        println("Android: see ./gradlew :androidApp:printVersion")
         println("Desktop Package Version: $appVersion")
         println("iOS Marketing Version: $appVersion")
         println("=".repeat(60))
@@ -372,14 +331,14 @@ tasks.register("syncVersionToIOS") {
                 "MARKETING_VERSION=$appVersion"
             )
             
-            // Update CURRENT_PROJECT_VERSION (build number from versionCode)
+            // Update CURRENT_PROJECT_VERSION (build number, same formula as the Android versionCode)
             content = content.replace(
                 Regex("CURRENT_PROJECT_VERSION=.*"),
-                "CURRENT_PROJECT_VERSION=$appVersionCode"
+                "CURRENT_PROJECT_VERSION=$appBuildNumber"
             )
             
             iosConfigFile.writeText(content)
-            println("✅ iOS version synced: $appVersion (build $appVersionCode)")
+            println("✅ iOS version synced: $appVersion (build $appBuildNumber)")
         } else {
             println("⚠️  iOS Config.xcconfig not found, skipping sync")
         }
@@ -390,12 +349,6 @@ tasks.register("syncVersionToIOS") {
 val isCI = System.getenv("CI") == "true" || System.getenv("GITHUB_ACTIONS") == "true"
 
 tasks.named("printPackagePaths") {
-    onlyIf { 
-        !isCI && (this as PrintOutputPathsTask).outputDirectory.get().asFile.exists()
-    }
-}
-
-tasks.named("printAndroidPaths") {
     onlyIf { 
         !isCI && (this as PrintOutputPathsTask).outputDirectory.get().asFile.exists()
     }
@@ -414,5 +367,5 @@ tasks.named("printIosPaths") {
 }
 
 rootProject.plugins.withType<org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin> {
-    rootProject.the<YarnRootExtension>().yarnLockAutoReplace = true
+    rootProject.the<YarnRootExtension>().yarnLockAutoReplaceProperty.set(true)
 }
