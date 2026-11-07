@@ -1,181 +1,74 @@
-# 🎬 Hollywood Animals Master
+# Hollywood Animal Master
 
-**Movie Distribution Calculator for Hollywood Animal**
+A release planner for [Hollywood Animal](https://store.steampowered.com/app/2680550/Hollywood_Animal/): how many screenings to rent each week of a movie's run.
 
-> *Calculate the perfect screening distribution for your movies - one week at a time*
+**[Open the web app](https://aalbertinib.github.io/Hollywood-Animal-Master/)** · [Downloads](../../releases/latest) · [Report a problem](../../issues)
 
-<p align="center">
-  <a href="https://store.steampowered.com/app/2680550/Hollywood_Animal/">
-    <img src="https://img.shields.io/badge/For-Hollywood%20Animal-gold?style=for-the-badge" alt="For Hollywood Animal"/>
-  </a>
-  <a href="../../releases/latest">
-    <img src="https://img.shields.io/badge/Download-Latest%20Release-blue?style=for-the-badge" alt="Download"/>
-  </a>
-  <a href="https://aalbertinib.github.io/Hollywood-Animal-Master/">
-    <img src="https://img.shields.io/badge/Try-Web%20App-green?style=for-the-badge" alt="Web App"/>
-  </a>
-</p>
+## What it does
 
----
+You enter the movie's commercial score (and artistic score if you have it) and how many screenings your own cinemas provide per week. The planner works out the audience for each week and how many screenings you still need to rent.
 
-## 🎯 What is This?
+After a week has run, copy the game's **Screenings** and **Attendance** into that week. The weeks that follow are rescaled to what your movie actually drew, so you stop renting cinemas that stay empty.
 
-**Hollywood Animal Master** helps players of [**Hollywood Animal**](https://store.steampowered.com/app/2680550/Hollywood_Animal/) decide how many screenings to rent each week of a release.
+There is no official formula. The planner offers the methods players have worked out on Steam, and links each one to the guide or discussion it comes from:
 
-Enter your movie's scores and the screenings your own cinemas provide. The planner shows, week by week, the audience demand and what is left to rent. After each week, type in the attendance the game reports and the rest of the run recalibrates to what your movie actually draws.
+- **Fast decay** (default): average score × 2,000 in week 1, then roughly halving. Closest to recent attendance reports.
+- **Steam guide**: the formula version 1 of this tool used (−20 % a week).
+- **Two-thirds**: −1/3 a week.
+- **Custom**: your own curve.
 
----
+Other things it does:
 
-## ⚡ Quick Start
+- Saves movies, and keeps saving them as you edit.
+- Compares 2 to 4 saved movies side by side, for example the same movie under two methods.
+- Exports the whole library as text and imports it on another device.
+- Copies a plan to the clipboard.
+- Has a light and a dark theme, several color palettes, and wallpaper colors on Android 12+.
 
-### Try It Now - No Installation!
+The in-app **Guide** explains the weekly routine and lists the patch notes that affect distribution.
 
-**🌐 [Open Web App](https://aalbertinib.github.io/Hollywood-Animal-Master/)** - Works in any modern browser
+## Download
 
-### Or Download for Your Platform
+The [latest release](../../releases/latest) has:
 
-**[📥 Download Latest Release](../../releases/latest)**
+| Platform | File |
+|---|---|
+| Windows | `Hollywood-Animal-Master-<version>-Windows-x64.zip` |
+| macOS (Apple Silicon) | `Hollywood-Animal-Master-<version>-macOS-ARM64.zip` |
+| macOS (Intel) | `Hollywood-Animal-Master-<version>-macOS-x64.zip` |
+| Linux | `Hollywood-Animal-Master-<version>-Linux-x64.zip` |
+| Android | `Hollywood-Animal-Master-<version>-Android-Universal.apk` |
 
-| Platform | Download | Size |
-|----------|----------|------|
-| 🖥️ **Windows** | `Hollywood-Animal-Master-*-Windows-x64.zip` | ~50 MB |
-| 🍎 **macOS Intel** | `Hollywood-Animal-Master-*-macOS-x64.zip` | ~50 MB |
-| 🍎 **macOS Apple Silicon** | `Hollywood-Animal-Master-*-macOS-ARM64.zip` | ~50 MB |
-| 🐧 **Linux** | `Hollywood-Animal-Master-*-Linux-x64.zip` | ~50 MB |
-| 🤖 **Android** | `Hollywood-Animal-Master-*-Android-Universal.apk` | ~20 MB |
+Desktop builds are zip files: extract and run. The web app needs no install. There is no iOS download; it can be built from source on a Mac.
 
-**Installation:**
-1. Download the file for your platform
-2. Extract the ZIP file (desktop) or install APK (Android)
-3. Run the app and start calculating!
+## Your data
 
----
+Everything stays on your device; nothing is sent anywhere. The web app keeps your movies in the browser's storage, which is erased if you clear the site's data. Use **Library → Export library** to keep a copy.
 
-## 🎨 Features
+Saves from version 1 still open.
 
-### 🧮 Release planner
-- Four methods from the community: **Fast decay** (default, 2026 reports), **Steam guide** (the V1 formula), **Two-thirds**, or your own **Custom** curve
-- Own cinemas subtracted every week, with per-week overrides when another film uses them
-- **Calibration**: enter real Screenings and Attendance after each week and the remaining weeks rescale to your audience
-- Week 1 bonus for holiday releases, 4 / 8 / 12-week runs, initial run vs extension split
-- Summary (total to rent, peak, rent after week 4) and an interactive chart
+## Building from source
 
-### 💾 Library
-- Saved movies update automatically as you edit them
-- Search, duplicate, delete with undo
-- Copy any plan to the clipboard
-- Compare 2 to 4 saved movies side by side: inputs, totals (with the difference from the first one picked) and what to rent each week. Duplicate a movie and change the method to compare methods
-- Export / import the whole library as text, to move it between devices or keep a backup
-- V1 saves are still read; an unreadable save is set aside instead of being overwritten
-
-### 🎭 Material 3 theming
-- Full Material 3 color schemes generated from six seed palettes (Golden Age, Red Carpet, Technicolor, Neon Marquee, Backlot, Film Noir)
-- Palette styles, contrast levels, light / dark / system
-- Android 12+: wallpaper colors
-- Adaptive layout: bottom bar on phones, navigation rail and two panes on wide screens
-
-## 📖 How to Use
-
-1. **Plan**: enter the commercial (and optionally artistic) score, your own screenings per week, pick a method.
-2. **Release**: book weeks 1–4 with the "to rent" numbers.
-3. **Recalibrate**: after each week, open the week card and copy *Screenings* and *Attendance* from the in-game distribution results. The next weeks update.
-4. **Extend**: for weeks 5+, use *Setup distribution* in the game. Players report renting after week 4 rarely pays.
-
-See the in-app **Guide** and [docs/V2_AUDIT.md](docs/V2_AUDIT.md) for the sources and patch notes behind each method.
-
----
-
-## 🎮 About Hollywood Animal
-
-[**Hollywood Animal**](https://store.steampowered.com/app/2680550/Hollywood_Animal/) is a strategic tycoon game where you build and manage a Hollywood movie studio from the 1920s onwards.
-
-**Developer:** [Weappy Studio](https://weappy-studio.com/hollywood-animal/)  
-**Platform:** [Steam (Windows)](https://store.steampowered.com/app/2680550/Hollywood_Animal/)
-
----
-
-## ❓ FAQ
-
-### Do I need Hollywood Animal to use this?
-While the tool is designed for Hollywood Animal players, it can calculate screening distributions for any similar scenario. However, the calculations are specifically tuned for the game's mechanics.
-
-### Is it free?
-Yes! Completely free and open source (GNU AGPL v3).
-
-### Which platforms are supported?
-Desktop (Windows, Mac, Linux), Android, iOS, and web browsers.
-
-### Can I use it offline?
-Yes! The desktop and mobile apps work offline. Only the web version requires an internet connection.
-
-### Where is my data stored?
-All your saved movies are stored locally on your device. Nothing is sent to any server. In the web version they live in the browser's storage, which clearing site data erases: use **Library → Export library** to keep a copy.
-
-### How do I change themes?
-Open **Settings** in the navigation bar (or rail), then pick a palette, style, contrast and light/dark mode.
-
-### Are the numbers official?
-No. Weappy has not published a formula. The methods come from Steam guides and discussions, so use calibration with your real attendance for the best results.
-
----
-
-## 🔗 Links
-
-- **🎮 Hollywood Animal on Steam:** https://store.steampowered.com/app/2680550/Hollywood_Animal/
-- **🌐 Try Web App:** https://aalbertinib.github.io/Hollywood-Animal-Master/
-- **📥 Download Releases:** [GitHub Releases](../../releases)
-- **🐛 Report Issues:** [GitHub Issues](../../issues)
-- **💬 Discussions:** [GitHub Discussions](../../discussions)
-
----
-
-## 👨‍💻 For Developers
-
-**Want to contribute or build from source?**
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, build instructions, and contribution guidelines.
-
-### Version Management
-
-This project uses centralized version management from `gradle.properties`:
+You need JDK 21 and, for Android, the Android SDK (API 37).
 
 ```bash
-# View current version
-./gradlew :composeApp:printVersion
-
-# Update version: Edit gradle.properties, then sync
-./gradlew :composeApp:syncVersionToIOS
+./gradlew :composeApp:run                          # desktop
+./gradlew :composeApp:wasmJsBrowserDevelopmentRun  # web, on http://localhost:8080
+./gradlew :androidApp:installDebug                 # Android device or emulator
+./gradlew :composeApp:jvmTest                      # tests
 ```
 
-📖 **Documentation:**
-- [VERSION_MANAGEMENT.md](.github/VERSION_MANAGEMENT.md) - Complete guide
-- [VERSION_QUICK_REFERENCE.md](.github/VERSION_QUICK_REFERENCE.md) - Quick commands
-- [RELEASE_GUIDE.md](.github/RELEASE_GUIDE.md) - Release process
+For iOS, open `iosApp/iosApp.xcodeproj` in Xcode on a Mac.
 
----
+The code is a Kotlin Multiplatform / Compose Multiplatform project:
 
-## 📝 License
+- `composeApp`: all shared code (planner logic, screens, storage), plus the desktop, web and iOS entry points.
+- `androidApp`: the Android app shell (activity, manifest, icons, signing).
 
-This project is licensed under the **GNU Affero General Public License v3.0** (AGPL-3.0).
+Android Studio run configurations are included in `.run/`.
 
-This means:
-- ✅ You can use, modify, and distribute this software freely
-- ✅ If you modify and deploy this as a web service, you must share your changes
-- ✅ Commercial use is allowed
-- ✅ Patent grant included
+The version lives in `gradle.properties` (`project.version`). Releases are made by the Release workflow with semantic-release, which reads [Conventional Commits](https://www.conventionalcommits.org/) messages. See [CONTRIBUTING.md](CONTRIBUTING.md) and [.github/RELEASE_GUIDE.md](.github/RELEASE_GUIDE.md).
 
-See the [LICENSE](LICENSE) file for full details.
+## License
 
----
-
-## 🙏 Credits
-
-- **Game:** [Hollywood Animal](https://store.steampowered.com/app/2680550/Hollywood_Animal/) by [Weappy Studio](https://weappy-studio.com/)
-- **Framework:** [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) & [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
-
----
-
-<p align="center">
-  <b>🎬 Made with ❤️ for Hollywood Animal players 🎬</b>
-  <br>
-</p>
+[AGPL-3.0](LICENSE). Fan-made and not affiliated with Weappy Studio, the developer of Hollywood Animal.
