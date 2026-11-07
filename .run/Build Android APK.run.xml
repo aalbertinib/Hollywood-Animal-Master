@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":composeApp:assembleDebug" />
+          <option value=":androidApp:assembleDebug" />
         </list>
       </option>
       <option name="vmOptions" value="" />

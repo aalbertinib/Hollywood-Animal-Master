@@ -86,10 +86,10 @@ Before pushing, test locally:
 
 ```bash
 # Run unit tests
-./gradlew :composeApp:testReleaseUnitTest
+./gradlew :composeApp:jvmTest
 
 # Build all platforms (requires platform-specific setup)
-./gradlew :composeApp:assembleDebug
+./gradlew :androidApp:assembleDebug
 ./gradlew :composeApp:compileKotlinJvm
 ./gradlew :composeApp:wasmJsBrowserDistribution
 ```

@@ -11,7 +11,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextReplacement
-import androidx.compose.ui.test.runDesktopComposeUiTest
+import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import org.aalbertini.ham.core.util.format.grouped
 import org.aalbertini.ham.features.movie_distribution.domain.calculator.DistributionPlanner
 import org.aalbertini.ham.features.movie_distribution.domain.model.DistributionMethod

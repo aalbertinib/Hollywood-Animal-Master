@@ -141,7 +141,7 @@ gradle.properties (project.version=1.0.0)
 nano gradle.properties  # Change project.version=1.1.0
 
 # Build normally - version applied automatically
-./gradlew :composeApp:assembleDebug
+./gradlew :androidApp:assembleDebug
 ./gradlew :composeApp:packageDistributionForCurrentOS
 ```
 
@@ -287,7 +287,7 @@ $ .\scripts\get-version.ps1
    ./gradlew :composeApp:printVersion
    
    # Build
-   ./gradlew :composeApp:assembleDebug
+   ./gradlew :androidApp:assembleDebug
    ```
 
 2. **Create first release:**

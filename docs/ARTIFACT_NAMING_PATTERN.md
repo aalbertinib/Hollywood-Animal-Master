@@ -95,7 +95,7 @@ assets:
     label: "macOS Apple Silicon (ARM64)"
   - path: "composeApp/build/compose/binaries/main/Hollywood-Animal-Master-*-Linux-x64.zip"
     label: "Linux (x64)"
-  - path: "composeApp/build/outputs/apk/release/Hollywood-Animal-Master-*-Android-Universal.apk"
+  - path: "androidApp/build/outputs/apk/release/Hollywood-Animal-Master-*-Android-Universal.apk"
     label: "Android (Universal APK)"
   - path: "composeApp/build/dist/wasmJs/productionExecutable/Hollywood-Animal-Master-*-Web.zip"
     label: "Web (WASM)"
@@ -183,7 +183,7 @@ To test the naming pattern locally:
 ```bash
 # Build all artifacts
 ./gradlew packageDistributionForCurrentOS
-./gradlew :composeApp:assembleRelease
+./gradlew :androidApp:assembleRelease
 ./gradlew :composeApp:wasmJsBrowserDistribution
 
 # Check artifact names (they should be created with current version from gradle.properties)

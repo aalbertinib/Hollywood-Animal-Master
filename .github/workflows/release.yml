@@ -26,7 +26,7 @@ permissions:
 env:
   APP_NAME: Hollywood-Animal-Master
   JAVA_VERSION: '21'
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
 
 jobs:
@@ -37,10 +37,10 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       
     - name: Setup JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v6
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
@@ -49,7 +49,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -58,11 +58,11 @@ jobs:
       run: ./gradlew kotlinUpgradePackageLock kotlinWasmUpgradePackageLock --no-build-cache --rerun-tasks
 
     - name: Run Tests
-      run: ./gradlew :composeApp:testReleaseUnitTest --stacktrace
+      run: ./gradlew :composeApp:jvmTest --stacktrace
       
     - name: Upload Test Results
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: test-results
         path: |
@@ -94,16 +94,16 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       
     - name: Setup JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v6
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
         
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -139,7 +139,7 @@ jobs:
         fi
         
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: desktop-${{ matrix.platform }}-${{ matrix.arch }}
         path: composeApp/build/compose/binaries/main/*.zip
@@ -152,16 +152,16 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       
     - name: Setup JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v6
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
         
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -191,19 +191,19 @@ jobs:
         fi
       
     - name: Build APK
-      run: ./gradlew :composeApp:assembleRelease
+      run: ./gradlew :androidApp:assembleRelease
       
     - name: Rename APK
       run: |
         VERSION="${{ steps.version.outputs.app_version }}"
-        cd composeApp/build/outputs/apk/release
+        cd androidApp/build/outputs/apk/release
         mv *.apk "${{ env.APP_NAME }}-${VERSION}-Android-Universal.apk"
         
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: android
-        path: composeApp/build/outputs/apk/release/*.apk
+        path: androidApp/build/outputs/apk/release/*.apk
         retention-days: 7
 
   build-web:
@@ -216,16 +216,16 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       
     - name: Setup JDK ${{ env.JAVA_VERSION }}
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v6
       with:
         distribution: 'temurin'
         java-version: ${{ env.JAVA_VERSION }}
         
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      uses: gradle/actions/setup-gradle@v6
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -250,7 +250,7 @@ jobs:
         zip -r "${{ env.APP_NAME }}-${VERSION}-Web.zip" *
         
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: web
         path: composeApp/build/dist/wasmJs/productionExecutable/*.zip
@@ -267,13 +267,13 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         fetch-depth: 0
         persist-credentials: false
       
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
@@ -282,14 +282,14 @@ jobs:
       run: npm ci
       
     - name: Download Artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         path: artifacts/
         
     - name: Organize Artifacts
       run: |
         mkdir -p composeApp/build/compose/binaries/main
-        mkdir -p composeApp/build/outputs/apk/release
+        mkdir -p androidApp/build/outputs/apk/release
         mkdir -p composeApp/build/dist/wasmJs/productionExecutable
         
         # Copy all desktop architectures
@@ -299,11 +299,11 @@ jobs:
         cp artifacts/desktop-Linux-x64/*.zip composeApp/build/compose/binaries/main/ 2>/dev/null || true
         
         # Copy Android and Web
-        cp artifacts/android/*.apk composeApp/build/outputs/apk/release/ 2>/dev/null || true
+        cp artifacts/android/*.apk androidApp/build/outputs/apk/release/ 2>/dev/null || true
         cp artifacts/web/*.zip composeApp/build/dist/wasmJs/productionExecutable/ 2>/dev/null || true
         
         echo "📦 Release assets:"
-        find composeApp/build -type f \( -name "*.zip" -o -name "*.apk" \) -exec basename {} \;
+        find composeApp/build androidApp/build -type f \( -name "*.zip" -o -name "*.apk" \) -exec basename {} \;
       
     - name: Run Semantic Release
       id: semantic
@@ -348,15 +348,15 @@ jobs:
     
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       
     - name: Download All Artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         path: artifacts/
         
     - name: Upload Release Assets
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         tag_name: v${{ needs.release.outputs.new_release_version }}
         files: |
