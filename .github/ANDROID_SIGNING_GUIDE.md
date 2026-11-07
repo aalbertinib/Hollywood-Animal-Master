@@ -341,7 +341,7 @@ The file `.github/workflows/release.yml` already contains:
   run: |
     if [ -n "${{ secrets.KEYSTORE_BASE64 }}" ]; then
       echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
-      ./gradlew :composeApp:assembleRelease \
+      ./gradlew :androidApp:assembleRelease \
         -Pandroid.injected.signing.store.file=$(pwd)/keystore.jks \
         -Pandroid.injected.signing.store.password="${{ secrets.KEYSTORE_PASSWORD }}" \
         -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" \

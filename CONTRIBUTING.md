@@ -59,16 +59,16 @@ cd Hollywood-Animal-Master
 
 ```bash
 # Build debug APK
-./gradlew :composeApp:assembleDebug
+./gradlew :androidApp:assembleDebug
 
 # Build release APK
-./gradlew :composeApp:assembleRelease
+./gradlew :androidApp:assembleRelease
 
 # Install to connected device
-./gradlew :composeApp:installDebug
+./gradlew :androidApp:installDebug
 ```
 
-APK location: `composeApp/build/outputs/apk/`
+APK location: `androidApp/build/outputs/apk/`
 
 ### Web (WASM)
 

@@ -192,7 +192,7 @@ Write-Host "Current version: $version"
 - `versionName`: Read directly from `project.version`
 - `versionCode`: Calculated from semantic version
 
-**Location:** `composeApp/build.gradle.kts`
+**Location:** `androidApp/build.gradle.kts` (the Android app module; shared code is in `composeApp`)
 
 ```kotlin
 val appVersion = project.findProperty("project.version") as String? ?: "1.0.0"
@@ -312,7 +312,7 @@ compose.desktop {
 **Solution:**
 ```bash
 ./gradlew clean
-./gradlew :composeApp:assembleDebug
+./gradlew :androidApp:assembleDebug
 ```
 
 ### iOS Version Out of Sync

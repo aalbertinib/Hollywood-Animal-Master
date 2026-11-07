@@ -97,12 +97,12 @@ keytool -genkey -v \
 Build a signed release APK:
 
 ```bash
-./gradlew :composeApp:assembleRelease
+./gradlew :androidApp:assembleRelease
 ```
 
 The signed APK will be in:
 ```
-composeApp/build/outputs/apk/release/composeApp-release.apk
+androidApp/build/outputs/apk/release/androidApp-release.apk
 ```
 
 ---
@@ -268,10 +268,10 @@ storeFile=/Users/yourname/secure/hollywood-animal-master.jks
 
 ```bash
 # Build debug (no signing needed)
-./gradlew :composeApp:assembleDebug
+./gradlew :androidApp:assembleDebug
 
 # Build signed release
-./gradlew :composeApp:assembleRelease
+./gradlew :androidApp:assembleRelease
 
 # Build and install on device
 ./gradlew :composeApp:installRelease

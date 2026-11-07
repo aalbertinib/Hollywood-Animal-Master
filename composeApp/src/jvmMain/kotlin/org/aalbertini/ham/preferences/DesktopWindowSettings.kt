@@ -3,9 +3,8 @@ package org.aalbertini.ham.preferences
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.aalbertini.ham.storage.StorageProvider
+import org.aalbertini.ham.core.data.storage.StorageProvider
 import java.util.concurrent.atomic.AtomicReference
 
 /**
@@ -69,7 +68,8 @@ class DesktopWindowSettings(
      */
     fun loadWindowSize(defaultSize: DpSize): DpSize {
         return try {
-            val jsonString = storage.loadData(SETTINGS_KEY)
+            // Blank after "Reset window size".
+            val jsonString = storage.loadData(SETTINGS_KEY)?.takeIf { it.isNotBlank() }
             if (jsonString != null) {
                 val settingsData = json.decodeFromString<DesktopSettingsData>(jsonString)
                 val size = DpSize(settingsData.windowWidth.dp, settingsData.windowHeight.dp)
