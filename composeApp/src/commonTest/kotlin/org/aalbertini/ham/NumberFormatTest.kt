@@ -1,6 +1,7 @@
 package org.aalbertini.ham
 
 import org.aalbertini.ham.core.util.format.grouped
+import org.aalbertini.ham.core.util.format.signedGrouped
 import org.aalbertini.ham.core.util.format.toPlainString
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,6 +14,13 @@ class NumberFormatTest {
         assertEquals("999", 999L.grouped())
         assertEquals("12,345", 12345L.grouped())
         assertEquals("-1,200", (-1200L).grouped())
+    }
+
+    @Test
+    fun signedGrouped_showsDirection() {
+        assertEquals("+2,400", 2400L.signedGrouped())
+        assertEquals("−1,200", (-1200L).signedGrouped())
+        assertEquals("0", 0L.signedGrouped())
     }
 
     @Test

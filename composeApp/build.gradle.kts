@@ -120,6 +120,7 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             implementation(libs.materialkolor)
             implementation(libs.compose.adaptive)
+            implementation(libs.compose.backhandler)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

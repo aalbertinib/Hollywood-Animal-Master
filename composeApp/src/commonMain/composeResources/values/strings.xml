@@ -141,6 +141,32 @@
     <string name="library_current">Open in planner</string>
     <string name="library_open_tag">Open</string>
     <string name="library_clear_title">Delete all movies?</string>
+
+    <!-- Compare -->
+    <string name="action_compare_movies">Compare movies</string>
+    <string name="action_compare">Compare</string>
+    <string name="action_cancel_selection">Cancel selection</string>
+    <string name="action_back">Back</string>
+    <string name="compare_select_title">Select movies</string>
+    <plurals name="compare_selected">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <string name="compare_select_hint">Pick %1$d to %2$d movies. The first one you pick is the reference: the others show their difference from it.</string>
+    <string name="compare_title">Compare</string>
+    <string name="compare_overview">Overview</string>
+    <string name="compare_weeks">To rent per week</string>
+    <string name="compare_reference">Reference</string>
+    <string name="compare_open">Open %1$s in planner</string>
+    <string name="compare_row_method">Method</string>
+    <string name="compare_row_scores">Commercial / artistic</string>
+    <string name="compare_row_own">Own per week</string>
+    <string name="compare_row_run">Run</string>
+    <string name="compare_row_total">To rent</string>
+    <string name="compare_row_peak">Peak demand</string>
+    <string name="compare_row_after_week_four">After week 4</string>
+    <string name="compare_row_ran">Weeks ran</string>
+    <string name="compare_tip">To compare methods for one movie, duplicate it in the Library and change the method of the copy.</string>
     <plurals name="library_clear_body">
         <item quantity="one">This removes %1$d saved movie from this device. It can’t be undone. Export the library first to keep a copy.</item>
         <item quantity="other">This removes %1$d saved movies from this device. It can’t be undone. Export the library first to keep a copy.</item>

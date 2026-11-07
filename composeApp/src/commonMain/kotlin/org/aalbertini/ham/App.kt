@@ -7,7 +7,10 @@ import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.automirrored.outlined.CompareArrows
 import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.DeleteSweep
@@ -65,13 +68,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import hollywoodanimalmaster.composeapp.generated.resources.Res
+import hollywoodanimalmaster.composeapp.generated.resources.action_back
 import hollywoodanimalmaster.composeapp.generated.resources.action_cancel
+import hollywoodanimalmaster.composeapp.generated.resources.action_cancel_selection
+import hollywoodanimalmaster.composeapp.generated.resources.action_compare
+import hollywoodanimalmaster.composeapp.generated.resources.action_compare_movies
+import hollywoodanimalmaster.composeapp.generated.resources.compare_select_title
+import hollywoodanimalmaster.composeapp.generated.resources.compare_selected
+import hollywoodanimalmaster.composeapp.generated.resources.compare_title
 import hollywoodanimalmaster.composeapp.generated.resources.action_copy
 import hollywoodanimalmaster.composeapp.generated.resources.action_delete_all
 import hollywoodanimalmaster.composeapp.generated.resources.action_export
@@ -114,11 +126,13 @@ import org.aalbertini.ham.core.util.format.grouped
 import org.aalbertini.ham.core.util.format.toPlainString
 import org.aalbertini.ham.features.guide.GuideScreen
 import org.aalbertini.ham.features.movie_distribution.data.repository.ImportResult
+import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieComparison
 import org.aalbertini.ham.features.movie_distribution.presentation.PlannerMessage
 import org.aalbertini.ham.features.movie_distribution.presentation.PlannerUiState
 import org.aalbertini.ham.features.movie_distribution.presentation.PlannerViewModel
 import org.aalbertini.ham.features.movie_distribution.presentation.components.ImportDialog
 import org.aalbertini.ham.features.movie_distribution.presentation.components.titleRes
+import org.aalbertini.ham.features.movie_distribution.presentation.screen.CompareScreen
 import org.aalbertini.ham.features.movie_distribution.presentation.screen.LibraryScreen
 import org.aalbertini.ham.features.movie_distribution.presentation.screen.PlanScreen
 import org.aalbertini.ham.features.settings.presentation.SettingsScreen
@@ -142,7 +156,7 @@ private enum class Destination(val label: StringResource, val icon: ImageVector,
  * Root composable shared by every platform.
  * Desktop passes its window callbacks; other platforms leave them null and the section is hidden.
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun App(
     alwaysOnTop: Boolean = false,
@@ -157,6 +171,22 @@ fun App(
         var destination by rememberSaveable { mutableStateOf(Destination.PLAN) }
         var confirmClear by remember { mutableStateOf(false) }
         var importOpen by remember { mutableStateOf(false) }
+        // Library sub-modes: picking movies (in pick order: the first is the reference), then comparing them.
+        var selection by rememberSaveable { mutableStateOf<List<String>?>(null) }
+        var comparing by rememberSaveable { mutableStateOf<List<String>?>(null) }
+        val compared = comparing?.mapNotNull { id -> state.library.firstOrNull { it.id == id } }
+        // A compared movie was deleted or the library cleared: nothing left to compare.
+        LaunchedEffect(compared?.size) {
+            if (compared != null && compared.size < MovieComparison.MIN_MOVIES) comparing = null
+        }
+        val libraryMode = when {
+            compared != null -> LibraryMode.Comparing
+            selection != null -> LibraryMode.Selecting(selection!!.size)
+            else -> LibraryMode.Browse
+        }
+        BackHandler(enabled = destination == Destination.LIBRARY && libraryMode != LibraryMode.Browse) {
+            if (comparing != null) comparing = null else selection = null
+        }
         val snackbar = remember { SnackbarHostState() }
         val scope = rememberCoroutineScope()
         @Suppress("DEPRECATION") // LocalClipboard's ClipEntry has no common text constructor yet.
@@ -229,6 +259,11 @@ fun App(
                             }
                         },
                         onImport = { importOpen = true },
+                        libraryMode = libraryMode,
+                        onStartSelection = { selection = emptyList() },
+                        onCancelSelection = { selection = null },
+                        onCompare = { comparing = selection },
+                        onCloseComparison = { comparing = null },
                     )
                 },
                 snackbarHost = { SnackbarHost(snackbar) },
@@ -237,7 +272,16 @@ fun App(
                 val contentModifier = Modifier.padding(padding)
                 when (destination) {
                     Destination.PLAN -> PlanScreen(state, planner::edit, contentModifier)
-                    Destination.LIBRARY -> LibraryScreen(
+                    Destination.LIBRARY -> if (compared != null) {
+                        CompareScreen(
+                            movies = compared,
+                            onOpen = { id ->
+                                planner.open(id)
+                                destination = Destination.PLAN
+                            },
+                            modifier = contentModifier,
+                        )
+                    } else LibraryScreen(
                         movies = state.library,
                         currentId = state.movie.id,
                         onOpen = { id ->
@@ -253,6 +297,15 @@ fun App(
                         onDelete = planner::delete,
                         onImport = { importOpen = true },
                         modifier = contentModifier,
+                        selection = selection?.toSet(),
+                        onToggleSelection = { id ->
+                            val current = selection.orEmpty()
+                            selection = when {
+                                id in current -> current - id
+                                current.size < MovieComparison.MAX_MOVIES -> current + id
+                                else -> current
+                            }
+                        },
                     )
                     Destination.GUIDE -> GuideScreen(contentModifier)
                     Destination.SETTINGS -> SettingsScreen(
@@ -344,12 +397,35 @@ private fun AppTopBar(
     onClearLibrary: () -> Unit,
     onExport: () -> Unit,
     onImport: () -> Unit,
+    libraryMode: LibraryMode,
+    onStartSelection: () -> Unit,
+    onCancelSelection: () -> Unit,
+    onCompare: () -> Unit,
+    onCloseComparison: () -> Unit,
 ) {
+    val inLibrary = destination == Destination.LIBRARY
     TopAppBar(
+        navigationIcon = {
+            when {
+                !inLibrary -> Unit
+                libraryMode is LibraryMode.Selecting ->
+                    ActionIcon(Icons.Outlined.Close, stringResource(Res.string.action_cancel_selection), onCancelSelection)
+                libraryMode == LibraryMode.Comparing ->
+                    ActionIcon(Icons.AutoMirrored.Outlined.ArrowBack, stringResource(Res.string.action_back), onCloseComparison)
+            }
+        },
         title = {
             val title = when (destination) {
                 Destination.PLAN -> state.movie.title.ifBlank { stringResource(Res.string.plan_title) }
-                Destination.LIBRARY -> stringResource(Res.string.library_title)
+                Destination.LIBRARY -> when (libraryMode) {
+                    LibraryMode.Browse -> stringResource(Res.string.library_title)
+                    is LibraryMode.Selecting -> if (libraryMode.count == 0) {
+                        stringResource(Res.string.compare_select_title)
+                    } else {
+                        pluralStringResource(Res.plurals.compare_selected, libraryMode.count, libraryMode.count)
+                    }
+                    LibraryMode.Comparing -> stringResource(Res.string.compare_title)
+                }
                 Destination.GUIDE -> stringResource(Res.string.guide_title)
                 Destination.SETTINGS -> stringResource(Res.string.settings_title)
             }
@@ -372,12 +448,25 @@ private fun AppTopBar(
                         FilledTonalButton(onClick = onSave) { Text(stringResource(Res.string.action_save)) }
                     }
                 }
-                Destination.LIBRARY -> LibraryMenu(
-                    hasMovies = state.library.isNotEmpty(),
-                    onExport = onExport,
-                    onImport = onImport,
-                    onClearLibrary = onClearLibrary,
-                )
+                Destination.LIBRARY -> when (libraryMode) {
+                    LibraryMode.Browse -> {
+                        if (state.library.size >= MovieComparison.MIN_MOVIES) {
+                            ActionIcon(Icons.AutoMirrored.Outlined.CompareArrows, stringResource(Res.string.action_compare_movies), onStartSelection)
+                        }
+                        LibraryMenu(
+                            hasMovies = state.library.isNotEmpty(),
+                            onExport = onExport,
+                            onImport = onImport,
+                            onClearLibrary = onClearLibrary,
+                        )
+                    }
+                    is LibraryMode.Selecting -> FilledTonalButton(
+                        onClick = onCompare,
+                        enabled = libraryMode.count in MovieComparison.MIN_MOVIES..MovieComparison.MAX_MOVIES,
+                        modifier = Modifier.padding(end = 8.dp),
+                    ) { Text(stringResource(Res.string.action_compare)) }
+                    LibraryMode.Comparing -> Unit
+                }
                 Destination.GUIDE, Destination.SETTINGS -> Unit
             }
         },
@@ -395,6 +484,13 @@ private fun ActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
     ) {
         IconButton(onClick = onClick) { Icon(icon, contentDescription = label) }
     }
+}
+
+/** What the Library destination shows: the list, the list with checkboxes, or the comparison. */
+private sealed interface LibraryMode {
+    data object Browse : LibraryMode
+    data class Selecting(val count: Int) : LibraryMode
+    data object Comparing : LibraryMode
 }
 
 /** Backup and bulk actions; rare enough to live in one overflow menu. */

@@ -2,6 +2,7 @@ package org.aalbertini.ham.features.movie_distribution.presentation.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -49,6 +52,7 @@ import hollywoodanimalmaster.composeapp.generated.resources.Res
 import hollywoodanimalmaster.composeapp.generated.resources.action_delete
 import hollywoodanimalmaster.composeapp.generated.resources.action_duplicate
 import hollywoodanimalmaster.composeapp.generated.resources.action_more
+import hollywoodanimalmaster.composeapp.generated.resources.compare_select_hint
 import hollywoodanimalmaster.composeapp.generated.resources.library_current
 import hollywoodanimalmaster.composeapp.generated.resources.library_empty_body
 import hollywoodanimalmaster.composeapp.generated.resources.library_empty_import
@@ -61,6 +65,7 @@ import hollywoodanimalmaster.composeapp.generated.resources.untitled_movie
 import org.aalbertini.ham.core.util.format.grouped
 import org.aalbertini.ham.core.util.format.toPlainString
 import org.aalbertini.ham.features.movie_distribution.domain.calculator.DistributionPlanner
+import org.aalbertini.ham.features.movie_distribution.domain.calculator.MovieComparison
 import org.aalbertini.ham.features.movie_distribution.domain.model.MovieResult
 import org.aalbertini.ham.features.movie_distribution.presentation.components.Tag
 import org.aalbertini.ham.features.movie_distribution.presentation.components.titleRes
@@ -75,6 +80,8 @@ fun LibraryScreen(
     onDelete: (String) -> Unit,
     onImport: () -> Unit,
     modifier: Modifier = Modifier,
+    selection: Set<String>? = null,
+    onToggleSelection: (String) -> Unit = {},
 ) {
     if (movies.isEmpty()) {
         EmptyState(
@@ -105,6 +112,16 @@ fun LibraryScreen(
                 modifier = Modifier.fillMaxWidth().widthIn(max = 720.dp),
             )
         }
+        if (selection != null) {
+            item(key = "compare-hint") {
+                Text(
+                    stringResource(Res.string.compare_select_hint, MovieComparison.MIN_MOVIES, MovieComparison.MAX_MOVIES),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth().widthIn(max = 720.dp).padding(horizontal = 4.dp),
+                )
+            }
+        }
         if (filtered.isEmpty()) {
             item(key = "no-results") {
                 Text(
@@ -116,14 +133,26 @@ fun LibraryScreen(
             }
         }
         items(filtered, key = { it.id }) { movie ->
-            LibraryItem(
-                movie = movie,
-                isCurrent = movie.id == currentId,
-                onOpen = { onOpen(movie.id) },
-                onDuplicate = { onDuplicate(movie.id) },
-                onDelete = { onDelete(movie.id) },
-                modifier = Modifier.widthIn(max = 720.dp),
-            )
+            if (selection != null) {
+                val selected = movie.id in selection
+                SelectableLibraryItem(
+                    movie = movie,
+                    selected = selected,
+                    // Full: the others are disabled rather than silently ignored.
+                    enabled = selected || selection.size < MovieComparison.MAX_MOVIES,
+                    onToggle = { onToggleSelection(movie.id) },
+                    modifier = Modifier.widthIn(max = 720.dp),
+                )
+            } else {
+                LibraryItem(
+                    movie = movie,
+                    isCurrent = movie.id == currentId,
+                    onOpen = { onOpen(movie.id) },
+                    onDuplicate = { onDuplicate(movie.id) },
+                    onDelete = { onDelete(movie.id) },
+                    modifier = Modifier.widthIn(max = 720.dp),
+                )
+            }
         }
     }
 }
@@ -164,16 +193,7 @@ private fun LibraryItem(
                     if (isCurrent) Tag(stringResource(Res.string.library_open_tag), emphasized = true)
                 }
             },
-            supportingContent = {
-                Text(
-                    stringResource(
-                        Res.string.library_item_supporting,
-                        movie.commercialScore.toPlainString(1),
-                        stringResource(movie.method.titleRes),
-                        totalRent.grouped(),
-                    )
-                )
-            },
+            supportingContent = { Text(supportingText(movie, totalRent)) },
             trailingContent = {
                 Box {
                     var menuOpen by remember { mutableStateOf(false) }
@@ -197,6 +217,47 @@ private fun LibraryItem(
         )
     }
 }
+
+/** Library row while picking movies to compare: the whole row toggles its checkbox. */
+@Composable
+private fun SelectableLibraryItem(
+    movie: MovieResult,
+    selected: Boolean,
+    enabled: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val totalRent = remember(movie) { DistributionPlanner.plan(movie).totalRent }
+    val containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = MaterialTheme.shapes.large,
+    ) {
+        ListItem(
+            modifier = Modifier.toggleable(value = selected, enabled = enabled, role = Role.Checkbox, onValueChange = { onToggle() }),
+            colors = ListItemDefaults.colors(containerColor = containerColor),
+            leadingContent = { Checkbox(checked = selected, onCheckedChange = null, enabled = enabled) },
+            headlineContent = {
+                Text(
+                    movie.title.ifBlank { stringResource(Res.string.untitled_movie) },
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = if (enabled) Color.Unspecified else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+            supportingContent = { Text(supportingText(movie, totalRent)) },
+        )
+    }
+}
+
+@Composable
+private fun supportingText(movie: MovieResult, totalRent: Long): String = stringResource(
+    Res.string.library_item_supporting,
+    movie.commercialScore.toPlainString(1),
+    stringResource(movie.method.titleRes),
+    totalRent.grouped(),
+)
 
 @Composable
 private fun EmptyState(title: String, body: String, onImport: () -> Unit, modifier: Modifier = Modifier) {
