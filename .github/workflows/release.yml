@@ -30,6 +30,49 @@ env:
   GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
 
 jobs:
+  # Work out the version this run will release, before anything is built.
+  # semantic-release bumps gradle.properties only after the builds, so without this
+  # the binaries would carry the previous version.
+  version:
+    name: Next Version
+    runs-on: ubuntu-latest
+    outputs:
+      next: ${{ steps.next.outputs.next }}
+      app_version: ${{ steps.next.outputs.app_version }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Compute next version (semantic-release dry run)
+      id: next
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -o pipefail
+        npx semantic-release --dry-run 2>&1 | tee semantic-release-dry-run.log
+        NEXT=$(sed -n 's/.*The next release version is \([0-9][0-9A-Za-z.+-]*\).*/\1/p' semantic-release-dry-run.log | tail -n 1)
+        CURRENT=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        echo "next=$NEXT" >> "$GITHUB_OUTPUT"
+        echo "app_version=${NEXT:-$CURRENT}" >> "$GITHUB_OUTPUT"
+        if [ -n "$NEXT" ]; then
+          echo "### 📦 Next release: v$NEXT" >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo "### ℹ️ Nothing to release: no feat/fix/breaking commit since the last tag" >> "$GITHUB_STEP_SUMMARY"
+        fi
+
   # Run tests first
   test:
     name: Unit Tests
@@ -73,7 +116,8 @@ jobs:
   # Build artifacts in parallel
   build-desktop:
     name: Desktop (${{ matrix.platform }}-${{ matrix.arch }})
-    needs: test
+    needs: [test, version]
+    if: needs.version.outputs.next != ''
     strategy:
       matrix:
         include:
@@ -112,7 +156,7 @@ jobs:
       id: version
       shell: bash
       run: |
-        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        VERSION="${{ needs.version.outputs.app_version }}"
         echo "app_version=$VERSION" >> $GITHUB_OUTPUT
         echo "📦 Version: $VERSION"
       
@@ -120,9 +164,9 @@ jobs:
       shell: bash
       run: |
         if [ "$RUNNER_OS" == "Windows" ]; then
-          ./gradlew.bat :composeApp:packageDistributionForCurrentOS
+          ./gradlew.bat :composeApp:packageDistributionForCurrentOS -Pproject.version="${{ steps.version.outputs.app_version }}"
         else
-          ./gradlew :composeApp:packageDistributionForCurrentOS
+          ./gradlew :composeApp:packageDistributionForCurrentOS -Pproject.version="${{ steps.version.outputs.app_version }}"
         fi
       
     - name: Package Artifacts
@@ -147,7 +191,8 @@ jobs:
 
   build-android:
     name: Android APK
-    needs: test
+    needs: [test, version]
+    if: needs.version.outputs.next != ''
     runs-on: ubuntu-latest
     
     steps:
@@ -169,7 +214,7 @@ jobs:
     - name: Extract Version
       id: version
       run: |
-        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        VERSION="${{ needs.version.outputs.app_version }}"
         echo "app_version=$VERSION" >> $GITHUB_OUTPUT
         echo "📦 Version: $VERSION"
       
@@ -191,7 +236,7 @@ jobs:
         fi
       
     - name: Build APK
-      run: ./gradlew :androidApp:assembleRelease
+      run: ./gradlew :androidApp:assembleRelease -Pproject.version="${{ steps.version.outputs.app_version }}"
       
     - name: Rename APK
       run: |
@@ -208,7 +253,8 @@ jobs:
 
   build-web:
     name: Web WASM
-    needs: test
+    needs: [test, version]
+    if: needs.version.outputs.next != ''
     runs-on: ubuntu-latest
     
     env:
@@ -233,7 +279,7 @@ jobs:
     - name: Extract Version
       id: version
       run: |
-        VERSION=$(grep "^project.version=" gradle.properties | cut -d'=' -f2)
+        VERSION="${{ needs.version.outputs.app_version }}"
         echo "app_version=$VERSION" >> $GITHUB_OUTPUT
         echo "📦 Version: $VERSION"
 
@@ -241,7 +287,7 @@ jobs:
       run: ./gradlew kotlinUpgradePackageLock kotlinWasmUpgradePackageLock --no-build-cache --rerun-tasks
 
     - name: Build Web
-      run: ./gradlew :composeApp:wasmJsBrowserDistribution
+      run: ./gradlew :composeApp:wasmJsBrowserDistribution -Pproject.version="${{ steps.version.outputs.app_version }}"
       
     - name: Package Artifacts
       run: |
@@ -259,7 +305,7 @@ jobs:
   # Semantic Release - creates tag and GitHub release with all artifacts
   release:
     name: Create Release
-    needs: [build-desktop, build-android, build-web]
+    needs: [version, build-desktop, build-android, build-web]
     runs-on: ubuntu-latest
     outputs:
       new_release_published: ${{ steps.semantic.outputs.new_release_published }}
@@ -315,15 +361,18 @@ jobs:
         GIT_COMMITTER_EMAIL: semantic-release-bot@users.noreply.github.com
       run: |
         npx semantic-release
-        
+
+        # Only a tag created by this run counts: an older tag must not receive these assets.
+        EXPECTED="v${{ needs.version.outputs.next }}"
         LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-        if [ -n "$LATEST_TAG" ]; then
+        if git rev-parse -q --verify "refs/tags/$EXPECTED" >/dev/null && [ "$LATEST_TAG" = "$EXPECTED" ]; then
           echo "new_release_published=true" >> $GITHUB_OUTPUT
-          echo "new_release_version=${LATEST_TAG#v}" >> $GITHUB_OUTPUT
-          echo "✅ Release: $LATEST_TAG"
+          echo "new_release_version=${EXPECTED#v}" >> $GITHUB_OUTPUT
+          echo "✅ Release: $EXPECTED"
         else
           echo "new_release_published=false" >> $GITHUB_OUTPUT
-          echo "⚠️ No release created"
+          echo "::error::Expected semantic-release to create $EXPECTED (built into the assets) but the latest tag is '$LATEST_TAG'. Nothing uploaded; re-run the workflow."
+          exit 1
         fi
       
     - name: Summary

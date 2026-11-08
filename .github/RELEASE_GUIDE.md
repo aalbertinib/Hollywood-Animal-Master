@@ -2,6 +2,19 @@
 
 This document explains how to use the GitHub Actions CI/CD pipelines for Hollywood Animals Master.
 
+## How a release works now
+
+You don't edit the version by hand. Run the **Release** workflow on `main` (Actions → Release → Run workflow):
+
+1. **Next Version** runs `semantic-release --dry-run`. It reads the commit messages since the last tag ([Conventional Commits](https://www.conventionalcommits.org/)): `fix:`, `perf:` or `revert:` give a patch, `feat:` a minor, `feat!:` or a `BREAKING CHANGE:` footer a major. Other types (`docs:`, `ci:`, `build:`, `chore:`…) don't release anything, and the run stops there.
+2. The tests run, then the desktop, Android and web builds, all built with that version (`-Pproject.version=…`), so file names, the Android version code and the installers match the release.
+3. **Create Release** runs semantic-release for real: tag, GitHub release, changelog, and a `chore(release)` commit that updates `gradle.properties`.
+4. The files are uploaded to that release and the web app is deployed to GitHub Pages.
+
+Re-running the workflow when there is nothing new to release does nothing; it no longer re-uploads files to the previous release.
+
+The manual steps further down predate semantic-release; prefer the workflow above.
+
 ## 📋 Table of Contents
 
 - [Overview](#overview)
